@@ -1,0 +1,2703 @@
+{
+ "categories": [
+  {
+   "id": "kitchen",
+   "name": "Kitchen",
+   "icon": "🍳"
+  },
+  {
+   "id": "bathroom",
+   "name": "Bathroom",
+   "icon": "🛁"
+  },
+  {
+   "id": "bedroom",
+   "name": "Bedroom",
+   "icon": "🛏️"
+  },
+  {
+   "id": "living",
+   "name": "Living room",
+   "icon": "🛋️"
+  },
+  {
+   "id": "hobbies",
+   "name": "Hobbies",
+   "icon": "🎸"
+  },
+  {
+   "id": "outdoor",
+   "name": "Garden",
+   "icon": "🌱"
+  },
+  {
+   "id": "lighting",
+   "name": "Lighting",
+   "icon": "💡"
+  },
+  {
+   "id": "decor",
+   "name": "Decor",
+   "icon": "🪴"
+  },
+  {
+   "id": "market",
+   "name": "Market finds",
+   "icon": "🧺"
+  },
+  {
+   "id": "rewards",
+   "name": "Rewards",
+   "icon": "🏆"
+  }
+ ],
+ "objects": [
+  {
+   "id": "fridge",
+   "name": "Cold Comfort Fridge",
+   "category": "kitchen",
+   "price": 500,
+   "footprint": [
+    1,
+    1
+   ],
+   "decor": 0,
+   "description": "Keeps food cold and snacks close.",
+   "spots": [
+    {
+     "at": [
+      0,
+      1
+     ]
+    }
+   ],
+   "interactions": [
+    {
+     "id": "snack",
+     "name": "Grab a snack",
+     "icon": "🍎",
+     "duration": 12,
+     "effects": {
+      "hunger": 22
+     },
+     "anim": "eat",
+     "tags": [
+      "food"
+     ],
+     "moodlet": "tasty_snack",
+     "visitor": true
+    },
+    {
+     "id": "sandwich",
+     "name": "Make a sandwich",
+     "icon": "🥪",
+     "duration": 15,
+     "anim": "cook",
+     "skill": "cooking",
+     "skillRate": 20,
+     "tags": [
+      "food",
+      "cooking"
+     ],
+     "then": {
+      "label": "Eat sandwich",
+      "anim": "eat",
+      "duration": 20,
+      "effects": {
+       "hunger": 45
+      },
+      "tags": [
+       "food"
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "id": "stove",
+   "name": "Hob & Oven",
+   "category": "kitchen",
+   "price": 400,
+   "footprint": [
+    1,
+    1
+   ],
+   "decor": 0,
+   "description": "Cook proper meals. Better cooks make tastier food.",
+   "spots": [
+    {
+     "at": [
+      0,
+      1
+     ]
+    }
+   ],
+   "interactions": [
+    {
+     "id": "cook",
+     "name": "Cook a meal",
+     "icon": "🍲",
+     "duration": 40,
+     "anim": "cook",
+     "skill": "cooking",
+     "skillRate": 45,
+     "tags": [
+      "food",
+      "cooking"
+     ],
+     "dirties": 25,
+     "counter": "meals",
+     "then": {
+      "label": "Eat meal",
+      "anim": "eat",
+      "duration": 30,
+      "effects": {
+       "hunger": 70,
+       "fun": 5
+      },
+      "tags": [
+       "food"
+      ],
+      "moodlet": "great_meal",
+      "moodletMinSkill": 3
+     }
+    },
+    {
+     "id": "clean",
+     "name": "Clean the hob",
+     "icon": "🧽",
+     "duration": 20,
+     "anim": "use",
+     "condition": "dirty",
+     "cleans": true,
+     "tags": [
+      "cleaning"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "range",
+   "name": "Heritage Range Cooker",
+   "category": "kitchen",
+   "price": 1500,
+   "footprint": [
+    2,
+    1
+   ],
+   "decor": 2,
+   "description": "A proper range cooker. Cooking skill grows 50% faster and meals are heartier.",
+   "spots": [
+    {
+     "at": [
+      0,
+      1
+     ]
+    },
+    {
+     "at": [
+      1,
+      1
+     ]
+    }
+   ],
+   "interactions": [
+    {
+     "id": "cook",
+     "name": "Cook a feast",
+     "icon": "🍗",
+     "duration": 45,
+     "anim": "cook",
+     "skill": "cooking",
+     "skillRate": 70,
+     "tags": [
+      "food",
+      "cooking"
+     ],
+     "dirties": 20,
+     "counter": "meals",
+     "then": {
+      "label": "Eat feast",
+      "anim": "eat",
+      "duration": 30,
+      "effects": {
+       "hunger": 85,
+       "fun": 10
+      },
+      "tags": [
+       "food"
+      ],
+      "moodlet": "great_meal",
+      "moodletMinSkill": 1
+     }
+    },
+    {
+     "id": "clean",
+     "name": "Clean the cooker",
+     "icon": "🧽",
+     "duration": 20,
+     "anim": "use",
+     "condition": "dirty",
+     "cleans": true,
+     "tags": [
+      "cleaning"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "counter",
+   "name": "Worktop",
+   "category": "kitchen",
+   "price": 150,
+   "footprint": [
+    1,
+    1
+   ],
+   "decor": 0,
+   "description": "Somewhere to chop and prep.",
+   "spots": [
+    {
+     "at": [
+      0,
+      1
+     ]
+    }
+   ],
+   "interactions": [
+    {
+     "id": "prep",
+     "name": "Practise knife skills",
+     "icon": "🔪",
+     "duration": 30,
+     "anim": "cook",
+     "skill": "cooking",
+     "skillRate": 35,
+     "effects": {
+      "fun": 5
+     },
+     "tags": [
+      "cooking"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "kitchen_sink",
+   "name": "Kitchen Sink",
+   "category": "kitchen",
+   "price": 250,
+   "footprint": [
+    1,
+    1
+   ],
+   "decor": 0,
+   "description": "Wash hands and wash up.",
+   "spots": [
+    {
+     "at": [
+      0,
+      1
+     ]
+    }
+   ],
+   "interactions": [
+    {
+     "id": "wash",
+     "name": "Wash hands",
+     "icon": "🧼",
+     "duration": 5,
+     "effects": {
+      "hygiene": 12
+     },
+     "anim": "use",
+     "visitor": true
+    },
+    {
+     "id": "washup",
+     "name": "Wash up",
+     "icon": "🍽️",
+     "duration": 20,
+     "effects": {
+      "hygiene": -5
+     },
+     "anim": "use",
+     "tags": [
+      "cleaning"
+     ],
+     "cleansRoom": true
+    }
+   ]
+  },
+  {
+   "id": "coffee",
+   "name": "Coffee Station",
+   "category": "kitchen",
+   "price": 180,
+   "footprint": [
+    1,
+    1
+   ],
+   "decor": 1,
+   "description": "A quick pick-me-up.",
+   "spots": [
+    {
+     "at": [
+      0,
+      1
+     ]
+    }
+   ],
+   "interactions": [
+    {
+     "id": "coffee",
+     "name": "Make a coffee",
+     "icon": "☕",
+     "duration": 10,
+     "effects": {
+      "energy": 18,
+      "bladder": -10
+     },
+     "anim": "eat",
+     "moodlet": "caffeinated",
+     "visitor": true
+    }
+   ]
+  },
+  {
+   "id": "dining_table",
+   "name": "Farmhouse Table",
+   "category": "kitchen",
+   "price": 300,
+   "footprint": [
+    2,
+    1
+   ],
+   "decor": 1,
+   "surface": true,
+   "description": "Put chairs around it for family meals.",
+   "spots": [],
+   "interactions": []
+  },
+  {
+   "id": "dining_chair",
+   "name": "Dining Chair",
+   "category": "kitchen",
+   "price": 90,
+   "footprint": [
+    1,
+    1
+   ],
+   "decor": 0,
+   "seat": true,
+   "dining": true,
+   "seatHeight": 0.45,
+   "description": "Sit, eat, chat.",
+   "spots": [
+    {
+     "at": [
+      0,
+      1
+     ],
+     "alt": [
+      [
+       0,
+       -1
+      ],
+      [
+       1,
+       0
+      ],
+      [
+       -1,
+       0
+      ]
+     ],
+     "pose": [
+      0.5,
+      0.45
+     ]
+    }
+   ],
+   "interactions": [
+    {
+     "id": "sit",
+     "name": "Sit",
+     "icon": "🪑",
+     "duration": 30,
+     "effects": {
+      "comfort": 20
+     },
+     "anim": "sit",
+     "visitor": true,
+     "auto": false
+    }
+   ]
+  },
+  {
+   "id": "toilet",
+   "name": "Porcelain Throne",
+   "category": "bathroom",
+   "price": 200,
+   "footprint": [
+    1,
+    1
+   ],
+   "decor": 0,
+   "seatHeight": 0.42,
+   "description": "Fills Bladder. Needs a clean now and then.",
+   "spots": [
+    {
+     "at": [
+      0,
+      1
+     ],
+     "pose": [
+      0.5,
+      0.5
+     ],
+     "alt": [
+      [
+       1,
+       0
+      ],
+      [
+       -1,
+       0
+      ]
+     ]
+    }
+   ],
+   "interactions": [
+    {
+     "id": "use",
+     "name": "Use the toilet",
+     "icon": "🚽",
+     "duration": 12,
+     "effects": {
+      "bladder": 100
+     },
+     "untilFull": true,
+     "anim": "sit",
+     "dirties": 6,
+     "visitor": true,
+     "private": true
+    },
+    {
+     "id": "clean",
+     "name": "Clean the toilet",
+     "icon": "🧽",
+     "duration": 20,
+     "anim": "use",
+     "condition": "dirty",
+     "cleans": true,
+     "tags": [
+      "cleaning"
+     ],
+     "poseless": true
+    }
+   ]
+  },
+  {
+   "id": "shower",
+   "name": "Power Shower",
+   "category": "bathroom",
+   "price": 450,
+   "footprint": [
+    1,
+    1
+   ],
+   "decor": 0,
+   "description": "Quick and refreshing.",
+   "spots": [
+    {
+     "at": [
+      0,
+      1
+     ],
+     "pose": [
+      0.5,
+      0.5
+     ]
+    }
+   ],
+   "interactions": [
+    {
+     "id": "shower",
+     "name": "Take a shower",
+     "icon": "🚿",
+     "duration": 18,
+     "effects": {
+      "hygiene": 100
+     },
+     "untilFull": true,
+     "anim": "shower",
+     "moodlet": "fresh",
+     "dirties": 5,
+     "private": true,
+     "tags": [
+      "wash"
+     ]
+    },
+    {
+     "id": "clean",
+     "name": "Scrub the shower",
+     "icon": "🧽",
+     "duration": 20,
+     "anim": "use",
+     "condition": "dirty",
+     "cleans": true,
+     "tags": [
+      "cleaning"
+     ],
+     "poseless": true
+    }
+   ]
+  },
+  {
+   "id": "bath",
+   "name": "Roll-top Bath",
+   "category": "bathroom",
+   "price": 800,
+   "footprint": [
+    2,
+    1
+   ],
+   "decor": 2,
+   "seatHeight": 0.2,
+   "description": "A long soak fills Hygiene and Comfort.",
+   "spots": [
+    {
+     "at": [
+      0,
+      1
+     ],
+     "pose": [
+      1.0,
+      0.5
+     ]
+    }
+   ],
+   "interactions": [
+    {
+     "id": "bath",
+     "name": "Have a bath",
+     "icon": "🛁",
+     "duration": 40,
+     "effects": {
+      "hygiene": 100,
+      "comfort": 40,
+      "fun": 10
+     },
+     "anim": "sit",
+     "moodlet": "relaxing_soak",
+     "dirties": 5,
+     "private": true,
+     "tags": [
+      "wash"
+     ]
+    },
+    {
+     "id": "clean",
+     "name": "Scrub the bath",
+     "icon": "🧽",
+     "duration": 20,
+     "anim": "use",
+     "condition": "dirty",
+     "cleans": true,
+     "tags": [
+      "cleaning"
+     ],
+     "poseless": true
+    }
+   ]
+  },
+  {
+   "id": "bathroom_sink",
+   "name": "Pedestal Sink",
+   "category": "bathroom",
+   "price": 150,
+   "footprint": [
+    1,
+    1
+   ],
+   "decor": 0,
+   "description": "Wash hands, brush teeth.",
+   "spots": [
+    {
+     "at": [
+      0,
+      1
+     ]
+    }
+   ],
+   "interactions": [
+    {
+     "id": "wash",
+     "name": "Wash hands",
+     "icon": "🧼",
+     "duration": 5,
+     "effects": {
+      "hygiene": 12
+     },
+     "anim": "use",
+     "visitor": true
+    },
+    {
+     "id": "teeth",
+     "name": "Brush teeth",
+     "icon": "🪥",
+     "duration": 6,
+     "effects": {
+      "hygiene": 15
+     },
+     "anim": "use"
+    }
+   ]
+  },
+  {
+   "id": "mirror",
+   "name": "Standing Mirror",
+   "category": "bathroom",
+   "price": 120,
+   "footprint": [
+    1,
+    1
+   ],
+   "decor": 1,
+   "description": "Practise speeches to build Charisma.",
+   "spots": [
+    {
+     "at": [
+      0,
+      1
+     ]
+    }
+   ],
+   "interactions": [
+    {
+     "id": "speech",
+     "name": "Practise a speech",
+     "icon": "🎤",
+     "duration": 45,
+     "anim": "talk",
+     "skill": "charisma",
+     "skillRate": 45,
+     "effects": {
+      "fun": 5
+     },
+     "tags": [
+      "charisma"
+     ]
+    },
+    {
+     "id": "admire",
+     "name": "Admire yourself",
+     "icon": "😎",
+     "duration": 10,
+     "anim": "cheer",
+     "effects": {
+      "fun": 8
+     },
+     "auto": false
+    }
+   ]
+  },
+  {
+   "id": "bed_single",
+   "name": "Single Bed",
+   "category": "bedroom",
+   "price": 350,
+   "footprint": [
+    1,
+    2
+   ],
+   "decor": 0,
+   "seatHeight": 0.5,
+   "description": "Sleep to fill Energy.",
+   "spots": [
+    {
+     "at": [
+      1,
+      1
+     ],
+     "pose": [
+      0.5,
+      0.85
+     ]
+    }
+   ],
+   "interactions": [
+    {
+     "id": "sleep",
+     "name": "Sleep",
+     "icon": "💤",
+     "duration": 600,
+     "effects": {
+      "energy": 100,
+      "comfort": 60
+     },
+     "untilFull": true,
+     "anim": "sleep",
+     "moodlet": "well_rested",
+     "tags": [
+      "sleep"
+     ]
+    },
+    {
+     "id": "nap",
+     "name": "Nap",
+     "icon": "😴",
+     "duration": 90,
+     "effects": {
+      "energy": 25,
+      "comfort": 30
+     },
+     "anim": "sleep",
+     "tags": [
+      "nap"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "bed_double",
+   "name": "Double Bed",
+   "category": "bedroom",
+   "price": 900,
+   "footprint": [
+    2,
+    2
+   ],
+   "decor": 2,
+   "seatHeight": 0.5,
+   "description": "Room for two. Sleep is more restful.",
+   "spots": [
+    {
+     "at": [
+      -1,
+      1
+     ],
+     "pose": [
+      0.5,
+      0.85
+     ]
+    },
+    {
+     "at": [
+      2,
+      1
+     ],
+     "pose": [
+      1.5,
+      0.85
+     ]
+    }
+   ],
+   "interactions": [
+    {
+     "id": "sleep",
+     "name": "Sleep",
+     "icon": "💤",
+     "duration": 600,
+     "effects": {
+      "energy": 120,
+      "comfort": 70
+     },
+     "untilFull": true,
+     "anim": "sleep",
+     "moodlet": "well_rested",
+     "tags": [
+      "sleep"
+     ]
+    },
+    {
+     "id": "nap",
+     "name": "Nap",
+     "icon": "😴",
+     "duration": 90,
+     "effects": {
+      "energy": 30,
+      "comfort": 35
+     },
+     "anim": "sleep",
+     "tags": [
+      "nap"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "wardrobe",
+   "name": "Oak Wardrobe",
+   "category": "bedroom",
+   "price": 300,
+   "footprint": [
+    1,
+    1
+   ],
+   "decor": 1,
+   "description": "Try on outfits and plan new looks.",
+   "spots": [
+    {
+     "at": [
+      0,
+      1
+     ]
+    }
+   ],
+   "interactions": [
+    {
+     "id": "outfits",
+     "name": "Try on outfits",
+     "icon": "👗",
+     "duration": 25,
+     "anim": "use",
+     "effects": {
+      "fun": 15
+     },
+     "skill": "creativity",
+     "skillRate": 15,
+     "tags": [
+      "style"
+     ]
+    },
+    {
+     "id": "change",
+     "name": "Change outfit colour",
+     "icon": "🎨",
+     "duration": 8,
+     "anim": "use",
+     "auto": false,
+     "special": "changeOutfit"
+    }
+   ]
+  },
+  {
+   "id": "computer",
+   "name": "Computer Desk",
+   "category": "bedroom",
+   "price": 800,
+   "footprint": [
+    2,
+    1
+   ],
+   "decor": 0,
+   "seatHeight": 0.45,
+   "description": "Games, studying and job hunting.",
+   "spots": [
+    {
+     "at": [
+      0,
+      1
+     ],
+     "pose": [
+      0.5,
+      1.2
+     ],
+     "face": "in"
+    }
+   ],
+   "interactions": [
+    {
+     "id": "games",
+     "name": "Play video games",
+     "icon": "🎮",
+     "duration": 60,
+     "effects": {
+      "fun": 45
+     },
+     "anim": "use",
+     "seated": true,
+     "skill": "logic",
+     "skillRate": 8,
+     "tags": [
+      "games"
+     ]
+    },
+    {
+     "id": "study",
+     "name": "Study online",
+     "icon": "📚",
+     "duration": 60,
+     "effects": {
+      "fun": 5
+     },
+     "anim": "use",
+     "seated": true,
+     "skill": "logic",
+     "skillRate": 40,
+     "tags": [
+      "logic",
+      "study"
+     ]
+    },
+    {
+     "id": "write",
+     "name": "Write a story",
+     "icon": "✍️",
+     "duration": 90,
+     "effects": {
+      "fun": 15
+     },
+     "anim": "use",
+     "seated": true,
+     "skill": "creativity",
+     "skillRate": 40,
+     "tags": [
+      "art"
+     ],
+     "money": 20,
+     "moneyPerLevel": 18,
+     "counter": "stories"
+    },
+    {
+     "id": "jobs",
+     "name": "Look for a job",
+     "icon": "💼",
+     "duration": 5,
+     "anim": "use",
+     "seated": true,
+     "auto": false,
+     "ui": "careers"
+    }
+   ]
+  },
+  {
+   "id": "bookshelf",
+   "name": "Bookcase",
+   "category": "bedroom",
+   "price": 300,
+   "footprint": [
+    1,
+    1
+   ],
+   "decor": 1,
+   "description": "Read for fun, or study a skill book.",
+   "spots": [
+    {
+     "at": [
+      0,
+      1
+     ]
+    }
+   ],
+   "interactions": [
+    {
+     "id": "read",
+     "name": "Read a novel",
+     "icon": "📖",
+     "duration": 60,
+     "effects": {
+      "fun": 30,
+      "comfort": 10
+     },
+     "anim": "read",
+     "seatNear": true,
+     "tags": [
+      "reading"
+     ],
+     "visitor": true
+    },
+    {
+     "id": "cookbook",
+     "name": "Study a cookbook",
+     "icon": "📗",
+     "duration": 60,
+     "effects": {
+      "fun": 5
+     },
+     "anim": "read",
+     "seatNear": true,
+     "skill": "cooking",
+     "skillRate": 25,
+     "tags": [
+      "reading",
+      "study"
+     ]
+    },
+    {
+     "id": "theory",
+     "name": "Study music theory",
+     "icon": "📘",
+     "duration": 60,
+     "effects": {
+      "fun": 5
+     },
+     "anim": "read",
+     "seatNear": true,
+     "skill": "music",
+     "skillRate": 25,
+     "tags": [
+      "reading",
+      "study"
+     ]
+    },
+    {
+     "id": "botany",
+     "name": "Read about plants",
+     "icon": "📙",
+     "duration": 60,
+     "effects": {
+      "fun": 5
+     },
+     "anim": "read",
+     "seatNear": true,
+     "skill": "gardening",
+     "skillRate": 25,
+     "tags": [
+      "reading",
+      "study"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "dresser",
+   "name": "Chest of Drawers",
+   "category": "bedroom",
+   "price": 220,
+   "footprint": [
+    1,
+    1
+   ],
+   "decor": 2,
+   "description": "Smart storage. Makes a room nicer.",
+   "spots": [],
+   "interactions": []
+  },
+  {
+   "id": "sofa",
+   "name": "Comfy Sofa",
+   "category": "living",
+   "price": 600,
+   "footprint": [
+    2,
+    1
+   ],
+   "decor": 1,
+   "seat": true,
+   "seatHeight": 0.45,
+   "description": "Sit, relax, nap.",
+   "spots": [
+    {
+     "at": [
+      0,
+      1
+     ],
+     "pose": [
+      0.5,
+      0.45
+     ]
+    },
+    {
+     "at": [
+      1,
+      1
+     ],
+     "pose": [
+      1.5,
+      0.45
+     ]
+    }
+   ],
+   "interactions": [
+    {
+     "id": "sit",
+     "name": "Sit",
+     "icon": "🛋️",
+     "duration": 45,
+     "effects": {
+      "comfort": 40
+     },
+     "anim": "sit",
+     "visitor": true
+    },
+    {
+     "id": "nap",
+     "name": "Nap",
+     "icon": "😴",
+     "duration": 60,
+     "effects": {
+      "energy": 15,
+      "comfort": 40
+     },
+     "anim": "sleep",
+     "tags": [
+      "nap"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "armchair",
+   "name": "Wingback Armchair",
+   "category": "living",
+   "price": 350,
+   "footprint": [
+    1,
+    1
+   ],
+   "decor": 1,
+   "seat": true,
+   "seatHeight": 0.45,
+   "description": "A cosy seat.",
+   "spots": [
+    {
+     "at": [
+      0,
+      1
+     ],
+     "pose": [
+      0.5,
+      0.45
+     ],
+     "alt": [
+      [
+       1,
+       0
+      ],
+      [
+       -1,
+       0
+      ]
+     ]
+    }
+   ],
+   "interactions": [
+    {
+     "id": "sit",
+     "name": "Sit",
+     "icon": "🪑",
+     "duration": 45,
+     "effects": {
+      "comfort": 45
+     },
+     "anim": "sit",
+     "visitor": true
+    }
+   ]
+  },
+  {
+   "id": "tv",
+   "name": "Telly",
+   "category": "living",
+   "price": 400,
+   "footprint": [
+    1,
+    1
+   ],
+   "decor": 0,
+   "description": "Watch from a sofa or chair facing it.",
+   "spots": [
+    {
+     "at": [
+      0,
+      2
+     ]
+    }
+   ],
+   "interactions": [
+    {
+     "id": "watch",
+     "name": "Watch TV",
+     "icon": "📺",
+     "duration": 60,
+     "effects": {
+      "fun": 40,
+      "comfort": 10
+     },
+     "anim": "watch",
+     "seatNear": true,
+     "shared": true,
+     "tags": [
+      "tv"
+     ],
+     "visitor": true
+    },
+    {
+     "id": "cookshow",
+     "name": "Watch a cooking show",
+     "icon": "👩‍🍳",
+     "duration": 60,
+     "effects": {
+      "fun": 20
+     },
+     "anim": "watch",
+     "seatNear": true,
+     "shared": true,
+     "skill": "cooking",
+     "skillRate": 15,
+     "tags": [
+      "tv"
+     ]
+    },
+    {
+     "id": "football",
+     "name": "Watch the football",
+     "icon": "⚽",
+     "duration": 90,
+     "effects": {
+      "fun": 45,
+      "social": 5
+     },
+     "anim": "watch",
+     "seatNear": true,
+     "shared": true,
+     "tags": [
+      "tv",
+      "sport"
+     ],
+     "visitor": true
+    }
+   ]
+  },
+  {
+   "id": "tv_big",
+   "name": "Big Screen TV",
+   "category": "living",
+   "price": 1500,
+   "footprint": [
+    2,
+    1
+   ],
+   "decor": 2,
+   "description": "Fun fills much faster.",
+   "spots": [
+    {
+     "at": [
+      0,
+      2
+     ]
+    },
+    {
+     "at": [
+      1,
+      2
+     ]
+    }
+   ],
+   "interactions": [
+    {
+     "id": "watch",
+     "name": "Watch a film",
+     "icon": "🎬",
+     "duration": 90,
+     "effects": {
+      "fun": 75,
+      "comfort": 15
+     },
+     "anim": "watch",
+     "seatNear": true,
+     "shared": true,
+     "tags": [
+      "tv"
+     ],
+     "visitor": true
+    },
+    {
+     "id": "football",
+     "name": "Watch the football",
+     "icon": "⚽",
+     "duration": 90,
+     "effects": {
+      "fun": 70,
+      "social": 10
+     },
+     "anim": "watch",
+     "seatNear": true,
+     "shared": true,
+     "tags": [
+      "tv",
+      "sport"
+     ],
+     "visitor": true
+    }
+   ]
+  },
+  {
+   "id": "coffee_table",
+   "name": "Coffee Table",
+   "category": "living",
+   "price": 120,
+   "footprint": [
+    2,
+    1
+   ],
+   "decor": 1,
+   "surface": true,
+   "description": "Somewhere to put your brew.",
+   "spots": [],
+   "interactions": []
+  },
+  {
+   "id": "rug",
+   "name": "Woven Rug",
+   "category": "living",
+   "price": 150,
+   "footprint": [
+    2,
+    2
+   ],
+   "decor": 2,
+   "walkable": true,
+   "description": "Brightens up a room.",
+   "spots": [],
+   "interactions": []
+  },
+  {
+   "id": "stereo",
+   "name": "Stereo",
+   "category": "living",
+   "price": 300,
+   "footprint": [
+    1,
+    1
+   ],
+   "decor": 1,
+   "description": "Dance or just listen.",
+   "spots": [
+    {
+     "at": [
+      0,
+      1
+     ]
+    }
+   ],
+   "interactions": [
+    {
+     "id": "dance",
+     "name": "Dance",
+     "icon": "💃",
+     "duration": 40,
+     "effects": {
+      "fun": 35,
+      "energy": -8,
+      "hygiene": -5
+     },
+     "anim": "dance",
+     "skill": "fitness",
+     "skillRate": 12,
+     "tags": [
+      "music",
+      "fitness",
+      "dance"
+     ],
+     "visitor": true
+    },
+    {
+     "id": "listen",
+     "name": "Listen to music",
+     "icon": "🎶",
+     "duration": 40,
+     "effects": {
+      "fun": 25
+     },
+     "anim": "idle",
+     "tags": [
+      "music"
+     ],
+     "visitor": true
+    }
+   ]
+  },
+  {
+   "id": "guitar",
+   "name": "Acoustic Guitar",
+   "category": "hobbies",
+   "price": 250,
+   "footprint": [
+    1,
+    1
+   ],
+   "decor": 1,
+   "description": "Builds Music. Write songs once you're good.",
+   "spots": [
+    {
+     "at": [
+      0,
+      1
+     ]
+    }
+   ],
+   "interactions": [
+    {
+     "id": "practise",
+     "name": "Practise guitar",
+     "icon": "🎸",
+     "duration": 60,
+     "effects": {
+      "fun": 20
+     },
+     "anim": "guitar",
+     "skill": "music",
+     "skillRate": 45,
+     "tags": [
+      "music",
+      "instrument"
+     ]
+    },
+    {
+     "id": "song",
+     "name": "Write a song",
+     "icon": "🎼",
+     "duration": 120,
+     "effects": {
+      "fun": 25
+     },
+     "anim": "guitar",
+     "skill": "music",
+     "skillRate": 40,
+     "minSkill": {
+      "skill": "music",
+      "level": 4
+     },
+     "tags": [
+      "music",
+      "instrument",
+      "art"
+     ],
+     "money": 60,
+     "moneyPerLevel": 30,
+     "counter": "songs",
+     "moodlet": "song_written"
+    }
+   ]
+  },
+  {
+   "id": "piano",
+   "name": "Upright Piano",
+   "category": "hobbies",
+   "price": 1800,
+   "footprint": [
+    2,
+    1
+   ],
+   "decor": 3,
+   "seatHeight": 0.45,
+   "description": "Music grows faster than on guitar.",
+   "spots": [
+    {
+     "at": [
+      0,
+      1
+     ],
+     "pose": [
+      1.0,
+      1.2
+     ],
+     "face": "in"
+    }
+   ],
+   "interactions": [
+    {
+     "id": "practise",
+     "name": "Play the piano",
+     "icon": "🎹",
+     "duration": 60,
+     "effects": {
+      "fun": 25
+     },
+     "anim": "piano",
+     "skill": "music",
+     "skillRate": 65,
+     "tags": [
+      "music",
+      "instrument"
+     ]
+    },
+    {
+     "id": "song",
+     "name": "Compose a song",
+     "icon": "🎼",
+     "duration": 120,
+     "effects": {
+      "fun": 25
+     },
+     "anim": "piano",
+     "skill": "music",
+     "skillRate": 55,
+     "minSkill": {
+      "skill": "music",
+      "level": 4
+     },
+     "tags": [
+      "music",
+      "instrument",
+      "art"
+     ],
+     "money": 80,
+     "moneyPerLevel": 35,
+     "counter": "songs",
+     "moodlet": "song_written"
+    }
+   ]
+  },
+  {
+   "id": "easel",
+   "name": "Artist's Easel",
+   "category": "hobbies",
+   "price": 350,
+   "footprint": [
+    1,
+    1
+   ],
+   "decor": 1,
+   "description": "Paint pictures to sell. Builds Creativity.",
+   "spots": [
+    {
+     "at": [
+      0,
+      1
+     ]
+    }
+   ],
+   "interactions": [
+    {
+     "id": "paint",
+     "name": "Paint a picture",
+     "icon": "🖌️",
+     "duration": 120,
+     "effects": {
+      "fun": 25
+     },
+     "anim": "paint",
+     "skill": "creativity",
+     "skillRate": 45,
+     "tags": [
+      "art"
+     ],
+     "money": 40,
+     "moneyPerLevel": 35,
+     "counter": "paintings",
+     "moodlet": "inspired"
+    }
+   ]
+  },
+  {
+   "id": "chess",
+   "name": "Chess Table",
+   "category": "hobbies",
+   "price": 400,
+   "footprint": [
+    1,
+    1
+   ],
+   "decor": 1,
+   "seatHeight": 0.45,
+   "description": "Builds Logic. Two can play.",
+   "spots": [
+    {
+     "at": [
+      0,
+      1
+     ],
+     "pose": [
+      0.5,
+      1.25
+     ],
+     "face": "in",
+     "alt": [
+      [
+       1,
+       0
+      ],
+      [
+       -1,
+       0
+      ]
+     ]
+    },
+    {
+     "at": [
+      0,
+      -1
+     ],
+     "pose": [
+      0.5,
+      -0.25
+     ],
+     "face": "out"
+    }
+   ],
+   "interactions": [
+    {
+     "id": "chess",
+     "name": "Play chess",
+     "icon": "♟️",
+     "duration": 60,
+     "effects": {
+      "fun": 25
+     },
+     "anim": "think",
+     "seated": true,
+     "skill": "logic",
+     "skillRate": 45,
+     "tags": [
+      "logic",
+      "games"
+     ],
+     "counter": "chess",
+     "visitor": true
+    }
+   ]
+  },
+  {
+   "id": "telescope",
+   "name": "Telescope",
+   "category": "hobbies",
+   "price": 900,
+   "footprint": [
+    1,
+    1
+   ],
+   "decor": 1,
+   "description": "Stargazing builds Logic. Best at night.",
+   "spots": [
+    {
+     "at": [
+      0,
+      1
+     ]
+    }
+   ],
+   "interactions": [
+    {
+     "id": "stargaze",
+     "name": "Stargaze",
+     "icon": "🔭",
+     "duration": 60,
+     "effects": {
+      "fun": 30
+     },
+     "anim": "use",
+     "skill": "logic",
+     "skillRate": 50,
+     "condition": "night",
+     "tags": [
+      "logic",
+      "outdoors"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "chem_kit",
+   "name": "Science Bench",
+   "category": "hobbies",
+   "price": 1200,
+   "footprint": [
+    2,
+    1
+   ],
+   "decor": 0,
+   "description": "Experiments for budding scientists.",
+   "spots": [
+    {
+     "at": [
+      0,
+      1
+     ]
+    }
+   ],
+   "interactions": [
+    {
+     "id": "experiment",
+     "name": "Run an experiment",
+     "icon": "🧪",
+     "duration": 90,
+     "effects": {
+      "fun": 20
+     },
+     "anim": "use",
+     "skill": "logic",
+     "skillRate": 65,
+     "tags": [
+      "logic"
+     ],
+     "counter": "experiments"
+    }
+   ]
+  },
+  {
+   "id": "workbench",
+   "name": "Locksmith's Workbench",
+   "category": "hobbies",
+   "price": 900,
+   "footprint": [
+    2,
+    1
+   ],
+   "decor": 1,
+   "description": "Ashton has made locks and hinges for centuries. Craft your own to sell.",
+   "spots": [
+    {
+     "at": [
+      0,
+      1
+     ]
+    }
+   ],
+   "interactions": [
+    {
+     "id": "craft",
+     "name": "Craft a lock",
+     "icon": "🔐",
+     "duration": 90,
+     "effects": {
+      "fun": 15
+     },
+     "anim": "use",
+     "skill": "logic",
+     "skillRate": 40,
+     "tags": [
+      "making"
+     ],
+     "money": 35,
+     "moneyPerLevel": 25,
+     "counter": "locks"
+    },
+    {
+     "id": "hinges",
+     "name": "Forge hinges",
+     "icon": "🔩",
+     "duration": 60,
+     "effects": {
+      "fun": 10,
+      "hygiene": -10
+     },
+     "anim": "use",
+     "skill": "fitness",
+     "skillRate": 25,
+     "tags": [
+      "making"
+     ],
+     "money": 20,
+     "moneyPerLevel": 10,
+     "counter": "locks"
+    }
+   ]
+  },
+  {
+   "id": "treadmill",
+   "name": "Treadmill",
+   "category": "hobbies",
+   "price": 700,
+   "footprint": [
+    1,
+    2
+   ],
+   "decor": 0,
+   "description": "Builds Fitness. Sweaty work!",
+   "spots": [
+    {
+     "at": [
+      0,
+      2
+     ],
+     "pose": [
+      0.5,
+      1.0
+     ],
+     "face": "in"
+    }
+   ],
+   "interactions": [
+    {
+     "id": "run",
+     "name": "Run on treadmill",
+     "icon": "🏃",
+     "duration": 45,
+     "effects": {
+      "fun": 10,
+      "energy": -12,
+      "hygiene": -20
+     },
+     "anim": "run",
+     "skill": "fitness",
+     "skillRate": 50,
+     "tags": [
+      "fitness"
+     ],
+     "moodlet": "good_workout"
+    }
+   ]
+  },
+  {
+   "id": "weights",
+   "name": "Weights Bench",
+   "category": "hobbies",
+   "price": 500,
+   "footprint": [
+    1,
+    2
+   ],
+   "decor": 0,
+   "description": "Builds Fitness.",
+   "spots": [
+    {
+     "at": [
+      1,
+      1
+     ]
+    }
+   ],
+   "interactions": [
+    {
+     "id": "lift",
+     "name": "Work out",
+     "icon": "🏋️",
+     "duration": 45,
+     "effects": {
+      "fun": 5,
+      "energy": -10,
+      "hygiene": -18
+     },
+     "anim": "workout",
+     "skill": "fitness",
+     "skillRate": 45,
+     "tags": [
+      "fitness"
+     ],
+     "moodlet": "good_workout"
+    }
+   ]
+  },
+  {
+   "id": "veg_patch",
+   "name": "Veg Patch",
+   "category": "outdoor",
+   "price": 200,
+   "footprint": [
+    2,
+    2
+   ],
+   "decor": 1,
+   "description": "Grow veg, sell it at the market. Builds Gardening.",
+   "spots": [
+    {
+     "at": [
+      0,
+      2
+     ]
+    },
+    {
+     "at": [
+      1,
+      2
+     ]
+    }
+   ],
+   "interactions": [
+    {
+     "id": "plant",
+     "name": "Plant seeds",
+     "icon": "🌱",
+     "duration": 30,
+     "anim": "garden",
+     "skill": "gardening",
+     "skillRate": 30,
+     "condition": "empty",
+     "effects": {
+      "fun": 10,
+      "hygiene": -5
+     },
+     "special": "plant",
+     "tags": [
+      "gardening",
+      "outdoors"
+     ]
+    },
+    {
+     "id": "tend",
+     "name": "Tend the garden",
+     "icon": "🪴",
+     "duration": 45,
+     "anim": "garden",
+     "skill": "gardening",
+     "skillRate": 45,
+     "condition": "growing",
+     "effects": {
+      "fun": 15,
+      "hygiene": -8
+     },
+     "special": "tend",
+     "tags": [
+      "gardening",
+      "outdoors"
+     ]
+    },
+    {
+     "id": "harvest",
+     "name": "Harvest",
+     "icon": "🥕",
+     "duration": 30,
+     "anim": "garden",
+     "skill": "gardening",
+     "skillRate": 30,
+     "condition": "grown",
+     "effects": {
+      "fun": 15
+     },
+     "special": "harvest",
+     "money": 40,
+     "moneyPerLevel": 20,
+     "counter": "harvests",
+     "moodlet": "harvest",
+     "tags": [
+      "gardening",
+      "outdoors"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "bbq",
+   "name": "Barbecue",
+   "category": "outdoor",
+   "price": 350,
+   "footprint": [
+    1,
+    1
+   ],
+   "decor": 1,
+   "description": "Grill outdoors, if the weather holds.",
+   "spots": [
+    {
+     "at": [
+      0,
+      1
+     ]
+    }
+   ],
+   "interactions": [
+    {
+     "id": "grill",
+     "name": "Grill burgers",
+     "icon": "🍔",
+     "duration": 35,
+     "anim": "cook",
+     "skill": "cooking",
+     "skillRate": 40,
+     "tags": [
+      "food",
+      "cooking",
+      "outdoors"
+     ],
+     "counter": "meals",
+     "then": {
+      "label": "Eat burger",
+      "anim": "eat",
+      "duration": 25,
+      "effects": {
+       "hunger": 60,
+       "fun": 10
+      },
+      "tags": [
+       "food"
+      ],
+      "moodlet": "great_meal",
+      "moodletMinSkill": 4
+     }
+    }
+   ]
+  },
+  {
+   "id": "bench",
+   "name": "Garden Bench",
+   "category": "outdoor",
+   "price": 200,
+   "footprint": [
+    2,
+    1
+   ],
+   "decor": 1,
+   "seat": true,
+   "seatHeight": 0.45,
+   "description": "Sit out in the fresh air.",
+   "spots": [
+    {
+     "at": [
+      0,
+      1
+     ],
+     "pose": [
+      0.5,
+      0.45
+     ]
+    },
+    {
+     "at": [
+      1,
+      1
+     ],
+     "pose": [
+      1.5,
+      0.45
+     ]
+    }
+   ],
+   "interactions": [
+    {
+     "id": "sit",
+     "name": "Sit",
+     "icon": "🪑",
+     "duration": 40,
+     "effects": {
+      "comfort": 30,
+      "fun": 5
+     },
+     "anim": "sit",
+     "visitor": true
+    }
+   ]
+  },
+  {
+   "id": "goal",
+   "name": "Football Goal",
+   "category": "outdoor",
+   "price": 300,
+   "footprint": [
+    2,
+    1
+   ],
+   "decor": 0,
+   "description": "Practise your shooting. Builds Fitness.",
+   "spots": [
+    {
+     "at": [
+      0,
+      3
+     ]
+    },
+    {
+     "at": [
+      1,
+      3
+     ]
+    }
+   ],
+   "interactions": [
+    {
+     "id": "kick",
+     "name": "Practise football",
+     "icon": "⚽",
+     "duration": 45,
+     "effects": {
+      "fun": 30,
+      "energy": -10,
+      "hygiene": -15
+     },
+     "anim": "run",
+     "skill": "fitness",
+     "skillRate": 40,
+     "tags": [
+      "fitness",
+      "sport",
+      "outdoors"
+     ],
+     "counter": "football",
+     "visitor": true
+    }
+   ]
+  },
+  {
+   "id": "mailbox",
+   "name": "Post Box",
+   "category": "outdoor",
+   "price": 50,
+   "footprint": [
+    1,
+    1
+   ],
+   "decor": 0,
+   "description": "Bills arrive here.",
+   "spots": [
+    {
+     "at": [
+      0,
+      1
+     ]
+    }
+   ],
+   "interactions": [
+    {
+     "id": "pay",
+     "name": "Pay the bills",
+     "icon": "🧾",
+     "duration": 5,
+     "anim": "use",
+     "condition": "bills",
+     "special": "payBills"
+    }
+   ]
+  },
+  {
+   "id": "floor_lamp",
+   "name": "Floor Lamp",
+   "category": "lighting",
+   "price": 120,
+   "footprint": [
+    1,
+    1
+   ],
+   "decor": 1,
+   "light": {
+    "color": "#ffd9a0",
+    "intensity": 1.4,
+    "range": 6
+   },
+   "description": "Lights up the room at night.",
+   "spots": [
+    {
+     "at": [
+      0,
+      1
+     ]
+    }
+   ],
+   "interactions": [
+    {
+     "id": "off",
+     "name": "Turn off",
+     "icon": "🌑",
+     "duration": 2,
+     "anim": "use",
+     "condition": "lightOn",
+     "special": "lightOff",
+     "auto": false
+    },
+    {
+     "id": "on",
+     "name": "Turn on",
+     "icon": "💡",
+     "duration": 2,
+     "anim": "use",
+     "condition": "lightOff",
+     "special": "lightOn",
+     "auto": false
+    }
+   ]
+  },
+  {
+   "id": "table_lamp",
+   "name": "Side Table Lamp",
+   "category": "lighting",
+   "price": 90,
+   "footprint": [
+    1,
+    1
+   ],
+   "decor": 1,
+   "light": {
+    "color": "#ffcf8a",
+    "intensity": 1.0,
+    "range": 4.5
+   },
+   "description": "A small table with a warm lamp.",
+   "spots": [
+    {
+     "at": [
+      0,
+      1
+     ]
+    }
+   ],
+   "interactions": [
+    {
+     "id": "off",
+     "name": "Turn off",
+     "icon": "🌑",
+     "duration": 2,
+     "anim": "use",
+     "condition": "lightOn",
+     "special": "lightOff",
+     "auto": false
+    },
+    {
+     "id": "on",
+     "name": "Turn on",
+     "icon": "💡",
+     "duration": 2,
+     "anim": "use",
+     "condition": "lightOff",
+     "special": "lightOn",
+     "auto": false
+    }
+   ]
+  },
+  {
+   "id": "lantern",
+   "name": "Garden Lantern",
+   "category": "lighting",
+   "price": 110,
+   "footprint": [
+    1,
+    1
+   ],
+   "decor": 1,
+   "light": {
+    "color": "#ffe2b0",
+    "intensity": 1.2,
+    "range": 6
+   },
+   "description": "Gaslight-style lamp post for the garden.",
+   "spots": [],
+   "interactions": []
+  },
+  {
+   "id": "plant_small",
+   "name": "Pot Plant",
+   "category": "decor",
+   "price": 60,
+   "footprint": [
+    1,
+    1
+   ],
+   "decor": 1,
+   "description": "A bit of green.",
+   "spots": [
+    {
+     "at": [
+      0,
+      1
+     ]
+    }
+   ],
+   "interactions": [
+    {
+     "id": "water",
+     "name": "Water",
+     "icon": "💧",
+     "duration": 10,
+     "effects": {
+      "fun": 5
+     },
+     "anim": "garden",
+     "skill": "gardening",
+     "skillRate": 25,
+     "tags": [
+      "gardening"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "plant_big",
+   "name": "Fiddle-leaf Fig",
+   "category": "decor",
+   "price": 150,
+   "footprint": [
+    1,
+    1
+   ],
+   "decor": 2,
+   "description": "A big leafy statement.",
+   "spots": [],
+   "interactions": []
+  },
+  {
+   "id": "aquarium",
+   "name": "Aquarium",
+   "category": "decor",
+   "price": 500,
+   "footprint": [
+    2,
+    1
+   ],
+   "decor": 3,
+   "description": "Watching the fish is very calming.",
+   "spots": [
+    {
+     "at": [
+      0,
+      1
+     ]
+    },
+    {
+     "at": [
+      1,
+      1
+     ]
+    }
+   ],
+   "interactions": [
+    {
+     "id": "watch",
+     "name": "Watch the fish",
+     "icon": "🐠",
+     "duration": 25,
+     "effects": {
+      "fun": 15,
+      "comfort": 5
+     },
+     "anim": "idle",
+     "visitor": true
+    }
+   ]
+  },
+  {
+   "id": "winding_wheel",
+   "name": "Pit-head Winding Wheel",
+   "category": "decor",
+   "price": 800,
+   "footprint": [
+    1,
+    1
+   ],
+   "decor": 4,
+   "description": "A model of the winding gear from Ashton's coal-mining days.",
+   "spots": [
+    {
+     "at": [
+      0,
+      1
+     ]
+    }
+   ],
+   "interactions": [
+    {
+     "id": "admire",
+     "name": "Admire",
+     "icon": "⛏️",
+     "duration": 10,
+     "effects": {
+      "fun": 8
+     },
+     "anim": "think",
+     "visitor": true
+    }
+   ]
+  },
+  {
+   "id": "lock_sculpture",
+   "name": "Lock & Key Sculpture",
+   "category": "decor",
+   "price": 600,
+   "footprint": [
+    1,
+    1
+   ],
+   "decor": 3,
+   "description": "Celebrates the town's lock-making heritage.",
+   "spots": [
+    {
+     "at": [
+      0,
+      1
+     ]
+    }
+   ],
+   "interactions": [
+    {
+     "id": "admire",
+     "name": "Admire",
+     "icon": "🔑",
+     "duration": 10,
+     "effects": {
+      "fun": 8
+     },
+     "anim": "think",
+     "visitor": true
+    }
+   ]
+  },
+  {
+   "id": "jukebox",
+   "name": "Vintage Jukebox",
+   "category": "market",
+   "price": 1200,
+   "footprint": [
+    1,
+    1
+   ],
+   "decor": 4,
+   "market": true,
+   "description": "A rare market find. Dance like it's 1962.",
+   "spots": [
+    {
+     "at": [
+      0,
+      1
+     ]
+    }
+   ],
+   "interactions": [
+    {
+     "id": "dance",
+     "name": "Dance",
+     "icon": "🕺",
+     "duration": 40,
+     "effects": {
+      "fun": 45,
+      "energy": -8
+     },
+     "anim": "dance",
+     "skill": "fitness",
+     "skillRate": 15,
+     "tags": [
+      "music",
+      "dance"
+     ],
+     "visitor": true
+    }
+   ]
+  },
+  {
+   "id": "antique_locks",
+   "name": "Antique Lock Cabinet",
+   "category": "market",
+   "price": 900,
+   "footprint": [
+    1,
+    1
+   ],
+   "decor": 5,
+   "market": true,
+   "description": "A rare market find: locks made in Ashton workshops.",
+   "spots": [
+    {
+     "at": [
+      0,
+      1
+     ]
+    }
+   ],
+   "interactions": [
+    {
+     "id": "study",
+     "name": "Study the mechanisms",
+     "icon": "🗝️",
+     "duration": 30,
+     "effects": {
+      "fun": 15
+     },
+     "anim": "think",
+     "skill": "logic",
+     "skillRate": 35,
+     "tags": [
+      "logic",
+      "making"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "racing_print",
+   "name": "Race-day Poster Stand",
+   "category": "market",
+   "price": 400,
+   "footprint": [
+    1,
+    1
+   ],
+   "decor": 4,
+   "market": true,
+   "description": "A rare market find: a vintage poster from the racecourse.",
+   "spots": [],
+   "interactions": []
+  },
+  {
+   "id": "golden_guitar",
+   "name": "Golden Guitar",
+   "category": "rewards",
+   "price": 0,
+   "footprint": [
+    1,
+    1
+   ],
+   "decor": 4,
+   "reward": true,
+   "description": "Music skill grows twice as fast.",
+   "spots": [
+    {
+     "at": [
+      0,
+      1
+     ]
+    }
+   ],
+   "interactions": [
+    {
+     "id": "practise",
+     "name": "Play golden guitar",
+     "icon": "🎸",
+     "duration": 60,
+     "effects": {
+      "fun": 30
+     },
+     "anim": "guitar",
+     "skill": "music",
+     "skillRate": 90,
+     "tags": [
+      "music",
+      "instrument"
+     ]
+    },
+    {
+     "id": "song",
+     "name": "Write a hit",
+     "icon": "🎼",
+     "duration": 120,
+     "effects": {
+      "fun": 30
+     },
+     "anim": "guitar",
+     "skill": "music",
+     "skillRate": 80,
+     "minSkill": {
+      "skill": "music",
+      "level": 4
+     },
+     "tags": [
+      "music",
+      "instrument",
+      "art"
+     ],
+     "money": 150,
+     "moneyPerLevel": 50,
+     "counter": "songs",
+     "moodlet": "song_written"
+    }
+   ]
+  },
+  {
+   "id": "inspiring_easel",
+   "name": "Easel of Inspiration",
+   "category": "rewards",
+   "price": 0,
+   "footprint": [
+    1,
+    1
+   ],
+   "decor": 4,
+   "reward": true,
+   "description": "Paintings sell for much more.",
+   "spots": [
+    {
+     "at": [
+      0,
+      1
+     ]
+    }
+   ],
+   "interactions": [
+    {
+     "id": "paint",
+     "name": "Paint a masterpiece",
+     "icon": "🖼️",
+     "duration": 120,
+     "effects": {
+      "fun": 30
+     },
+     "anim": "paint",
+     "skill": "creativity",
+     "skillRate": 80,
+     "tags": [
+      "art"
+     ],
+     "money": 120,
+     "moneyPerLevel": 70,
+     "counter": "paintings",
+     "moodlet": "inspired"
+    }
+   ]
+  },
+  {
+   "id": "dream_bed",
+   "name": "Cloud Nine Bed",
+   "category": "rewards",
+   "price": 0,
+   "footprint": [
+    2,
+    2
+   ],
+   "decor": 5,
+   "reward": true,
+   "seatHeight": 0.5,
+   "description": "Five hours here feels like ten.",
+   "spots": [
+    {
+     "at": [
+      -1,
+      1
+     ],
+     "pose": [
+      0.5,
+      0.85
+     ]
+    },
+    {
+     "at": [
+      2,
+      1
+     ],
+     "pose": [
+      1.5,
+      0.85
+     ]
+    }
+   ],
+   "interactions": [
+    {
+     "id": "sleep",
+     "name": "Sleep",
+     "icon": "💤",
+     "duration": 320,
+     "effects": {
+      "energy": 120,
+      "comfort": 100
+     },
+     "untilFull": true,
+     "anim": "sleep",
+     "moodlet": "well_rested",
+     "tags": [
+      "sleep"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "magic_loo",
+   "name": "Self-cleaning Loo",
+   "category": "rewards",
+   "price": 0,
+   "footprint": [
+    1,
+    1
+   ],
+   "decor": 3,
+   "reward": true,
+   "seatHeight": 0.42,
+   "description": "Never needs a clean.",
+   "spots": [
+    {
+     "at": [
+      0,
+      1
+     ],
+     "pose": [
+      0.5,
+      0.5
+     ]
+    }
+   ],
+   "interactions": [
+    {
+     "id": "use",
+     "name": "Use the toilet",
+     "icon": "🚽",
+     "duration": 8,
+     "effects": {
+      "bladder": 100,
+      "comfort": 20
+     },
+     "untilFull": true,
+     "anim": "sit",
+     "visitor": true,
+     "private": true
+    }
+   ]
+  }
+ ]
+}

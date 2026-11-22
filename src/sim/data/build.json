@@ -1,0 +1,27 @@
+{
+  "prices": { "wall": 40, "door": 150, "window": 110, "floor": 8, "paint": 4 },
+  "floors": [
+    { "id": "oak", "name": "Oak boards", "color": "#b4824f", "pattern": "planks", "decor": 1 },
+    { "id": "pine", "name": "Pine boards", "color": "#d9b47c", "pattern": "planks", "decor": 1 },
+    { "id": "tile_white", "name": "White tiles", "color": "#e9e6df", "pattern": "tiles", "decor": 1 },
+    { "id": "tile_check", "name": "Chequered tiles", "color": "#3b3b45", "pattern": "check", "decor": 2 },
+    { "id": "carpet_blue", "name": "Blue carpet", "color": "#5b7fb7", "pattern": "plain", "decor": 1 },
+    { "id": "carpet_rose", "name": "Rose carpet", "color": "#d68a9a", "pattern": "plain", "decor": 1 },
+    { "id": "carpet_sage", "name": "Sage carpet", "color": "#8aa585", "pattern": "plain", "decor": 1 },
+    { "id": "slate", "name": "Slate flags", "color": "#5d6470", "pattern": "tiles", "decor": 1 },
+    { "id": "brick_paving", "name": "Brick paving", "color": "#a4553e", "pattern": "bricks", "decor": 1 },
+    { "id": "concrete", "name": "Concrete", "color": "#a7a7a2", "pattern": "plain", "decor": 0 }
+  ],
+  "paints": [
+    { "id": "plaster", "name": "Plaster white", "color": "#efe9df", "decor": 0 },
+    { "id": "brick", "name": "Red brick", "color": "#a8503a", "pattern": "bricks", "decor": 1 },
+    { "id": "sage", "name": "Sage green", "color": "#a9bf9c", "decor": 1 },
+    { "id": "sky", "name": "Sky blue", "color": "#9cc3e0", "decor": 1 },
+    { "id": "blush", "name": "Blush pink", "color": "#efc1c6", "decor": 1 },
+    { "id": "lilac", "name": "Lilac", "color": "#c5b3e0", "decor": 1 },
+    { "id": "mustard", "name": "Mustard", "color": "#e0b84f", "decor": 1 },
+    { "id": "navy", "name": "Navy", "color": "#2f3e66", "decor": 1 },
+    { "id": "stripes", "name": "Candy stripes", "color": "#f2d7dc", "pattern": "stripes", "decor": 2 },
+    { "id": "panelled", "name": "Wood panelling", "color": "#8b5e3c", "pattern": "panels", "decor": 2 }
+  ]
+}

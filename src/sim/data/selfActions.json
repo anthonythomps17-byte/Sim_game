@@ -1,0 +1,18 @@
+{
+  "self": [
+    { "id": "phone", "name": "Call a friend", "icon": "📱", "duration": 30, "anim": "phone", "effects": { "social": 30, "fun": 5 }, "special": "callFriend" },
+    { "id": "daydream", "name": "Daydream", "icon": "💭", "duration": 20, "anim": "think", "effects": { "fun": 10 }, "auto": true },
+    { "id": "stretch", "name": "Stretch", "icon": "🧘", "duration": 20, "anim": "workout", "effects": { "comfort": 15, "fun": 5 }, "skill": "fitness", "skillRate": 20, "tags": ["fitness"] },
+    { "id": "invite", "name": "Invite someone over", "icon": "🏡", "duration": 5, "anim": "phone", "ui": "relationships", "auto": false }
+  ],
+  "outings": [
+    { "id": "jog", "name": "Jog round the Rec", "icon": "🏃", "duration": 60, "effects": { "fun": 15, "energy": -15, "hygiene": -25 }, "skill": "fitness", "skillXp": 45, "moodlet": "good_workout", "tags": ["fitness", "outdoors"] },
+    { "id": "cafe", "name": "Café on Gerard Street", "icon": "☕", "duration": 120, "cost": 12, "effects": { "hunger": 40, "social": 40, "fun": 25 }, "moodlet": "fun_outing", "tags": ["social", "food"], "hours": [8, 20] },
+    { "id": "market", "name": "Market Square", "icon": "🧺", "duration": 120, "cost": 10, "effects": { "fun": 30, "social": 25, "hunger": 20 }, "moodlet": "fun_outing", "days": [1, 5], "hours": [8, 16], "special": "marketFind", "tags": ["social"] },
+    { "id": "gerard", "name": "Shopping at the Gerard Centre", "icon": "🛍️", "duration": 90, "cost": 25, "effects": { "fun": 30, "social": 15 }, "moodlet": "fun_outing", "hours": [9, 20] },
+    { "id": "match", "name": "Watch a match at the football ground", "icon": "⚽", "duration": 150, "cost": 15, "effects": { "fun": 60, "social": 40 }, "moodlet": "fun_outing", "days": [5, 6], "hours": [12, 17], "tags": ["sport"] },
+    { "id": "green", "name": "Stroll by St Thomas' green", "icon": "⛪", "duration": 60, "effects": { "fun": 20, "comfort": 10, "social": 10 }, "hours": [7, 21], "tags": ["outdoors"] },
+    { "id": "races", "name": "Race day at the racecourse", "icon": "🏇", "duration": 240, "cost": 30, "effects": { "fun": 80, "social": 50 }, "moodlet": "fun_outing", "days": [5], "hours": [11, 15], "tags": ["sport", "social"] },
+    { "id": "museum", "name": "Heritage museum (mining and locks)", "icon": "🏛️", "duration": 120, "cost": 5, "effects": { "fun": 25 }, "skill": "logic", "skillXp": 40, "moodlet": "inspired", "hours": [10, 17], "tags": ["logic"] }
+  ]
+}

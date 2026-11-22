@@ -1,0 +1,16 @@
+{
+  "needs": {
+    "hunger":  { "name": "Hunger",  "icon": "🍽️", "decayPerHour": 6.0, "weight": 1.25 },
+    "energy":  { "name": "Energy",  "icon": "⚡", "decayPerHour": 5.0, "weight": 1.15 },
+    "hygiene": { "name": "Hygiene", "icon": "🛁", "decayPerHour": 3.5, "weight": 0.9 },
+    "bladder": { "name": "Bladder", "icon": "🚽", "decayPerHour": 9.0, "weight": 1.35 },
+    "fun":     { "name": "Fun",     "icon": "🎈", "decayPerHour": 5.5, "weight": 1.0 },
+    "social":  { "name": "Social",  "icon": "💬", "decayPerHour": 3.5, "weight": 0.9 },
+    "comfort": { "name": "Comfort", "icon": "🛋️", "decayPerHour": 5.0, "weight": 0.6 },
+    "room":    { "name": "Room",    "icon": "🏠", "decayPerHour": 0,   "weight": 0.5 }
+  },
+  "sittingComfortPerHour": 30,
+  "sittingEnergyMult": 0.6,
+  "sleepingDecayMult": 0.35,
+  "workDecayMult": 0.55
+}

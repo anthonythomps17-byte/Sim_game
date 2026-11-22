@@ -1,0 +1,17 @@
+{
+  "socials": [
+    { "id": "chat", "name": "Chat", "icon": "💬", "duration": 20, "social": 22, "fun": 4, "friendship": 4, "chance": 0.95, "tags": ["social"] },
+    { "id": "joke", "name": "Tell a joke", "icon": "😂", "duration": 15, "social": 15, "fun": 15, "friendship": 6, "chance": 0.65, "failMoodlet": "awkward", "tags": ["social"] },
+    { "id": "compliment", "name": "Compliment", "icon": "🌟", "duration": 10, "social": 12, "fun": 4, "friendship": 7, "chance": 0.8, "tags": ["social"] },
+    { "id": "games", "name": "Play a game", "icon": "🎲", "duration": 30, "social": 20, "fun": 25, "friendship": 6, "chance": 0.85, "minFriendship": 10, "tags": ["social", "games"] },
+    { "id": "deep", "name": "Deep talk", "icon": "🫶", "duration": 30, "social": 30, "fun": 5, "friendship": 10, "chance": 0.7, "minFriendship": 25, "tags": ["social"] },
+    { "id": "hug", "name": "Friendly hug", "icon": "🤗", "duration": 8, "social": 15, "fun": 5, "friendship": 8, "chance": 0.75, "minFriendship": 35, "tags": ["social"], "anim": "wave" },
+    { "id": "highfive", "name": "High five", "icon": "🙌", "duration": 5, "social": 8, "fun": 10, "friendship": 4, "chance": 0.9, "minFriendship": 15, "tags": ["social"], "anim": "cheer" },
+    { "id": "apologise", "name": "Apologise", "icon": "🙏", "duration": 10, "social": 10, "friendship": 12, "chance": 0.7, "maxFriendship": -5, "tags": ["social"] },
+    { "id": "tease", "name": "Tease", "icon": "😜", "duration": 10, "social": 8, "fun": 10, "friendship": -6, "chance": 0.5, "failMoodlet": "argument", "tags": ["social", "mean"], "auto": false },
+    { "id": "flirt", "name": "Flirt", "icon": "😉", "duration": 12, "social": 15, "fun": 10, "friendship": 2, "romance": 6, "chance": 0.6, "minFriendship": 15, "romanceAction": true, "failMoodlet": "rejected", "tags": ["social", "romance"], "auto": false },
+    { "id": "hold_hands", "name": "Hold hands", "icon": "🤝", "duration": 20, "social": 18, "fun": 8, "friendship": 3, "romance": 8, "chance": 0.7, "minRomance": 20, "romanceAction": true, "failMoodlet": "rejected", "tags": ["social", "romance"], "auto": false },
+    { "id": "romantic_hug", "name": "Romantic hug", "icon": "💞", "duration": 10, "social": 18, "fun": 8, "friendship": 3, "romance": 10, "chance": 0.7, "minRomance": 35, "romanceAction": true, "failMoodlet": "rejected", "tags": ["social", "romance"], "anim": "wave", "auto": false },
+    { "id": "ask_partner", "name": "Ask to be partners", "icon": "💍", "duration": 15, "social": 20, "fun": 10, "romance": 15, "chance": 0.6, "minRomance": 55, "romanceAction": true, "failMoodlet": "rejected", "successMoodlet": "in_love", "special": "partners", "tags": ["social", "romance"], "auto": false }
+  ]
+}
