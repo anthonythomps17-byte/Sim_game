@@ -1,0 +1,16 @@
+{
+  "name": "Ashton Life",
+  "short_name": "Ashton Life",
+  "description": "A cosy life sim set in Ashton-in-Makerfield.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "fullscreen",
+  "orientation": "any",
+  "background_color": "#ffefe6",
+  "theme_color": "#ff7a59",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "icons/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
+  ]
+}

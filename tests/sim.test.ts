@@ -248,7 +248,8 @@ describe('careers and money', () => {
 describe('skills', () => {
   it('levels follow the XP table', () => {
     expect(skillLevel(0)).toBe(1);
-    expect(skillLevel(40)).toBe(2);
+    expect(skillLevel(60)).toBe(2);
+    expect(skillLevel(59)).toBe(1);
     expect(skillLevel(5000)).toBe(10);
   });
 });

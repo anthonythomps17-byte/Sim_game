@@ -13,7 +13,7 @@ export const SKILL_NAMES: Record<SkillId, { name: string; icon: string }> = {
 };
 
 /** XP needed to reach each level (index = level). Level 1 is the start. */
-export const XP_FOR_LEVEL = [0, 0, 40, 100, 180, 290, 430, 600, 800, 1050, 1350];
+export const XP_FOR_LEVEL = [0, 0, 60, 160, 300, 480, 700, 960, 1280, 1660, 2100];
 export const MAX_SKILL = 10;
 
 export function skillLevel(xp: number): number {

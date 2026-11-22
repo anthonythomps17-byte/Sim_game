@@ -466,7 +466,7 @@ function perform(game: Game, sim: Sim, cur: RunningAction, dt: number): void {
 
 export function gainSkill(game: Game, sim: Sim, skill: SkillId, xp: number): void {
   const before = skillLevel(sim.skills[skill]);
-  sim.skills[skill] = Math.min(2000, sim.skills[skill] + xp * skillRateMult(sim, skill));
+  sim.skills[skill] = Math.min(2200, sim.skills[skill] + xp * skillRateMult(sim, skill));
   const after = skillLevel(sim.skills[skill]);
   if (after > before) {
     addMoodlet(sim, 'skill_up', game.state.time);
