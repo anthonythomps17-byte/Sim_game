@@ -29,7 +29,8 @@ export interface InteractionDef {
   visitor?: boolean;
   condition?: 'dirty' | 'grown' | 'growing' | 'empty' | 'bills' | 'lightOn' | 'lightOff' | 'night'
     | 'once' | 'uncarved' | 'carved' | 'nightOnce' | 'canDrive'
-    | 'notWinter' | 'broken' | 'working' | 'netflix' | 'sky' | 'binsIn' | 'binsBack' | 'overflowing';
+    | 'notWinter' | 'broken' | 'working' | 'netflix' | 'sky' | 'binsIn' | 'binsBack' | 'overflowing'
+    | 'laundry' | 'wetWashing' | 'canHang' | 'dryWashing';
   /** Groceries used from the household's food supply. */
   food?: number;
   dirties?: number; cleans?: boolean; cleansRoom?: boolean;

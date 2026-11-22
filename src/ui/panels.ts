@@ -1,7 +1,7 @@
 // Modal panels: jobs, outings, rewards, invitations, messages, object info and the neighbourhood map.
 import { ALL_TRAITS, ASPIRATIONS, CAREERS, NEEDS, OBJECTS, OUTINGS, REWARD_OBJECTS, REWARD_TRAITS, NAMES } from '../sim/defs';
 import { calendarOf, DAYS_PER_SEASON, endParty, EVENTS, eventsOn, familyCar, outingCheck, PARTY_COST_PER_GUEST, PARTY_THEMES, planParty, SEASONS, YEAR_DAYS } from '../sim/life';
-import { BOTTOMS, CLOTH_COLORS, TOPS } from '../sim/newgame';
+import { ACCESSORIES, BOTTOMS, CLOTH_COLORS, normalizeAppearance, SHOES, TOPS } from '../sim/newgame';
 import { addMoodlet } from '../sim/mood';
 import { billBreakdown, BIN_DAY, binsOverflowing, boiler, ENGINEER_COST, hasHeatPump, noHotWater, PLUMBER_COST, SUBSCRIPTIONS, wheelieBin, type SubscriptionId } from '../sim/home';
 import { DAY_NAMES } from '../sim/game';
@@ -180,8 +180,9 @@ export class Panels {
 
   clothes(sim: Sim) {
     const game = this.app.game!;
+    sim.appearance = normalizeAppearance(sim.appearance);
     const original = { ...sim.appearance };
-    const prices = { top: 25, bottom: 20, shoes: 15 };
+    const prices = { top: 25, bottom: 20, shoes: 15, accessory: 10 };
     let close = () => {};
     const totalEl = h('div', { class: 't' });
     const body = h('div');
@@ -190,7 +191,8 @@ export class Panels {
       let t = 0;
       if (a.top !== original.top || a.topColor !== original.topColor) t += prices.top;
       if (a.bottom !== original.bottom || a.bottomColor !== original.bottomColor) t += prices.bottom;
-      if (a.shoeColor !== original.shoeColor) t += prices.shoes;
+      if (a.shoeColor !== original.shoeColor || a.shoes !== original.shoes) t += prices.shoes;
+      if (a.accessory !== original.accessory || a.accessoryColor !== original.accessoryColor) t += prices.accessory;
       return t;
     };
     const render = () => {
@@ -204,7 +206,10 @@ export class Panels {
         ...opts(`Tops (£${prices.top})`, TOPS, a.top, (v) => { a.top = v; if (v === 'dress') a.bottom = 'skirt'; }),
         ...cols('Top colour', CLOTH_COLORS, a.topColor, (v) => { a.topColor = v; }),
         ...(a.top === 'dress' ? [] : [...opts(`Bottoms (£${prices.bottom})`, BOTTOMS, a.bottom, (v) => { a.bottom = v; }), ...cols('Bottoms colour', CLOTH_COLORS, a.bottomColor, (v) => { a.bottomColor = v; })]),
-        ...cols(`Shoes (£${prices.shoes})`, ['#2b2b2b', '#f4f1ea', '#8b5e3c', '#c0392b', '#3b4ba8', '#f08ab0', '#57b36a'], a.shoeColor, (v) => { a.shoeColor = v; }),
+        ...opts(`Shoes (£${prices.shoes})`, SHOES, a.shoes ?? 'trainers', (v) => { a.shoes = v as 'trainers'; }),
+        ...cols('Shoe colour', ['#2b2b2b', '#f4f1ea', '#8b5e3c', '#c0392b', '#3b4ba8', '#f08ab0', '#57b36a'], a.shoeColor, (v) => { a.shoeColor = v; }),
+        ...opts(`Accessories (£${prices.accessory})`, ACCESSORIES, a.accessory ?? 'none', (v) => { a.accessory = v as 'none'; }),
+        ...(a.accessory === 'none' || a.accessory === 'earrings' ? [] : cols('Accessory colour', ['#2d3037', '#8b5e3c', '#c0392b', '#3b4ba8', '#f08ab0', '#f4f1ea'], a.accessoryColor ?? '#2d3037', (v) => { a.accessoryColor = v; })),
       );
       totalEl.textContent = `Total: ${money(total())}`;
     };
@@ -381,6 +386,13 @@ export class Panels {
       meter('Dust', '🧹', h.dust, h.dust >= 35 ? 'Tap a Sim → Hoover the house' : 'Nice and clean'),
       meter('Weeds', '🌿', h.weeds, h.weeds >= 35 ? 'Tap a Sim → Weed the garden' : 'The garden looks tidy'),
       bin ? meter('Bins', '🗑️', Math.min(100, h.rubbish), binsOverflowing(game) ? 'Overflowing! Tap the bin to clear up.' : bin.atKerb ? 'Out on the street. Bring it back in after collection.' : nextBin === 0 ? 'Collection is today' : nextBin === 1 ? 'Bin day is tomorrow: take it out tonight' : `Bin day is Thursday (in ${nextBin} days)`) : null,
+      meter('Laundry', '🧺', h.laundry, h.wetWashing > 0 ? 'A wash is done! Hang it out or tumble dry it.' : h.laundry >= 15 ? 'Tap the washing machine → Do the washing' : 'All clean'),
+      ...st.lot.objects.filter((o) => o.defId === 'washing_line' && o.load).map((o) => h_('div', { class: 'row' }, h_('span', { style: 'font-size:22px' }, '👕'), h_('div', { class: 'grow' }, h_('div', { class: 't' }, o.growth >= 100 ? 'Washing is dry: bring it in' : `Washing drying on the line (${Math.floor(o.growth)}%)`)))),
+      ...(familyCar(game) ? [
+        h_('div', { class: 'opt-label' }, 'Car'),
+        meter('Petrol', '⛽', 100 - (familyCar(game)!.fuel ?? 100), (familyCar(game)!.fuel ?? 100) < 30 ? 'Running low: tap the car → Fill up with petrol' : `${Math.round(familyCar(game)!.fuel ?? 100)}% full`),
+        meter('Dirt', '🚗', familyCar(game)!.dirt, familyCar(game)!.dirt >= 40 ? 'Tap the car → Wash the car' : 'Clean and shiny'),
+      ] : []),
       h_('div', { class: 'opt-label' }, 'TV subscriptions'),
       subRow('netflix'),
       subRow('sky'),

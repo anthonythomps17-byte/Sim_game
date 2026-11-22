@@ -142,7 +142,7 @@ export function arriveAtWork(game: Game, sim: Sim, action: RunningAction): void 
     sim.location = 'away';
     sim.awayReason = action.selfId;
     // Drivers get there and back quicker (lessons and tests use the instructor's car).
-    const usesCar = o.special !== 'lesson' && o.special !== 'drivingTest' && takeCar(game, sim);
+    const usesCar = o.special !== 'lesson' && o.special !== 'drivingTest' && takeCar(game, sim, o.special === 'refuel');
     sim.awayUntil = now + (usesCar && o.duration > 60 && !o.household ? o.duration - 20 : o.duration);
     if (usesCar && o.id !== 'drive') addMoodlet(sim, 'enjoyed_drive', now);
     return;
@@ -249,6 +249,7 @@ export function quitCareer(game: Game, sim: Sim): void {
 function issueBills(game: Game): void {
   const b = billBreakdown(game);
   const amount = b.total;
+  game.state.household.extraEnergy = 0;
   if (game.state.bills) game.state.bills.amount += amount;
   else game.state.bills = { amount, issued: game.state.time, dueBy: game.state.time + 3 * MINUTES_PER_DAY };
   const parts = [`home £${b.home}`, `energy £${b.energy}${b.energySaved ? ` (saved £${b.energySaved})` : ''}`, b.subscriptions ? `TV £${b.subscriptions}` : ''].filter(Boolean).join(', ');

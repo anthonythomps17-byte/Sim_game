@@ -8,10 +8,13 @@ import { StandardMaterial } from '@babylonjs/core/Materials/standardMaterial';
 import { Color3 } from '@babylonjs/core/Maths/math.color';
 import { Vector3 } from '@babylonjs/core/Maths/math.vector';
 import type { AnimId, Appearance } from '../sim/types';
+import { normalizeAppearance } from '../sim/newgame';
 import { hex } from './materials';
 
-const THIGH = 0.42, SHIN = 0.4, FOOT_H = 0.06, HIP_H = THIGH + SHIN + FOOT_H;
-const TORSO_H = 0.52, HEAD_D = 0.42, UPPER_ARM = 0.28, LOWER_ARM = 0.25;
+const THIGH = 0.43, SHIN = 0.41, FOOT_H = 0.06, HIP_H = THIGH + SHIN + FOOT_H;
+const TORSO_H = 0.5, UPPER_ARM = 0.3, LOWER_ARM = 0.27;
+// Head half-sizes: realistic proportions (about 1/7 of height), slightly egg-shaped.
+const HX = 0.108, HY = 0.142, HZ = 0.124, HEAD_C = 0.15;
 
 interface Limb { root: TransformNode; mid: TransformNode; upper: Mesh; lower: Mesh; end: Mesh }
 
@@ -90,216 +93,519 @@ export class SimAvatar {
     this.build(a);
   }
 
-  private build(a: Appearance): void {
-    this.appearanceKey = JSON.stringify(a);
+  private build(input: Appearance): void {
+    this.appearanceKey = JSON.stringify(input);
+    const a = normalizeAppearance(input);
     const s = this.scene;
-    const skin = mat(s, 'skin', a.skin);
-    const hair = mat(s, 'hair', a.hairColor, 0.12);
+    const skin = mat(s, 'skin', a.skin, 0.08);
+    const skinShade = mat(s, 'skinShade', shadeHex(a.skin, 0.9), 0.05);
+    const hair = mat(s, 'hair', a.hairColor, 0.25);
+    hair.backFaceCulling = false;
+    const brow = mat(s, 'brow', shadeHex(a.hairColor, 0.75));
     const top = mat(s, 'top', a.topColor);
-    const bottom = mat(s, 'bottom', a.bottomColor);
+    const topTrim = mat(s, 'topTrim', shadeHex(a.topColor, 0.82));
+    const bottomColor = a.bottom === 'jeans' && a.bottomColor === '#3b4ba8' ? '#3a5a8c' : a.bottomColor;
+    const bottom = mat(s, 'bottom', bottomColor);
+    const bottomTrim = mat(s, 'bottomTrim', shadeHex(bottomColor, 0.8));
     const shoe = mat(s, 'shoe', a.shoeColor, 0.15);
+    const sole = mat(s, 'sole', a.shoes === 'trainers' ? '#f4f1ea' : '#2b2b2b', 0.1);
     const eyeWhite = mat(s, 'eyeW', '#fbfbf8', 0.3);
-    const iris = mat(s, 'iris', a.eyeColor, 0.4);
-    const lip = mat(s, 'lip', '#b5524f');
-    const freckle = mat(s, 'freckle', '#a0623e');
-    this.mats.push(skin, hair, top, bottom, shoe, eyeWhite, iris, lip, freckle);
+    const iris = mat(s, 'iris', a.eyeColor, 0.5);
+    const pupil = mat(s, 'pupil', '#111111', 0.6);
+    const shine = mat(s, 'shine', '#ffffff');
+    shine.emissiveColor = new Color3(1, 1, 1);
+    const lip = mat(s, 'lip', mixHex(a.lipColor, a.skin, 0.35), 0.2);
+    const dark = mat(s, 'lash', '#1a1412');
+    const freckle = mat(s, 'freckle', shadeHex(a.skin, 0.72));
+    const blush = mat(s, 'blush', mixHex(a.skin, '#ff8fa0', 0.3));
+    const acc = mat(s, 'acc', a.accessoryColor, 0.3);
+    const gold = mat(s, 'gold', '#d9b25a', 0.6);
+    this.mats.push(skin, skinShade, hair, brow, top, topTrim, bottom, bottomTrim, shoe, sole, eyeWhite, iris, pupil, shine, lip, dark, freckle, blush, acc, gold);
 
-    const width = a.body === 'slim' ? 0.29 : a.body === 'broad' ? 0.42 : 0.35;
+    const shoulderW = a.body === 'slim' ? 0.31 : a.body === 'broad' ? 0.41 : 0.35;
     const depth = a.body === 'slim' ? 0.19 : a.body === 'broad' ? 0.25 : 0.21;
+    const curvy = a.figure === 'curvy';
+    const hipW = curvy ? shoulderW * 1.02 + 0.04 : shoulderW * 0.9;
+    const waistW = curvy ? shoulderW * 0.72 : shoulderW * 0.86;
     this.root.scaling.setAll(a.height);
     this.body.position.y = HIP_H;
+    const sleeveless = a.top === 'vest' || a.top === 'dress';
+    const shortSleeve = a.top === 'tshirt';
+    const covered = (m: StandardMaterial) => (a.top === 'dress' ? top : m);
 
-    // Torso and pelvis.
-    const pelvis = MeshBuilder.CreateSphere('pelvis', { diameter: 1, segments: 8 }, s);
-    pelvis.scaling.set(width * 0.95, 0.24, depth * 1.05);
-    pelvis.position.y = 0.02;
-    this.add(pelvis, this.body, a.top === 'dress' ? top : bottom);
+    // ----- Pelvis and torso -----
+    const pelvis = MeshBuilder.CreateSphere('pelvis', { diameter: 1, segments: 12 }, s);
+    pelvis.scaling.set(hipW, 0.26, depth * 1.08);
+    pelvis.position.y = 0.0;
+    this.add(pelvis, this.body, covered(bottom));
     this.spine.parent = this.body;
     this.spine.position.y = 0.05;
-    const torso = MeshBuilder.CreateCapsule('torso', { radius: 0.5, height: 2, tessellation: 10 }, s);
-    torso.scaling.set(width, TORSO_H / 2, depth);
-    torso.position.y = TORSO_H / 2;
-    this.add(torso, this.spine, top);
+    const waist = MeshBuilder.CreateCylinder('waist', { diameterTop: waistW * 1.02, diameterBottom: hipW * 0.95, height: 0.2, tessellation: 16 }, s);
+    waist.scaling.z = depth / Math.max(waistW, hipW) * 1.12;
+    waist.position.y = 0.08;
+    this.add(waist, this.spine, a.top === 'vest' || a.top === 'tshirt' || a.top === 'shirt' ? top : top);
+    const chest = MeshBuilder.CreateSphere('chest', { diameter: 1, segments: 14 }, s);
+    chest.scaling.set(shoulderW, 0.36, depth * 1.08);
+    chest.position.y = 0.32;
+    this.add(chest, this.spine, top);
+    // Rounded shoulders.
+    for (const side of [-1, 1]) {
+      const sh = MeshBuilder.CreateSphere('shoulder', { diameter: 0.092, segments: 8 }, s);
+      sh.position.set(side * (shoulderW / 2 - 0.005), TORSO_H - 0.085, 0);
+      this.add(sh, this.spine, sleeveless ? skin : top);
+    }
+    if (a.top === 'vest') {
+      // Straps and a scoop neck: show skin at the top of the chest.
+      const neckSkin = MeshBuilder.CreateSphere('scoop', { diameter: 1, segments: 10, slice: 0.35 }, s);
+      neckSkin.scaling.set(shoulderW * 0.7, 0.22, depth * 0.95);
+      neckSkin.position.y = TORSO_H - 0.13;
+      this.add(neckSkin, this.spine, skin);
+    }
     if (a.top === 'hoodie') {
-      const hood = MeshBuilder.CreateSphere('hood', { diameter: 1, segments: 8, slice: 0.6 }, s);
-      hood.scaling.set(width * 0.85, 0.16, depth * 1.1);
-      hood.position.set(0, TORSO_H - 0.02, -0.06);
-      hood.rotation.x = -0.4;
-      this.add(hood, this.spine, top);
-      const pocket = MeshBuilder.CreateBox('pocket', { width: width * 0.6, height: 0.1, depth: 0.02 }, s);
-      pocket.position.set(0, 0.12, depth / 2 + 0.005);
-      this.add(pocket, this.spine, mat(s, 'pocket', shadeHex(a.topColor, 0.85)));
+      const hood = MeshBuilder.CreateTorus('hood', { diameter: 0.2, thickness: 0.07, tessellation: 16 }, s);
+      hood.scaling.set(1.1, 1, 0.9);
+      hood.position.set(0, TORSO_H - 0.01, -0.03);
+      hood.rotation.x = -0.25;
+      this.add(hood, this.spine, topTrim);
+      const pocket = MeshBuilder.CreateBox('pocket', { width: shoulderW * 0.55, height: 0.09, depth: 0.02 }, s);
+      pocket.position.set(0, 0.12, depth / 2 + 0.01);
+      this.add(pocket, this.spine, topTrim);
+      for (const side of [-1, 1]) {
+        const str = MeshBuilder.CreateCylinder('string', { diameter: 0.008, height: 0.12 }, s);
+        str.position.set(side * 0.03, TORSO_H - 0.12, depth / 2 + 0.005);
+        this.add(str, this.spine, mat(s, 'str', '#f4f1ea'));
+      }
     }
-    if (a.top === 'jumper') {
-      const collar = MeshBuilder.CreateTorus('collar', { diameter: 0.17, thickness: 0.05, tessellation: 12 }, s);
+    if (a.top === 'jumper' || a.top === 'longsleeve') {
+      const collar = MeshBuilder.CreateTorus('collar', { diameter: 0.13, thickness: 0.03, tessellation: 14 }, s);
       collar.position.y = TORSO_H - 0.01;
-      this.add(collar, this.spine, mat(s, 'collar', shadeHex(a.topColor, 0.8)));
+      this.add(collar, this.spine, topTrim);
+      if (a.top === 'jumper') {
+        const hem = MeshBuilder.CreateCylinder('hem', { diameter: hipW * 0.98, height: 0.05, tessellation: 16 }, s);
+        hem.scaling.z = depth / hipW * 1.12;
+        hem.position.y = 0.0;
+        this.add(hem, this.spine, topTrim);
+      }
     }
-    const neck = MeshBuilder.CreateCylinder('neck', { diameter: 0.11, height: 0.12, tessellation: 8 }, s);
-    neck.position.y = TORSO_H + 0.03;
+    if (a.top === 'shirt' || a.top === 'jacket') {
+      for (const side of [-1, 1]) {
+        const lapel = MeshBuilder.CreateBox('lapel', { width: 0.06, height: a.top === 'jacket' ? 0.24 : 0.06, depth: 0.015 }, s);
+        lapel.position.set(side * 0.04, TORSO_H - (a.top === 'jacket' ? 0.16 : 0.03), depth / 2 + 0.01);
+        lapel.rotation.z = side * 0.35;
+        this.add(lapel, this.spine, a.top === 'jacket' ? topTrim : top);
+      }
+      if (a.top === 'shirt') for (let i = 0; i < 4; i++) {
+        const btn = MeshBuilder.CreateSphere('btn', { diameter: 0.012, segments: 4 }, s);
+        btn.position.set(0, 0.42 - i * 0.1, depth / 2 + 0.012);
+        this.add(btn, this.spine, mat(s, 'btnm', '#f4f1ea'));
+      }
+      if (a.top === 'jacket') {
+        const coat = MeshBuilder.CreateCylinder('coat', { diameterTop: waistW * 1.12, diameterBottom: hipW * 1.12, height: 0.26, tessellation: 16 }, s);
+        coat.scaling.z = depth / hipW * 1.25;
+        coat.position.y = 0.0;
+        this.add(coat, this.spine, top);
+        const tee = MeshBuilder.CreateBox('tee', { width: 0.08, height: 0.3, depth: 0.01 }, s);
+        tee.position.set(0, 0.3, depth / 2 + 0.012);
+        this.add(tee, this.spine, mat(s, 'teem', '#f4f1ea'));
+      }
+    }
+    const neck = MeshBuilder.CreateCylinder('neck', { diameterTop: 0.085, diameterBottom: 0.1, height: 0.13, tessellation: 10 }, s);
+    neck.position.y = TORSO_H + 0.04;
     this.add(neck, this.spine, skin);
 
-    // Head and face.
+    // ----- Head and face -----
     this.head.parent = this.spine;
     this.head.position.y = TORSO_H + 0.08;
-    const headMesh = MeshBuilder.CreateSphere('headm', { diameter: HEAD_D, segments: 10 }, s);
-    headMesh.position.y = HEAD_D / 2;
-    headMesh.scaling.set(0.95, 1.02, 0.98);
+    const headMesh = MeshBuilder.CreateSphere('headm', { diameter: 1, segments: 18 }, s);
+    headMesh.scaling.set(HX * 2, HY * 2, HZ * 2);
+    headMesh.position.y = HEAD_C;
     this.add(headMesh, this.head, skin);
-    const f = [
-      { sp: 0.075, size: 0.07, mouth: 0.08 },
-      { sp: 0.085, size: 0.078, mouth: 0.07 },
-      { sp: 0.07, size: 0.06, mouth: 0.09 },
-      { sp: 0.08, size: 0.085, mouth: 0.06 },
-    ][a.face % 4];
+    const jawShape = [[0.86, 0.78, 0.9], [0.98, 0.74, 0.94], [0.72, 0.82, 0.88], [0.98, 0.7, 0.92]][a.face % 4];
+    const jaw = MeshBuilder.CreateSphere('jaw', { diameter: 1, segments: 14 }, s);
+    jaw.scaling.set(HX * 1.75 * jawShape[0], HY * 1.15 * jawShape[1], HZ * 1.6 * jawShape[2]);
+    jaw.position.set(0, HEAD_C - 0.078, 0.0);
+    this.add(jaw, this.head, skin);
+    for (const side of [-1, 1]) {
+      const ear = MeshBuilder.CreateSphere('ear', { diameter: 0.055, segments: 8 }, s);
+      ear.scaling.set(0.4, 1, 0.65);
+      ear.position.set(side * (HX - 0.002), HEAD_C - 0.005, -0.005);
+      this.add(ear, this.head, skinShade);
+    }
+    const es = a.eyeSize, sp = 0.043 * a.eyeSpacing;
+    const eyeY = HEAD_C - 0.002;
+    const surface = (x: number, y: number) => HZ * Math.sqrt(Math.max(0.05, 1 - (x / HX) ** 2 - ((y - HEAD_C) / HY) ** 2));
     for (const side of [-1, 1]) {
       const eye = new TransformNode('eye', s);
       eye.parent = this.head;
-      eye.position.set(side * f.sp, HEAD_D * 0.52, HEAD_D * 0.43);
-      const white = MeshBuilder.CreateSphere('eyew', { diameter: f.size, segments: 6 }, s);
-      white.scaling.set(1, 1.1, 0.5);
+      eye.position.set(side * sp, eyeY, surface(sp, eyeY) - 0.012);
+      const white = MeshBuilder.CreateSphere('eyew', { diameter: 0.04 * es, segments: 10 }, s);
+      white.scaling.set(1.2, 0.82, 0.55);
       this.add(white, eye, eyeWhite);
-      const ir = MeshBuilder.CreateSphere('iris', { diameter: f.size * 0.62, segments: 6 }, s);
-      ir.position.z = f.size * 0.2;
-      ir.scaling.set(1, 1.1, 0.5);
+      const ir = MeshBuilder.CreateSphere('iris', { diameter: 0.027 * es, segments: 10 }, s);
+      ir.scaling.set(1, 1, 0.45);
+      ir.position.z = 0.0075 * es;
       this.add(ir, eye, iris);
+      const pu = MeshBuilder.CreateSphere('pupil', { diameter: 0.011 * es, segments: 6 }, s);
+      pu.scaling.set(1, 1, 0.4);
+      pu.position.z = 0.0105 * es;
+      this.add(pu, eye, pupil);
+      const hl = MeshBuilder.CreateSphere('shine', { diameter: 0.005 * es, segments: 4 }, s);
+      hl.position.set(0.004 * es, 0.004 * es, 0.0125 * es);
+      this.add(hl, eye, shine);
+      // Upper eyelid: a skin-coloured hood over the top of the eye.
+      const lid = MeshBuilder.CreateSphere('lid', { diameter: 0.044 * es, segments: 8, slice: 0.3 }, s);
+      lid.scaling.set(1.2, 0.75, 0.62);
+      lid.position.set(0, 0.002, 0.001);
+      this.add(lid, eye, skinShade);
+      if (a.lashes) {
+        const lash = MeshBuilder.CreateBox('lash', { width: 0.045 * es, height: 0.004, depth: 0.012 }, s);
+        lash.position.set(side * 0.004, 0.012 * es, 0.009);
+        lash.rotation.z = side * -0.15;
+        lash.rotation.x = -0.4;
+        this.add(lash, eye, dark);
+      }
       this.eyes.push(eye);
-      const brow = MeshBuilder.CreateBox('brow', { width: f.size * 1.1, height: 0.016, depth: 0.02 }, s);
-      brow.position.set(side * f.sp, HEAD_D * 0.52 + f.size * 0.85, HEAD_D * 0.44);
-      brow.rotation.z = side * -0.12;
-      this.add(brow, this.head, hair);
+      const browPts: Vector3[] = [];
+      for (let i = 0; i <= 6; i++) {
+        const u = i / 6;
+        const x = side * (sp - 0.022 + u * 0.046);
+        const y = eyeY + 0.028 + Math.sin(u * Math.PI) * 0.007 - (side * x > sp + 0.015 ? 0.003 : 0);
+        browPts.push(new Vector3(x, y, surface(x, y) + 0.002));
+      }
+      const thick = a.brows === 'thin' ? 0.0035 : a.brows === 'thick' ? 0.0075 : 0.0055;
+      this.add(MeshBuilder.CreateTube('brow', { path: browPts, radius: thick, tessellation: 6, cap: 2 }, s), this.head, brow);
       if (a.freckles) {
-        for (let i = 0; i < 3; i++) {
-          const fr = MeshBuilder.CreateSphere('fr', { diameter: 0.014, segments: 3 }, s);
-          fr.position.set(side * (f.sp + 0.012 * (i - 1)), HEAD_D * 0.4 + (i % 2) * 0.012, HEAD_D * 0.46);
+        for (let i = 0; i < 4; i++) {
+          const fx = side * (sp + 0.004 * (i - 1.5) * 2), fy = eyeY - 0.032 - (i % 2) * 0.008;
+          const fr = MeshBuilder.CreateSphere('fr', { diameter: 0.006, segments: 3 }, s);
+          fr.position.set(fx, fy, surface(fx, fy) + 0.001);
           this.add(fr, this.head, freckle);
         }
       }
+      if (a.blush) {
+        const bx = side * (sp + 0.012), by = eyeY - 0.045;
+        const bl = MeshBuilder.CreateSphere('blush', { diameter: 0.035, segments: 6 }, s);
+        bl.scaling.set(1, 0.6, 0.15);
+        bl.position.set(bx, by, surface(bx, by) - 0.001);
+        this.add(bl, this.head, blush);
+      }
     }
-    const nose = MeshBuilder.CreateSphere('nose', { diameter: 0.045, segments: 5 }, s);
-    nose.position.set(0, HEAD_D * 0.42, HEAD_D * 0.49);
-    this.add(nose, this.head, mat(s, 'nose', shadeHex(a.skin, 0.93)));
-    const smile: Vector3[] = [];
-    for (let i = 0; i <= 6; i++) {
-      const u = (i / 6 - 0.5) * 2;
-      smile.push(new Vector3(u * f.mouth * 0.5, HEAD_D * 0.3 - (1 - u * u) * 0.018, HEAD_D * 0.47 - Math.abs(u) * 0.015));
-    }
-    const mouth = MeshBuilder.CreateTube('mouth', { path: smile, radius: 0.009, tessellation: 6, cap: 2 }, s);
-    this.add(mouth, this.head, lip);
+    // Nose: a bridge and a rounded tip.
+    const ns = a.noseSize;
+    const bridge = MeshBuilder.CreateCapsule('bridge', { radius: 0.0075 * ns, height: 0.04 * ns, tessellation: 8 }, s);
+    bridge.position.set(0, eyeY - 0.026, surface(0, eyeY - 0.026) - 0.001);
+    bridge.rotation.x = 0.3;
+    this.add(bridge, this.head, skin);
+    const tip = MeshBuilder.CreateSphere('nose', { diameter: 0.03 * ns, segments: 8 }, s);
+    tip.scaling.set(1.15, 0.85, 0.9);
+    tip.position.set(0, eyeY - 0.048, surface(0, eyeY - 0.048) + 0.012 * ns);
+    this.add(tip, this.head, skinShade);
+    // Lips.
+    const mw = 0.026 * a.mouthWidth;
+    const mouthY = eyeY - 0.085;
+    const lipPath = (dy: number, curve: number) => {
+      const pts: Vector3[] = [];
+      for (let i = 0; i <= 8; i++) {
+        const u = (i / 8) * 2 - 1;
+        const x = u * mw;
+        const y = mouthY + dy + curve * (1 - u * u);
+        pts.push(new Vector3(x, y, Math.max(surface(x, y), 0.104) + 0.004 - Math.abs(u) * 0.006));
+      }
+      return pts;
+    };
+    this.add(MeshBuilder.CreateTube('lipU', { path: lipPath(0.004, 0.002), radius: 0.0042, tessellation: 6, cap: 2 }, s), this.head, lip);
+    this.add(MeshBuilder.CreateTube('lipL', { path: lipPath(-0.004, -0.003), radius: 0.0052, tessellation: 6, cap: 2 }, s), this.head, lip);
 
     this.buildHair(a.hairStyle, hair);
+    this.buildAccessory(a.accessory, acc, gold, dark);
 
-    // Arms: index 0 = right (+x), 1 = left (-x).
-    const longSleeve = a.top !== 'tshirt' && a.top !== 'dress';
+    // ----- Arms: index 0 = right (+x), 1 = left (-x) -----
     for (const side of [1, -1]) {
       const root = new TransformNode('shoulder', s);
       root.parent = this.spine;
-      root.position.set(side * (width / 2 + 0.03), TORSO_H - 0.07, 0);
-      const upper = MeshBuilder.CreateCapsule('uarm', { radius: 0.052, height: UPPER_ARM + 0.06, tessellation: 8 }, s);
+      root.position.set(side * (shoulderW / 2 + 0.015), TORSO_H - 0.08, 0);
+      const upper = MeshBuilder.CreateCapsule('uarm', { radius: 0.042, height: UPPER_ARM + 0.06, tessellation: 10 }, s);
       upper.position.y = -UPPER_ARM / 2;
-      this.add(upper, root, a.top === 'dress' ? skin : top);
+      this.add(upper, root, sleeveless ? skin : top);
+      if (shortSleeve) {
+        const cuff = MeshBuilder.CreateCylinder('sleeve', { diameter: 0.1, height: 0.12, tessellation: 10 }, s);
+        cuff.position.y = -0.05;
+        this.add(cuff, root, top);
+        upper.material = skin;
+      }
       const mid = new TransformNode('elbow', s);
       mid.parent = root;
       mid.position.y = -UPPER_ARM;
-      const lower = MeshBuilder.CreateCapsule('larm', { radius: 0.046, height: LOWER_ARM + 0.05, tessellation: 8 }, s);
+      const lower = MeshBuilder.CreateCapsule('larm', { radius: 0.036, height: LOWER_ARM + 0.05, tessellation: 10 }, s);
       lower.position.y = -LOWER_ARM / 2;
-      this.add(lower, mid, longSleeve ? top : skin);
-      const hand = MeshBuilder.CreateSphere('hand', { diameter: 0.1, segments: 6 }, s);
-      hand.position.y = -LOWER_ARM - 0.03;
+      this.add(lower, mid, sleeveless || shortSleeve ? skin : top);
+      if (!sleeveless && !shortSleeve) {
+        const cuff = MeshBuilder.CreateCylinder('cuff', { diameter: 0.085, height: 0.04, tessellation: 10 }, s);
+        cuff.position.y = -LOWER_ARM + 0.01;
+        this.add(cuff, mid, topTrim);
+      }
+      const hand = MeshBuilder.CreateSphere('hand', { diameter: 0.085, segments: 8 }, s);
+      hand.scaling.set(0.7, 1.15, 0.9);
+      hand.position.y = -LOWER_ARM - 0.04;
       this.add(hand, mid, skin);
+      const thumb = MeshBuilder.CreateCapsule('thumb', { radius: 0.012, height: 0.05, tessellation: 6 }, s);
+      thumb.position.set(-side * 0.0, -LOWER_ARM - 0.025, 0.03);
+      thumb.rotation.x = 0.6;
+      this.add(thumb, mid, skin);
       this.arms.push({ root, mid, upper, lower, end: hand });
     }
-    // Legs.
+
+    // ----- Legs -----
     const skirtLike = a.top === 'dress' || a.bottom === 'skirt';
-    const thighMat = skirtLike ? skin : bottom;
-    const shinMat = a.bottom === 'trousers' && a.top !== 'dress' ? bottom : skin;
+    const shorts = a.bottom === 'shorts';
+    const tight = a.bottom === 'leggings';
+    const thighMat = skirtLike ? skin : covered(bottom);
+    const shinMat = skirtLike || shorts ? skin : bottom;
     for (const side of [1, -1]) {
       const root = new TransformNode('hip', s);
       root.parent = this.body;
-      root.position.set(side * width * 0.27, 0, 0);
-      const upper = MeshBuilder.CreateCapsule('thigh', { radius: 0.075, height: THIGH + 0.08, tessellation: 8 }, s);
+      root.position.set(side * hipW * 0.26, 0, 0);
+      const upper = MeshBuilder.CreateCapsule('thigh', { radius: tight ? 0.062 : 0.068, height: THIGH + 0.08, tessellation: 10 }, s);
       upper.position.y = -THIGH / 2;
       this.add(upper, root, thighMat);
+      if (shorts) {
+        const hemS = MeshBuilder.CreateCylinder('shortsHem', { diameter: 0.15, height: 0.2, tessellation: 10 }, s);
+        hemS.position.y = -0.1;
+        this.add(hemS, root, bottom);
+        upper.material = skin;
+      }
       const mid = new TransformNode('knee', s);
       mid.parent = root;
       mid.position.y = -THIGH;
-      const lower = MeshBuilder.CreateCapsule('shin', { radius: 0.06, height: SHIN + 0.04, tessellation: 8 }, s);
+      const lower = MeshBuilder.CreateCapsule('shin', { radius: tight ? 0.048 : 0.054, height: SHIN + 0.04, tessellation: 10 }, s);
       lower.position.y = -SHIN / 2;
       this.add(lower, mid, shinMat);
-      const foot = MeshBuilder.CreateBox('foot', { width: 0.12, height: FOOT_H + 0.02, depth: 0.23 }, s);
-      foot.position.set(0, -SHIN - FOOT_H / 2 + 0.01, 0.05);
-      this.add(foot, mid, shoe);
-      this.legs.push({ root, mid, upper, lower, end: foot });
+      if (a.bottom === 'joggers' && !skirtLike) {
+        const band = MeshBuilder.CreateCylinder('cuffband', { diameter: 0.11, height: 0.05, tessellation: 10 }, s);
+        band.position.y = -SHIN + 0.04;
+        this.add(band, mid, bottomTrim);
+      }
+      // Shoes: trainers, boots or smart shoes.
+      const upperShoe = MeshBuilder.CreateBox('shoe', { width: 0.1, height: a.shoes === 'boots' ? 0.16 : 0.07, depth: 0.24 }, s);
+      upperShoe.position.set(0, -SHIN - FOOT_H / 2 + (a.shoes === 'boots' ? 0.06 : 0.015), 0.045);
+      this.add(upperShoe, mid, shoe);
+      const toe = MeshBuilder.CreateSphere('toe', { diameter: 0.1, segments: 8 }, s);
+      toe.scaling.set(1, 0.65, 0.9);
+      toe.position.set(0, -SHIN - FOOT_H / 2 + 0.01, 0.13);
+      this.add(toe, mid, shoe);
+      const soleM = MeshBuilder.CreateBox('sole', { width: 0.105, height: 0.025, depth: 0.27 }, s);
+      soleM.position.set(0, -SHIN - FOOT_H + 0.008, 0.055);
+      this.add(soleM, mid, sole);
+      this.legs.push({ root, mid, upper, lower, end: upperShoe });
     }
     if (skirtLike) {
-      const skirt = MeshBuilder.CreateCylinder('skirt', { diameterTop: width * 1.0, diameterBottom: width * 1.7, height: a.top === 'dress' ? 0.45 : 0.36, tessellation: 12 }, s);
-      skirt.position.y = a.top === 'dress' ? -0.17 : -0.12;
+      const len = a.top === 'dress' ? 0.46 : 0.34;
+      const skirt = MeshBuilder.CreateCylinder('skirt', { diameterTop: hipW * 1.02, diameterBottom: hipW * 1.55, height: len, tessellation: 18 }, s);
+      skirt.scaling.z = depth / hipW * 1.25;
+      skirt.position.y = 0.06 - len / 2;
       this.skirt = this.add(skirt, this.body, a.top === 'dress' ? top : bottom);
     }
   }
 
+  /** Hair shell that hugs the head. `slice` = how far down it reaches, `arc` = how far round (gap at the front). */
+  private shell(hair: StandardMaterial, scale: number, slice: number, arc = 1, yOff = 0, zOff = 0, tilt = 0, sx = 1, sz = 1): Mesh {
+    const m = MeshBuilder.CreateSphere('hair', { diameter: 1, segments: 18, slice, arc, sideOrientation: Mesh.DOUBLESIDE }, this.scene);
+    m.scaling.set(HX * 2 * scale * sx, HY * 2 * scale, HZ * 2 * scale * sz);
+    m.position.set(0, HEAD_C + yOff, zOff);
+    // Put the open part of the arc at the front, over the face.
+    m.rotation.set(tilt, arc < 1 ? -Math.PI / 2 - Math.PI * (1 + arc) : 0, 0);
+    return this.add(m, this.head, hair);
+  }
+
   private buildHair(style: string, hair: StandardMaterial): void {
     const s = this.scene;
-    const R = HEAD_D / 2;
-    const cy = HEAD_D / 2;
-    const cap = (scale: number, yOff: number, zOff: number, slice = 0.62) => {
-      const m = MeshBuilder.CreateSphere('hair', { diameter: HEAD_D * scale, segments: 10, slice }, s);
-      m.position.set(0, cy + yOff, zOff);
-      m.rotation.x = -0.35;
-      return this.add(m, this.head, hair);
-    };
     const blob = (d: number, x: number, y: number, z: number, sx = 1, sy = 1, sz = 1) => {
-      const m = MeshBuilder.CreateSphere('hairb', { diameter: d, segments: 6 }, s);
+      const m = MeshBuilder.CreateSphere('hairb', { diameter: d, segments: 8 }, s);
       m.position.set(x, y, z);
       m.scaling.set(sx, sy, sz);
       return this.add(m, this.head, hair);
     };
+    const strand = (pts: [number, number, number][], r0: number, r1: number) => {
+      const path = pts.map(([x, y, z]) => new Vector3(x, y, z));
+      return this.add(MeshBuilder.CreateTube('strand', { path, radiusFunction: (i: number, d: number) => { void d; return r0 + (r1 - r0) * (i / (path.length - 1)); }, tessellation: 10, cap: 2 }, s), this.head, hair);
+    };
+    // Crown: covers the top of the head down to a natural hairline on the forehead.
+    const crown = (scale = 1.07, slice = 0.36) => this.shell(hair, scale, slice, 1, 0.006, -0.006, -0.34);
+    // Back and sides, open at the face, reaching down to `slice`.
+    const back = (slice: number, scale = 1.1, flare = 1) => this.shell(hair, scale, slice, 0.6, 0, -0.006, 0, flare, flare);
+    const nape = HEAD_C - HY * 0.7;
     switch (style) {
       case 'bald': return;
-      case 'buzz': cap(1.03, 0.01, -0.01, 0.55); return;
-      case 'short': cap(1.1, 0.02, -0.02); blob(0.3, 0, cy + 0.02, -0.08, 1.2, 1, 0.9); return;
-      case 'quiff': cap(1.08, 0.01, -0.02); blob(0.2, 0, cy + R * 0.95, R * 0.45, 1.3, 0.7, 1.2); return;
-      case 'bob': {
-        cap(1.12, 0.02, -0.02);
-        blob(HEAD_D * 1.1, 0, cy - 0.02, -0.04, 1.02, 0.85, 0.95);
+      case 'buzz':
+        this.shell(hair, 1.08, 0.4, 1, 0.004, -0.008, -0.34);
+        this.shell(hair, 1.085, 0.62, 0.55, 0, -0.008);
         return;
-      }
-      case 'long': {
-        cap(1.12, 0.02, -0.02);
-        const back = MeshBuilder.CreateBox('hairl', { width: HEAD_D * 0.95, height: 0.55, depth: 0.12 }, s);
-        back.position.set(0, cy - 0.22, -R * 0.75);
-        this.add(back, this.head, hair);
-        blob(0.16, R * 0.8, cy - 0.12, -0.02, 0.6, 2.2, 0.8);
-        blob(0.16, -R * 0.8, cy - 0.12, -0.02, 0.6, 2.2, 0.8);
+      case 'short':
+        crown(1.08, 0.45);
+        back(0.62, 1.09);
+        blob(0.11, 0.02, HEAD_C + HY * 0.82, HZ * 0.55, 1.6, 0.45, 0.9).rotation.z = -0.25;
         return;
-      }
-      case 'ponytail': {
-        cap(1.1, 0.02, -0.02);
-        blob(0.13, 0, cy + 0.08, -R - 0.02);
-        const tail = MeshBuilder.CreateCapsule('tail', { radius: 0.06, height: 0.38, tessellation: 8 }, s);
-        tail.position.set(0, cy - 0.12, -R - 0.08);
-        tail.rotation.x = 0.25;
-        this.add(tail, this.head, hair);
+      case 'pixie':
+        crown(1.08, 0.45);
+        back(0.66, 1.08);
+        blob(0.12, -0.035, HEAD_C + HY * 0.7, HZ * 0.72, 1.4, 0.4, 0.6).rotation.z = 0.45;
         return;
-      }
-      case 'buns': cap(1.08, 0.02, -0.02); blob(0.16, R * 0.7, cy + R * 0.85, -0.02); blob(0.16, -R * 0.7, cy + R * 0.85, -0.02); return;
-      case 'curly': {
-        cap(1.12, 0.03, -0.02);
-        for (let i = 0; i < 10; i++) {
-          const a = (i / 10) * Math.PI * 2;
-          blob(0.13, Math.sin(a) * R * 0.95, cy + 0.05 + Math.cos(a * 2) * 0.04, Math.cos(a) * R * 0.85 - 0.04);
+      case 'quiff':
+        crown(1.07, 0.42);
+        back(0.6, 1.07);
+        blob(0.12, 0, HEAD_C + HY * 1.02, HZ * 0.45, 1.3, 0.75, 1.3).rotation.x = -0.4;
+        return;
+      case 'side_part':
+        crown(1.09, 0.45);
+        back(0.84, 1.12, 1.04);
+        blob(0.13, -0.045, HEAD_C + HY * 0.68, HZ * 0.74, 1.5, 0.5, 0.55).rotation.z = 0.5;
+        return;
+      case 'bob':
+        crown(1.1, 0.46);
+        back(0.88, 1.15, 1.08);
+        blob(0.13, 0, HEAD_C + HY * 0.72, HZ * 0.72, 1.7, 0.42, 0.55);
+        return;
+      case 'long':
+      case 'wavy': {
+        crown(1.09, 0.45);
+        back(0.84, 1.12, 1.03);
+        // A curtain of hair down the back and strands over the shoulders.
+        const wav = style === 'wavy' ? 0.018 : 0;
+        for (let i = 0; i < 7; i++) {
+          const x = -0.09 + i * 0.03;
+          const z = -HZ * 0.75 + Math.abs(x) * 0.25;
+          strand([[x, nape + 0.05, z], [x + wav, nape - 0.08, z - 0.03], [x - wav, nape - 0.2, z - 0.035], [x + wav * 0.5, nape - 0.3, z - 0.03]], 0.03, 0.02);
         }
-        return;
-      }
-      case 'afro': blob(HEAD_D * 1.5, 0, cy + 0.08, -0.05, 1, 0.92, 1); return;
-      case 'braids': {
-        cap(1.1, 0.02, -0.02);
         for (const side of [-1, 1]) {
-          for (let i = 0; i < 4; i++) blob(0.07, side * R * 0.85, cy - 0.05 - i * 0.07, 0.02, 1, 1.1, 1);
+          const x = side * HX * 0.95;
+          strand([[x, HEAD_C, 0.0], [x + side * 0.01, nape - 0.02, 0.03], [x + side * (0.03 + wav), nape - 0.14, 0.05], [x + side * 0.03, nape - 0.24, 0.04]], 0.028, 0.016);
         }
         return;
       }
-      default: cap(1.1, 0.02, -0.02);
+      case 'ponytail':
+      case 'high_pony': {
+        crown(1.05, 0.48);
+        back(0.72, 1.06);
+        const hy = style === 'high_pony' ? HEAD_C + HY * 0.75 : HEAD_C + 0.01;
+        const tie = MeshBuilder.CreateTorus('tie', { diameter: 0.04, thickness: 0.014, tessellation: 10 }, s);
+        tie.position.set(0, hy, -HZ - 0.01);
+        tie.rotation.x = Math.PI / 2;
+        this.add(tie, this.head, mat(s, 'tiem', '#e05a7a'));
+        strand([[0, hy, -HZ - 0.02], [0, hy - 0.04, -HZ - 0.07], [0, hy - 0.14, -HZ - 0.08], [0, hy - 0.26, -HZ - 0.05]], 0.035, 0.012);
+        return;
+      }
+      case 'bun':
+        crown(1.05, 0.48);
+        back(0.7, 1.06);
+        blob(0.11, 0, HEAD_C + HY * 0.95, -HZ * 0.55, 1.1, 0.9, 1.1);
+        blob(0.05, 0.03, HEAD_C + HY * 1.05, -HZ * 0.4);
+        return;
+      case 'buns':
+        crown(1.05, 0.48);
+        back(0.68, 1.06);
+        for (const side of [-1, 1]) blob(0.09, side * HX * 0.75, HEAD_C + HY * 0.85, -HZ * 0.15);
+        return;
+      case 'braids':
+        crown(1.05, 0.48);
+        back(0.7, 1.06);
+        for (const side of [-1, 1]) for (let i = 0; i < 7; i++) blob(0.038 - i * 0.002, side * (HX * 0.85 + 0.01), nape - 0.01 - i * 0.04, 0.02 + i * 0.006, 1, 1.15, 1);
+        return;
+      case 'cornrows':
+        this.shell(hair, 1.08, 0.4, 1, 0.004, -0.008, -0.34);
+        this.shell(hair, 1.085, 0.66, 0.55, 0, -0.008);
+        for (let i = 0; i < 6; i++) {
+          const x = -0.075 + i * 0.03;
+          const pts: Vector3[] = [];
+          // From the hairline over the top to the nape, hugging the scalp.
+          for (let j = 0; j <= 10; j++) {
+            const a = -0.55 + (j / 10) * 2.6;
+            const k = Math.sqrt(Math.max(0, 1 - (x / (HX * 1.09)) ** 2));
+            pts.push(new Vector3(x, HEAD_C + Math.cos(a) * HY * 1.09 * k, -Math.sin(a) * HZ * 1.09 * k));
+          }
+          this.add(MeshBuilder.CreateTube('row', { path: pts, radius: 0.0065, tessellation: 6 }, s), this.head, hair);
+        }
+        return;
+      case 'curly': {
+        crown(1.1, 0.46);
+        back(0.8, 1.13, 1.05);
+        for (let i = 0; i < 34; i++) {
+          const a = (i / 34) * Math.PI * 2 * 3;
+          const lat = 0.15 + (i % 7) * 0.12;
+          const ang = a % (Math.PI * 2);
+          if (Math.abs(Math.sin(ang)) > 0.85 && Math.cos(ang) > 0 && lat > 0.5) continue; // keep the face clear
+          const x = Math.cos(ang) * HX * 1.15 * Math.sin(lat * Math.PI * 0.7 + 0.3);
+          const z = -Math.abs(Math.sin(ang)) * HZ * 1.1 * Math.sin(lat * Math.PI * 0.7 + 0.3) + (Math.sin(ang) > 0 ? 0 : 0);
+          const y = HEAD_C + HY * (1.05 - lat * 1.1);
+          blob(0.055, x, y, z);
+        }
+        return;
+      }
+      case 'afro': {
+        crown(1.1, 0.36);
+        const big = this.shell(hair, 1.5, 0.7, 0.66, 0.04, -0.035, 0);
+        big.scaling.y *= 0.95;
+        for (let i = 0; i < 18; i++) {
+          const a = Math.PI * 0.15 + (i / 17) * Math.PI * 0.7;
+          blob(0.09, Math.cos(a) * HX * 1.45, HEAD_C + 0.05 + Math.sin(i * 1.7) * 0.05, -Math.sin(a) * HZ * 1.4);
+        }
+        blob(0.16, 0, HEAD_C + HY * 1.15, -0.02, 1.6, 0.7, 1.4);
+        return;
+      }
+      default:
+        crown();
+        back(0.62);
+    }
+  }
+
+  private buildAccessory(kind: string, acc: StandardMaterial, gold: StandardMaterial, dark: StandardMaterial): void {
+    const s = this.scene;
+    const eyeY = HEAD_C - 0.002;
+    switch (kind) {
+      case 'glasses':
+      case 'sunglasses':
+        for (const side of [-1, 1]) {
+          const rim = MeshBuilder.CreateTorus('rim', { diameter: 0.052, thickness: 0.006, tessellation: 16 }, s);
+          rim.rotation.x = Math.PI / 2;
+          rim.position.set(side * 0.044, eyeY, HZ + 0.006);
+          this.add(rim, this.head, acc);
+          if (kind === 'sunglasses') {
+            const lens = MeshBuilder.CreateCylinder('lens', { diameter: 0.048, height: 0.003, tessellation: 16 }, s);
+            lens.rotation.x = Math.PI / 2;
+            lens.position.set(side * 0.044, eyeY, HZ + 0.006);
+            this.add(lens, this.head, dark);
+          }
+          const arm = MeshBuilder.CreateTube('arm', { path: [new Vector3(side * 0.07, eyeY + 0.004, HZ - 0.004), new Vector3(side * (HX + 0.003), eyeY + 0.006, HZ * 0.35), new Vector3(side * (HX + 0.002), eyeY - 0.004, -0.01)], radius: 0.003, tessellation: 5 }, s);
+          this.add(arm, this.head, acc);
+        }
+        this.add(Object.assign(MeshBuilder.CreateBox('bridgeG', { width: 0.03, height: 0.005, depth: 0.005 }, s), { position: new Vector3(0, eyeY + 0.008, HZ + 0.01) }), this.head, acc);
+        return;
+      case 'earrings':
+        for (const side of [-1, 1]) {
+          const e = MeshBuilder.CreateTorus('earring', { diameter: 0.022, thickness: 0.004, tessellation: 12 }, s);
+          e.position.set(side * (HX + 0.004), HEAD_C - 0.035, 0);
+          e.rotation.z = Math.PI / 2;
+          this.add(e, this.head, gold);
+        }
+        return;
+      case 'beanie': {
+        const b = this.shell(acc, 1.16, 0.5, 1, 0.02, -0.005, -0.2);
+        b.material = acc;
+        const band = MeshBuilder.CreateTorus('band', { diameter: HX * 2.2, thickness: 0.035, tessellation: 20 }, s);
+        band.scaling.z = HZ / HX;
+        band.position.set(0, HEAD_C + 0.045, -0.01);
+        band.rotation.x = -0.2;
+        this.add(band, this.head, acc);
+        return;
+      }
+      case 'cap': {
+        const c = this.shell(acc, 1.12, 0.45, 1, 0.012, -0.004, -0.18);
+        c.material = acc;
+        const brim = MeshBuilder.CreateCylinder('brim', { diameter: 0.17, height: 0.012, tessellation: 18, arc: 0.5 }, s);
+        brim.position.set(0, HEAD_C + HY * 0.62, HZ * 0.55);
+        brim.rotation.set(-0.15, Math.PI, 0);
+        this.add(brim, this.head, acc);
+        return;
+      }
     }
   }
 
@@ -577,6 +883,10 @@ export class SimAvatar {
     this.root.dispose(false, true);
     for (const m of this.mats) m.dispose();
   }
+}
+
+function mixHex(a: string, b: string, t: number): string {
+  return Color3.Lerp(hex(a), hex(b), t).toHexString();
 }
 
 function shadeHex(c: string, f: number): string {

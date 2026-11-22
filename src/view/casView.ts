@@ -26,6 +26,7 @@ export class CasView {
     this.scene.clearColor = new Color4(0.98, 0.9, 0.86, 1);
     this.camera = new ArcRotateCamera('casCam', -Math.PI / 2, 1.35, 3.4, new Vector3(0, 1.0, 0), this.scene);
     this.camera.fov = 0.7;
+    this.camera.minZ = 0.05;
     this.camera.inputs.clear();
     const hemi = new HemisphericLight('h', new Vector3(0.3, 1, -0.6), this.scene);
     hemi.intensity = 0.75;
@@ -64,23 +65,24 @@ export class CasView {
   /** Where the Sim stands on screen: 'right' (title), 'left' (wide create-a-Sim) or 'top' (narrow create-a-Sim). */
   layout(where: 'left' | 'right' | 'top') {
     this.where = where;
-    this.camera.targetScreenOffset.x = where === 'right' ? 0.6 : where === 'left' ? -0.6 : 0;
-    this.camera.targetScreenOffset.y = where === 'top' ? 1.9 : 0;
-    this.camera.radius = where === 'top' ? 9 : 3.4;
+    this.zoomFace(false);
+  }
+
+  private where: 'left' | 'right' | 'top' = 'left';
+
+  /** Zoom in on the face (offsets scale with distance so the Sim stays in view). */
+  zoomFace(on: boolean) {
+    const far = this.where === 'top' ? 9 : 3.4;
+    const r = on ? (this.where === 'top' ? 2.2 : 1.05) : far;
+    this.camera.target = new Vector3(0, on ? 1.68 : 1.0, 0);
+    this.camera.radius = r;
+    this.camera.targetScreenOffset.x = this.where === 'right' ? 0.18 * r : this.where === 'left' ? -0.18 * r : 0;
+    this.camera.targetScreenOffset.y = this.where === 'top' ? 0.21 * r : 0;
   }
 
   show(a: Appearance) {
     if (!this.avatar) this.avatar = new SimAvatar(this.scene, -1, a);
     else this.avatar.setAppearance(a);
-  }
-
-  private where: 'left' | 'right' | 'top' = 'left';
-
-  zoomFace(on: boolean) {
-    this.camera.target = new Vector3(0, on ? 1.55 : 1.0, 0);
-    const far = this.where === 'top' ? 9 : 3.4;
-    this.camera.radius = on ? far * 0.45 : far;
-    this.camera.targetScreenOffset.y = this.where === 'top' ? (on ? 0.85 : 1.9) : 0;
   }
 
   frame(dt: number) {

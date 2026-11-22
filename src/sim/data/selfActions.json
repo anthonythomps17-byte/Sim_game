@@ -587,6 +587,15 @@
     8,
     20
    ]
+  },
+  {
+   "id": "petrol",
+   "name": "Fill up at the petrol station",
+   "icon": "⛽",
+   "duration": 25,
+   "effects": {},
+   "special": "refuel",
+   "condition": "canDrive"
   }
  ]
 }

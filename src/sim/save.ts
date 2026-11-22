@@ -48,6 +48,9 @@ export function deserialize(text: string): GameState {
   st.household.rubbish ??= 0;
   st.household.subscriptions ??= { netflix: false, sky: false };
   st.household.discount ??= 0;
+  st.household.laundry ??= 20;
+  st.household.wetWashing ??= 0;
+  st.household.extraEnergy ??= 0;
   st.household.neighbourMood ??= 80;
   st.household.nextDoorId ??= st.sims.find((s) => s.isTownie)?.id ?? 0;
   st.party ??= null;

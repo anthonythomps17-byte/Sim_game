@@ -370,6 +370,34 @@
    "icon": "🌍",
    "value": 8,
    "duration": 1440
+  },
+  {
+   "id": "fresh_sheets",
+   "name": "Fresh sheets",
+   "icon": "🛏️",
+   "value": 12,
+   "duration": 720
+  },
+  {
+   "id": "grubby_sheets",
+   "name": "Grubby sheets",
+   "icon": "🦠",
+   "value": -10,
+   "duration": 480
+  },
+  {
+   "id": "fresh_laundry",
+   "name": "Fresh laundry",
+   "icon": "🧺",
+   "value": 10,
+   "duration": 360
+  },
+  {
+   "id": "no_clean_clothes",
+   "name": "No clean clothes",
+   "icon": "🧦",
+   "value": -15,
+   "duration": 720
   }
  ]
 }

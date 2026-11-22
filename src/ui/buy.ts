@@ -14,7 +14,7 @@ export const OBJECT_ICONS: Record<string, string> = {
   stereo: '📻', guitar: '🎸', piano: '🎹', easel: '🖌️', chess: '♟️', telescope: '🔭', chem_kit: '🧪', workbench: '🔐', treadmill: '🏃',
   weights: '🏋️', veg_patch: '🥕', bbq: '🍔', bench: '🪵', goal: '⚽', mailbox: '📮', floor_lamp: '💡', table_lamp: '🪔', lantern: '🏮',
   plant_small: '🪴', plant_big: '🌳', aquarium: '🐠', winding_wheel: '⛏️', lock_sculpture: '🔑', jukebox: '🎶', antique_locks: '🗝️',
-  racing_print: '🏇', karaoke: '🎤', car: '🚗', wheelie_bin: '🗑️', boiler: '🔥', heat_pump: '🌀', solar: '☀️', rock_jar: '🍭', flamenco_fan: '🪭', golden_guitar: '🎸', inspiring_easel: '🖼️', dream_bed: '☁️', magic_loo: '✨',
+  racing_print: '🏇', karaoke: '🎤', car: '🚗', wheelie_bin: '🗑️', washer: '🧺', dryer: '🌀', washing_line: '👕', boiler: '🔥', heat_pump: '🌀', solar: '☀️', rock_jar: '🍭', flamenco_fan: '🪭', golden_guitar: '🎸', inspiring_easel: '🖼️', dream_bed: '☁️', magic_loo: '✨',
 };
 
 export function summary(def: ObjectDef): string {

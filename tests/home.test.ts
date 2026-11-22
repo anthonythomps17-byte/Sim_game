@@ -126,3 +126,60 @@ describe('outings and seasons', () => {
     expect(checkInteraction(g, sim, o, interaction('bbq', 'grill')!).reason).toContain('cold');
   });
 });
+
+describe('laundry and petrol', () => {
+  it('wash, hang out, dry and bring in the washing', () => {
+    const g = newGame();
+    g.state.settings.freeWill = 'off';
+    refresh(g);
+    const sim = g.household()[0];
+    g.state.household.laundry = 50;
+    const washer = obj(g, 'washer');
+    enqueue(g, sim, { kind: 'object', objectId: washer.id, interactionId: 'wash', label: 'Wash', icon: '', userQueued: true });
+    g.tick(60);
+    expect(g.state.household.laundry).toBe(0);
+    expect(g.state.household.wetWashing).toBe(50);
+    const line = obj(g, 'washing_line');
+    enqueue(g, sim, { kind: 'object', objectId: line.id, interactionId: 'hang', label: 'Hang', icon: '', userQueued: true });
+    g.tick(60);
+    expect(line.load).toBe(50);
+    g.tick(6 * 60);
+    expect(line.growth).toBe(100);
+    refresh(g);
+    enqueue(g, sim, { kind: 'object', objectId: line.id, interactionId: 'bringin', label: 'In', icon: '', userQueued: true });
+    g.tick(40);
+    expect(line.load).toBe(0);
+  });
+
+  it('changing the bedding cleans the bed and adds to the laundry', () => {
+    const g = newGame();
+    g.state.settings.freeWill = 'off';
+    refresh(g);
+    const sim = g.household()[0];
+    const bed = obj(g, 'bed_double');
+    bed.dirt = 80;
+    const before = g.state.household.laundry;
+    enqueue(g, sim, { kind: 'object', objectId: bed.id, interactionId: 'bedding', label: 'Bedding', icon: '', userQueued: true });
+    g.tick(60);
+    expect(bed.dirt).toBe(0);
+    expect(g.state.household.laundry).toBe(before + 15);
+  });
+
+  it('driving uses petrol and filling up costs money', () => {
+    const g = newGame();
+    g.state.settings.freeWill = 'off';
+    refresh(g);
+    const sim = g.household()[0];
+    sim.driving.licence = true;
+    const car = g.object(buyObject(g, 'car', 1, 12, 0).id!)!;
+    car.fuel = 10;
+    enqueue(g, sim, { kind: 'outing', selfId: 'drive', label: 'Drive', icon: '', userQueued: true });
+    g.tick(5);
+    expect(car.outWith).toBeFalsy();
+    const funds = g.state.household.funds;
+    enqueue(g, sim, { kind: 'outing', selfId: 'petrol', label: 'Petrol', icon: '', userQueued: true });
+    g.tick(60);
+    expect(car.fuel).toBe(100);
+    expect(g.state.household.funds).toBe(funds - 81);
+  });
+});

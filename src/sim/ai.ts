@@ -84,6 +84,10 @@ export function scoreOptions(game: Game, sim: Sim): Option[] {
       if (inter.special === 'tend' || inter.special === 'plant') score += 4;
       if (inter.condition === 'bills') score += 25;
       if (inter.condition === 'binsIn') score += 28;
+      if (inter.condition === 'laundry') score += game.state.household.laundry / 5;
+      if (inter.condition === 'wetWashing' || inter.condition === 'canHang') score += 22;
+      if (inter.condition === 'dryWashing') score += 15;
+      if (inter.special === 'bedding') score += obj.dirt / 6;
       if (inter.condition === 'binsBack') score += 12;
       if (inter.condition === 'overflowing') score += 14;
       if (inter.condition === 'broken') score += 16;

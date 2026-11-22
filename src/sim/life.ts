@@ -270,17 +270,29 @@ export function familyCar(game: Game): PlacedObject | undefined {
   return game.state.lot.objects.find((o) => o.defId === 'car');
 }
 
+export const MIN_FUEL = 15;
+
+export function carFuel(car: PlacedObject): number { return car.fuel ?? 100; }
+
 export function canDriveNow(game: Game, sim: Sim): boolean {
   const car = familyCar(game);
-  return sim.driving.licence && !!car && !car.outWith;
+  return sim.driving.licence && !!car && !car.outWith && carFuel(car) >= MIN_FUEL;
 }
 
 /** On leaving the lot: take the car if possible. Returns true when driving. */
-export function takeCar(game: Game, sim: Sim): boolean {
-  if (!canDriveNow(game, sim)) return false;
-  const car = familyCar(game)!;
+export function takeCar(game: Game, sim: Sim, refuelling = false): boolean {
+  const car = familyCar(game);
+  if (!car || !sim.driving.licence || car.outWith) return false;
+  if (!refuelling && carFuel(car) < MIN_FUEL) {
+    game.notify(`The car is nearly out of petrol, so ${sim.name} took the bus. Fill up at the petrol station!`, '⛽', 'bad');
+    return false;
+  }
   car.outWith = sim.id;
   car.dirt = Math.min(100, car.dirt + 20);
+  if (!refuelling) {
+    car.fuel = Math.max(0, carFuel(car) - 12);
+    if (carFuel(car) < 30) game.notify('The petrol light is on. Fill up soon!', '⛽', 'info');
+  }
   game.lotChanged();
   return true;
 }
@@ -322,11 +334,18 @@ export function outingCheck(game: Game, sim: Sim, o: OutingDef): OutingCheck {
       if (sim.driving.licence) return { ok: false, hidden: true };
       if (sim.driving.lessons < 5) return { ok: false, why: `Needs 5 driving lessons (${sim.driving.lessons}/5)` };
       break;
-    case 'canDrive':
+    case 'canDrive': {
       if (!sim.driving.licence) return { ok: false, hidden: true };
-      if (!familyCar(game)) return { ok: false, why: 'Buy a car first' };
-      if (familyCar(game)!.outWith) return { ok: false, why: 'The car is out' };
+      const car = familyCar(game);
+      if (!car) return { ok: false, why: 'Buy a car first' };
+      if (car.outWith) return { ok: false, why: 'The car is out' };
+      if (o.special === 'refuel') {
+        if (carFuel(car) >= 95) return { ok: false, why: 'The tank is already full' };
+        const cost = Math.round((100 - carFuel(car)) * 0.9);
+        if (game.state.household.funds < cost) return { ok: false, why: `Petrol costs £${cost}` };
+      } else if (carFuel(car) < MIN_FUEL) return { ok: false, why: 'Out of petrol! Fill up first' };
       break;
+    }
   }
   if (o.days && !o.days.includes(game.weekday)) return { ok: false, why: `Only on ${o.days.map((d) => ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'][d]).join(', ')}` };
   const hour = game.hour;
@@ -350,6 +369,15 @@ export function outingReturn(game: Game, sim: Sim, id: string): void {
     game.notify(sim.driving.lessons >= 5 ? `${sim.name} has had ${sim.driving.lessons} lessons and is ready for the driving test!` : `${sim.name} had driving lesson ${sim.driving.lessons} of 5.`, '🚦', 'info');
   }
   if (o.special === 'drivingTest') drivingTest(game, sim);
+  if (o.special === 'refuel') {
+    const car = familyCar(game);
+    if (car) {
+      const cost = Math.round((100 - carFuel(car)) * 0.9);
+      game.addFunds(-cost);
+      car.fuel = 100;
+      game.notify(`${sim.name} filled up the car with petrol (£${cost}).`, '⛽', 'info');
+    }
+  }
   if (o.special === 'bargain') {
     game.state.household.discount = 0.25;
     addMoodlet(sim, 'bargain', game.state.time);

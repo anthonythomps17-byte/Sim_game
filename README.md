@@ -65,6 +65,8 @@ Ashton flavour: red-brick terraces and slate roofs, a church spire and pit-head 
   - Solar panels cut energy by 25% each (up to 2) and a heat pump by 35%. Neither raises your rent.
   - Chores: dust builds up (hoover the house), weeds grow (weed the garden, faster in summer), and bin day is Thursday (take the wheelie bin out on Wednesday night or it overflows).
   - Things break: drains get blocked (unblock them yourself or pay a plumber £120) and the boiler can fail, more often in winter (cold showers and no heating until it's fixed, by you with Logic or by an engineer for £250). Servicing the boiler makes a breakdown less likely.
+- **Laundry:** dirty clothes and bedding pile up. Do the washing, then hang it on the rotary line (dries fast in summer, slowly in winter) or tumble dry it (adds to the electricity bill). Leave a wash in the machine overnight and it goes smelly. Beds get grubby: change the bedding for fresh sheets.
+- **Petrol:** driving uses fuel. Fill up at the petrol station (tap the car, or Go out). With an empty tank, Sims take the bus.
 - **More to do:** summer barbecues (too cold in winter), walks in the park or round the block, bargain hunting at B&M (25% off voucher), and washing the car after driving.
 - **Parties:** tap your Sim → Plan a party. Pick karaoke, dance or barbecue, a time and up to 6 friends. Noise after 10pm upsets the neighbours: first a bang on the wall, then a complaint, then an £80 fine.
 

@@ -161,6 +161,33 @@ const carShape = (b: ModelBuilder, paint: string) => {
 
 export const BUILDERS: Record<string, Builder> = {
   car: (b) => carShape(b, '#3b6fd1'),
+  washer: (b) => {
+    b.box(0.6, 0.85, 0.6, WHITE, 0, 0, -0.1);
+    b.cyl(0.42, 0.42, 0.04, '#9aa3ad', 0, 0.42, 0.2, 18).rotation.x = Math.PI / 2;
+    b.cyl(0.32, 0.32, 0.05, '#6ea8d6', 0, 0.42, 0.21, 18).rotation.x = Math.PI / 2;
+    b.box(0.5, 0.08, 0.02, '#d9d6cf', 0, 0.74, 0.205);
+  },
+  dryer: (b) => {
+    b.box(0.6, 0.85, 0.6, '#e9e6df', 0, 0, -0.1);
+    b.cyl(0.42, 0.42, 0.04, '#7b8794', 0, 0.42, 0.2, 18).rotation.x = Math.PI / 2;
+    b.cyl(0.32, 0.32, 0.05, '#2d3037', 0, 0.42, 0.21, 18).rotation.x = Math.PI / 2;
+  },
+  washing_line: (b, _d, obj) => {
+    b.cyl(0.05, 0.05, 1.8, '#9aa3ad', 0, 0, 0, 6);
+    for (let i = 0; i < 4; i++) {
+      const arm = b.box(1.5, 0.03, 0.03, '#9aa3ad', 0, 1.75, 0);
+      arm.rotation.y = (i * Math.PI) / 4;
+    }
+    if (obj?.load) {
+      const cols = ['#e05a5a', '#4a90d9', '#f4f1ea', '#f2c14e', '#57b36a', '#f08ab0', '#9b6ad6', '#ffffff'];
+      const n = Math.min(8, 2 + Math.floor(obj.load / 8));
+      for (let i = 0; i < n; i++) {
+        const a = (i / n) * Math.PI * 2, r = 0.35 + (i % 2) * 0.3;
+        const c = b.box(0.28, 0.32, 0.02, cols[i % cols.length], Math.cos(a) * r, 1.4, Math.sin(a) * r);
+        c.rotation.y = -a;
+      }
+    }
+  },
   wheelie_bin: (b) => {
     b.box(0.6, 0.95, 0.7, '#2f3a33', 0, 0.08, 0);
     b.box(0.66, 0.08, 0.76, '#3b4a40', 0, 1.03, 0.02);

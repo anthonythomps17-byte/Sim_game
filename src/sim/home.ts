@@ -39,7 +39,7 @@ export function billBreakdown(game: Game): BillBreakdown {
   const kit = game.state.lot.objects.filter((o) => ENERGY_KIT.includes(o.defId)).reduce((s, o) => s + OBJECTS[o.defId].price, 0);
   const home = Math.round(50 + (game.homeValue() - kit) * 0.008);
   const solar = Math.min(2, count(game, 'solar'));
-  const full = BASE_ENERGY + count(game, 'karaoke') * 3 + count(game, 'tv_big') * 4;
+  const full = BASE_ENERGY + count(game, 'karaoke') * 3 + count(game, 'tv_big') * 4 + game.state.household.extraEnergy;
   let energy = full * (1 - 0.25 * solar);
   if (hasHeatPump(game)) energy *= 0.65;
   energy = Math.round(energy);
@@ -93,6 +93,13 @@ export function homeHour(game: Game, hour: number): void {
   const season = calendarOf(game.day).season.id;
   const bin = wheelieBin(game);
   if (hour === 0) {
+    h.laundry = clamp(h.laundry + game.household().length * 7, 0, 100);
+    if (h.laundry >= 70 && h.laundry < 100) game.notify('The laundry basket is nearly full. Time to do the washing!', '🧺', 'info');
+    if (h.wetWashing > 0) {
+      h.laundry = clamp(h.laundry + Math.round(h.wetWashing / 2), 0, 100);
+      h.wetWashing = 0;
+      game.notify('The washing was left in the machine too long and went smelly. It needs washing again!', '🧺', 'bad');
+    }
     h.dust = clamp(h.dust + 12 + game.household().length * 2, 0, 100);
     h.weeds = clamp(h.weeds + (season === 'winter' ? 3 : season === 'summer' ? 14 : 10), 0, 100);
     if (bin) h.rubbish = clamp(h.rubbish + 10 + game.household().length * 3, 0, 120);
@@ -100,6 +107,7 @@ export function homeHour(game: Game, hour: number): void {
     if (h.weeds >= 70) game.notify('Weeds are taking over the garden! (Tap your Sim → Weed the garden)', '🌿', 'info');
   }
   if (hour === 6) randomProblems(game, season);
+  if (hour === 8 && h.laundry >= 100) for (const sim of game.household()) addMoodlet(sim, 'no_clean_clothes', st.time);
   if (bin) {
     if (game.weekday === BIN_DAY - 1 && hour === 19 && !bin.atKerb) game.notify("It's bin day tomorrow! Take the wheelie bin out tonight.", '🗑️', 'bills');
     if (game.weekday === BIN_DAY && hour === 7) {
@@ -202,12 +210,59 @@ export function homeSpecial(game: Game, sim: Sim, obj: PlacedObject, special: st
       st.household.rubbish = Math.min(st.household.rubbish, 85);
       game.notify(`${sim.name} cleared up the spilled rubbish.`, '🧹', 'good');
       return true;
+    case 'wash': {
+      const load = Math.min(h_(game).laundry, 60);
+      h_(game).laundry -= load;
+      h_(game).wetWashing += load;
+      game.notify(`${sim.name} put a wash on. Hang it out or tumble dry it before it goes smelly!`, '🧺', 'info');
+      return true;
+    }
+    case 'tumble':
+      h_(game).wetWashing = 0;
+      h_(game).extraEnergy += 4;
+      return true;
+    case 'hang':
+      obj.load = h_(game).wetWashing;
+      obj.growth = 1;
+      h_(game).wetWashing = 0;
+      game.lotChanged();
+      return true;
+    case 'bringIn':
+      obj.load = 0;
+      obj.growth = 0;
+      game.lotChanged();
+      return true;
+    case 'bedding':
+      h_(game).laundry = clamp(h_(game).laundry + 15, 0, 100);
+      return true;
+    case 'refuel':
+      sim.queue.unshift({ uid: game.nextId(), kind: 'outing', selfId: 'petrol', label: 'Fill up with petrol', icon: '⛽', userQueued: true });
+      return true;
     case 'bbq':
       if (calendarOf(game.day).season.id === 'summer') addMoodlet(sim, 'summer_bbq', st.time);
       return true;
   }
   return false;
 }
+
+const h_ = (game: Game) => game.state.household;
+
+/** Washing on the line dries in the sun (or slowly in winter). Call every game minute. */
+export function dryWashing(game: Game, dt: number): void {
+  const season = calendarOf(game.day).season.id;
+  const perHour = season === 'summer' ? 50 : season === 'winter' ? 12 : 28;
+  const night = game.isNight() ? 0.3 : 1;
+  for (const o of game.state.lot.objects) {
+    if (o.defId !== 'washing_line' || !o.load || o.growth <= 0 || o.growth >= 100) continue;
+    o.growth = Math.min(100, o.growth + (perHour / 60) * dt * night);
+    if (o.growth >= 100) {
+      game.notify('The washing is dry. Bring it in!', '👕', 'good');
+      game.lotChanged();
+    }
+  }
+}
+
+export function washingLine(game: Game): PlacedObject | undefined { return game.state.lot.objects.find((o) => o.defId === 'washing_line'); }
 
 export function selfSpecial(game: Game, sim: Sim, special: string): void {
   const h = game.state.household;

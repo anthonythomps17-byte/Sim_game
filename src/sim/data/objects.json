@@ -897,7 +897,8 @@
      "moodlet": "well_rested",
      "tags": [
       "sleep"
-     ]
+     ],
+     "dirties": 10
     },
     {
      "id": "nap",
@@ -911,6 +912,21 @@
      "anim": "sleep",
      "tags": [
       "nap"
+     ],
+     "dirties": 3
+    },
+    {
+     "id": "bedding",
+     "name": "Change the bedding",
+     "icon": "🛏️",
+     "duration": 20,
+     "anim": "use",
+     "condition": "dirty",
+     "cleans": true,
+     "special": "bedding",
+     "moodlet": "fresh_sheets",
+     "tags": [
+      "cleaning"
      ]
     }
    ]
@@ -964,7 +980,8 @@
      "moodlet": "well_rested",
      "tags": [
       "sleep"
-     ]
+     ],
+     "dirties": 10
     },
     {
      "id": "nap",
@@ -978,6 +995,21 @@
      "anim": "sleep",
      "tags": [
       "nap"
+     ],
+     "dirties": 3
+    },
+    {
+     "id": "bedding",
+     "name": "Change the bedding",
+     "icon": "🛏️",
+     "duration": 20,
+     "anim": "use",
+     "condition": "dirty",
+     "cleans": true,
+     "special": "bedding",
+     "moodlet": "fresh_sheets",
+     "tags": [
+      "cleaning"
      ]
     }
    ]
@@ -2907,6 +2939,21 @@
      "moodlet": "well_rested",
      "tags": [
       "sleep"
+     ],
+     "dirties": 10
+    },
+    {
+     "id": "bedding",
+     "name": "Change the bedding",
+     "icon": "🛏️",
+     "duration": 20,
+     "anim": "use",
+     "condition": "dirty",
+     "cleans": true,
+     "special": "bedding",
+     "moodlet": "fresh_sheets",
+     "tags": [
+      "cleaning"
      ]
     }
    ]
@@ -3030,6 +3077,15 @@
      "anim": "use",
      "special": "drive",
      "condition": "canDrive",
+     "auto": false
+    },
+    {
+     "id": "refuel",
+     "name": "Fill up with petrol",
+     "icon": "⛽",
+     "duration": 2,
+     "anim": "use",
+     "special": "refuel",
      "auto": false
     },
     {
@@ -3490,6 +3546,138 @@
    "description": "Each array cuts the energy bill by 25% (up to 2 arrays). Best in summer.",
    "spots": [],
    "interactions": []
+  },
+  {
+   "id": "washer",
+   "name": "Washing Machine",
+   "category": "home",
+   "price": 380,
+   "footprint": [
+    1,
+    1
+   ],
+   "decor": 0,
+   "description": "Wash the dirty clothes and bedding. Then hang them out or tumble dry.",
+   "spots": [
+    {
+     "at": [
+      0,
+      1
+     ]
+    }
+   ],
+   "interactions": [
+    {
+     "id": "wash",
+     "name": "Do the washing",
+     "icon": "🧺",
+     "duration": 35,
+     "anim": "use",
+     "condition": "laundry",
+     "special": "wash",
+     "tags": [
+      "cleaning"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "dryer",
+   "name": "Tumble Dryer",
+   "category": "home",
+   "price": 320,
+   "footprint": [
+    1,
+    1
+   ],
+   "decor": 0,
+   "description": "Dries a wash straight away. Uses electricity (adds to the bill).",
+   "spots": [
+    {
+     "at": [
+      0,
+      1
+     ]
+    }
+   ],
+   "interactions": [
+    {
+     "id": "tumble",
+     "name": "Tumble dry the washing",
+     "icon": "🌀",
+     "duration": 15,
+     "anim": "use",
+     "condition": "wetWashing",
+     "special": "tumble",
+     "moodlet": "fresh_laundry",
+     "tags": [
+      "cleaning"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "washing_line",
+   "name": "Rotary Washing Line",
+   "category": "outdoor",
+   "price": 60,
+   "footprint": [
+    1,
+    1
+   ],
+   "decor": 0,
+   "description": "Free drying! Fast in summer, slow in winter.",
+   "spots": [
+    {
+     "at": [
+      0,
+      1
+     ],
+     "alt": [
+      [
+       1,
+       0
+      ],
+      [
+       -1,
+       0
+      ],
+      [
+       0,
+       -1
+      ]
+     ]
+    }
+   ],
+   "interactions": [
+    {
+     "id": "hang",
+     "name": "Hang out the washing",
+     "icon": "👕",
+     "duration": 20,
+     "anim": "cheer",
+     "condition": "canHang",
+     "special": "hang",
+     "tags": [
+      "cleaning",
+      "outdoors"
+     ]
+    },
+    {
+     "id": "bringin",
+     "name": "Bring the washing in",
+     "icon": "🧺",
+     "duration": 12,
+     "anim": "use",
+     "condition": "dryWashing",
+     "special": "bringIn",
+     "moodlet": "fresh_laundry",
+     "tags": [
+      "cleaning",
+      "outdoors"
+     ]
+    }
+   ]
   }
  ]
 }

@@ -1,12 +1,12 @@
 // Create-a-Sim: build a household of up to 4 Sims.
 import { ASPIRATIONS, TRAITS } from '../sim/defs';
-import { BODIES, BOTTOMS, CLOTH_COLORS, EYE_COLORS, HAIR_COLORS, HAIR_STYLES, SKIN_TONES, TOPS, randomDraft, type SimDraft } from '../sim/newgame';
+import { ACCESSORIES, BODIES, BOTTOMS, CLOTH_COLORS, EYE_COLORS, HAIR_COLORS, HAIR_STYLES, LIP_COLORS, SHOES, SKIN_TONES, TOPS, normalizeAppearance, randomDraft, type SimDraft } from '../sim/newgame';
 import type { GameState } from '../sim/types';
 import type { App } from './app';
 import { modal } from './panels';
 import { clear, h, initials } from './dom';
 
-type Tab = 'who' | 'look' | 'hair' | 'clothes';
+type Tab = 'who' | 'look' | 'face' | 'hair' | 'clothes';
 
 export class CasScreen {
   el: HTMLElement;
@@ -48,8 +48,8 @@ export class CasScreen {
       this.drafts.length < 4 ? h('button', { class: 'btn small', onclick: () => { this.drafts.push(randomDraft(this.rng, this.household)); this.idx = this.drafts.length - 1; this.update(); } }, '＋ Add Sim') : null,
       this.drafts.length > 1 ? h('button', { class: 'btn small ghost', onclick: () => { this.drafts.splice(this.idx, 1); this.idx = Math.max(0, this.idx - 1); this.update(); } }, 'Remove') : null,
     );
-    const tabs = h('div', { class: 'tabs' }, ...([['who', 'Personality'], ['look', 'Body'], ['hair', 'Hair & face'], ['clothes', 'Clothes']] as [Tab, string][])
-      .map(([t, l]) => h('button', { class: `tab ${t === this.tab ? 'on' : ''}`, onclick: () => { this.tab = t; this.app.casView.zoomFace(t === 'hair'); this.render(); } }, l)));
+    const tabs = h('div', { class: 'tabs' }, ...([['who', 'Personality'], ['look', 'Body'], ['face', 'Face'], ['hair', 'Hair'], ['clothes', 'Clothes']] as [Tab, string][])
+      .map(([t, l]) => h('button', { class: `tab ${t === this.tab ? 'on' : ''}`, onclick: () => { this.tab = t; this.app.casView.zoomFace(t === 'hair' || t === 'face'); this.render(); } }, l)));
     const scroll = h('div', { class: 'cas-scroll' });
     this.renderTab(scroll);
     this.panel = h('div', { class: 'panel cas-panel' },
@@ -77,8 +77,14 @@ export class CasScreen {
     return [h('div', { class: 'opt-label' }, label), h('div', { class: 'colors' }, ...list.map((c) => h('button', { class: `color ${c === current ? 'on' : ''}`, style: `background:${c}`, 'aria-label': c, onclick: () => { set(c); this.update(); } })))];
   }
 
-  private renderTab(el: HTMLElement) {
+  private slider(label: string, min: number, max: number, value: number, set: (v: number) => void): HTMLElement[] {
     const a = this.d.appearance;
+    return [h('div', { class: 'opt-label' }, label), h('input', { type: 'range', min, max, step: 0.01, value, 'aria-label': label, style: 'width:100%', oninput: (e: Event) => { set(Number((e.target as HTMLInputElement).value)); this.app.casView.show(a); } })];
+  }
+
+  private renderTab(el: HTMLElement) {
+    this.d.appearance = normalizeAppearance(this.d.appearance);
+    const a = this.d.appearance as Required<typeof this.d.appearance>;
     switch (this.tab) {
       case 'who': {
         el.append(
@@ -102,19 +108,31 @@ export class CasScreen {
       }
       case 'look':
         el.append(
-          ...this.opts('Body shape', BODIES.map((b) => ({ id: b, name: b[0].toUpperCase() + b.slice(1) })), a.body, (v) => { a.body = v; }),
-          h('div', { class: 'opt-label' }, 'Height'),
-          h('input', { type: 'range', min: 0.9, max: 1.1, step: 0.01, value: a.height, 'aria-label': 'Height', oninput: (e: Event) => { a.height = Number((e.target as HTMLInputElement).value); this.app.casView.show(a); } }),
+          ...this.opts('Build', BODIES.map((b) => ({ id: b, name: b[0].toUpperCase() + b.slice(1) })), a.body, (v) => { a.body = v; }),
+          ...this.opts('Figure', [{ id: 'straight', name: 'Straight' }, { id: 'curvy', name: 'Curvy' }], a.figure, (v) => { a.figure = v as 'straight' | 'curvy'; }),
+          ...this.slider('Height', 0.9, 1.1, a.height, (v) => { a.height = v; }),
           ...this.colors('Skin tone', SKIN_TONES, a.skin, (v) => { a.skin = v; }),
+        );
+        break;
+      case 'face':
+        el.append(
+          ...this.opts('Face shape', [0, 1, 2, 3].map((i) => ({ id: String(i), name: ['Oval', 'Round', 'Heart', 'Square'][i] })), String(a.face), (v) => { a.face = Number(v); }),
+          ...this.colors('Eye colour', EYE_COLORS, a.eyeColor, (v) => { a.eyeColor = v; }),
+          ...this.slider('Eye size', 0.8, 1.2, a.eyeSize, (v) => { a.eyeSize = v; }),
+          ...this.slider('Eye spacing', 0.85, 1.15, a.eyeSpacing, (v) => { a.eyeSpacing = v; }),
+          ...this.opts('Eyebrows', [{ id: 'thin', name: 'Thin' }, { id: 'medium', name: 'Medium' }, { id: 'thick', name: 'Thick' }], a.brows, (v) => { a.brows = v as 'thin'; }),
+          ...this.opts('Eyelashes', [{ id: 'no', name: 'Natural' }, { id: 'yes', name: 'Long lashes' }], a.lashes ? 'yes' : 'no', (v) => { a.lashes = v === 'yes'; }),
+          ...this.slider('Nose size', 0.75, 1.3, a.noseSize, (v) => { a.noseSize = v; }),
+          ...this.slider('Mouth width', 0.8, 1.25, a.mouthWidth, (v) => { a.mouthWidth = v; }),
+          ...this.colors('Lip colour', LIP_COLORS, a.lipColor, (v) => { a.lipColor = v; }),
+          ...this.opts('Freckles', [{ id: 'no', name: 'None' }, { id: 'yes', name: 'Freckles' }], a.freckles ? 'yes' : 'no', (v) => { a.freckles = v === 'yes'; }),
+          ...this.opts('Blush', [{ id: 'no', name: 'None' }, { id: 'yes', name: 'Rosy cheeks' }], a.blush ? 'yes' : 'no', (v) => { a.blush = v === 'yes'; }),
         );
         break;
       case 'hair':
         el.append(
           ...this.opts('Hair style', HAIR_STYLES, a.hairStyle, (v) => { a.hairStyle = v; }),
           ...this.colors('Hair colour', HAIR_COLORS, a.hairColor, (v) => { a.hairColor = v; }),
-          ...this.colors('Eye colour', EYE_COLORS, a.eyeColor, (v) => { a.eyeColor = v; }),
-          ...this.opts('Face', [0, 1, 2, 3].map((i) => ({ id: String(i), name: ['Classic', 'Bright-eyed', 'Calm', 'Cute'][i] })), String(a.face), (v) => { a.face = Number(v); }),
-          ...this.opts('Freckles', [{ id: 'no', name: 'None' }, { id: 'yes', name: 'Freckles' }], a.freckles ? 'yes' : 'no', (v) => { a.freckles = v === 'yes'; }),
         );
         break;
       case 'clothes':
@@ -123,7 +141,10 @@ export class CasScreen {
           ...this.colors('Top colour', CLOTH_COLORS, a.topColor, (v) => { a.topColor = v; }),
           ...(a.top === 'dress' ? [] : this.opts('Bottoms', BOTTOMS, a.bottom, (v) => { a.bottom = v; })),
           ...(a.top === 'dress' ? [] : this.colors('Bottoms colour', CLOTH_COLORS, a.bottomColor, (v) => { a.bottomColor = v; })),
-          ...this.colors('Shoes', ['#2b2b2b', '#f4f1ea', '#8b5e3c', '#c0392b', '#3b4ba8', '#f08ab0', '#57b36a'], a.shoeColor, (v) => { a.shoeColor = v; }),
+          ...this.opts('Shoes', SHOES, a.shoes, (v) => { a.shoes = v as 'trainers'; }),
+          ...this.colors('Shoe colour', ['#2b2b2b', '#f4f1ea', '#8b5e3c', '#c0392b', '#3b4ba8', '#f08ab0', '#57b36a'], a.shoeColor, (v) => { a.shoeColor = v; }),
+          ...this.opts('Accessory', ACCESSORIES, a.accessory, (v) => { a.accessory = v as 'none'; }),
+          ...(a.accessory === 'none' || a.accessory === 'earrings' ? [] : this.colors('Accessory colour', ['#2d3037', '#8b5e3c', '#c0392b', '#3b4ba8', '#f08ab0', '#f4f1ea', '#57b36a'], a.accessoryColor, (v) => { a.accessoryColor = v; })),
         );
         break;
     }

@@ -28,9 +28,22 @@ export interface Appearance {
   freckles: boolean;
   top: string;             // tshirt | longsleeve | hoodie | dress | jumper
   topColor: string;
-  bottom: string;          // trousers | shorts | skirt
+  bottom: string;          // trousers | jeans | joggers | leggings | shorts | skirt
   bottomColor: string;
   shoeColor: string;
+  // Added later; filled in by normalizeAppearance for older saves.
+  figure?: 'straight' | 'curvy';
+  eyeSize?: number;        // 0.8 .. 1.2
+  eyeSpacing?: number;     // 0.85 .. 1.15
+  noseSize?: number;       // 0.75 .. 1.3
+  mouthWidth?: number;     // 0.8 .. 1.25
+  brows?: 'thin' | 'medium' | 'thick';
+  lashes?: boolean;
+  lipColor?: string;
+  blush?: boolean;
+  shoes?: 'trainers' | 'boots' | 'shoes';
+  accessory?: 'none' | 'glasses' | 'sunglasses' | 'earrings' | 'beanie' | 'cap';
+  accessoryColor?: string;
 }
 
 export interface ActiveMoodlet { id: string; expires: number }
@@ -146,6 +159,9 @@ export interface PlacedObject {
   broken?: boolean;
   /** Wheelie bin out on the kerb, and where it lives the rest of the week. */
   atKerb?: boolean;
+  /** Washing on the line (amount), and petrol in the car (0–100). */
+  load?: number;
+  fuel?: number;
   home?: { x: number; z: number };
 }
 
@@ -196,6 +212,11 @@ export interface GameState {
     subscriptions: { netflix: boolean; sky: boolean };
     /** One-off money off the next Buy mode purchase (0–1). */
     discount: number;
+    /** Dirty clothes and bedding waiting to be washed (0–100), and a washed load waiting to dry. */
+    laundry: number;
+    wetWashing: number;
+    /** Extra electricity this week (tumble dryer). */
+    extraEnergy: number;
   };
   sims: Sim[];
   relationships: Relationship[];

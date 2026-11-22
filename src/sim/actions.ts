@@ -10,7 +10,7 @@ import { chooseAutonomous } from './ai';
 import { resolveSocial, socialCheck } from './social';
 import { arriveAtWork, skipWork } from './schedule';
 import { changeRel, findRel } from './relationships';
-import { calendarOf, canDriveNow, hasFood, openPresent, useFood } from './life';
+import { calendarOf, canDriveNow, hasFood, openPresent, outingCheck, useFood } from './life';
 import { binsOverflowing, binWindow, homeSpecial, noHotWater, selfSpecial } from './home';
 import type { NeedId, PlacedObject, Point, QueuedAction, RunningAction, Sim, SkillId } from './types';
 
@@ -106,6 +106,13 @@ export function checkInteraction(game: Game, sim: Sim, obj: PlacedObject, inter:
     case 'binsIn': if (obj.atKerb || !binWindow(game)) return { ok: false, hidden: true }; break;
     case 'binsBack': if (!obj.atKerb || binWindow(game)) return { ok: false, hidden: true }; break;
     case 'overflowing': if (!binsOverflowing(game)) return { ok: false, hidden: true }; break;
+    case 'laundry': if (game.state.household.laundry < 15) return { ok: false, reason: 'Not enough to wash yet' }; break;
+    case 'wetWashing': if (game.state.household.wetWashing <= 0) return { ok: false, hidden: true }; break;
+    case 'canHang':
+      if (game.state.household.wetWashing <= 0 || obj.load) return { ok: false, hidden: true };
+      if (game.isNight()) return { ok: false, reason: 'Wait until morning' };
+      break;
+    case 'dryWashing': if (!obj.load || obj.growth < 100) return { ok: false, hidden: true }; break;
   }
   if (obj.broken && inter.condition !== 'broken' && obj.defId !== 'boiler') return { ok: false, reason: 'Blocked! Unblock it first' };
   if (inter.food && !hasFood(game, inter.food)) return { ok: false, reason: 'No food left. Go food shopping!' };
@@ -331,6 +338,10 @@ function startAction(game: Game, sim: Sim, q: QueuedAction): RunningAction | nul
       if (q.kind === 'outing') {
         const o = OUTINGS[q.selfId!];
         if (o?.cost && game.state.household.funds < o.cost) { fail(game, sim, '💸', `can't afford ${o.name}`, q); return null; }
+      if (o) {
+        const chk = outingCheck(game, sim, o);
+        if (!chk.ok && !chk.why?.startsWith('Open') && !chk.why?.startsWith('Only')) { fail(game, sim, '🚫', chk.why ?? `can't go to ${o.name}`, q); return null; }
+      }
       }
       const path = findPath(grid, sim.pos, game.exitTile()) ?? [];
       r.path = path;
@@ -548,6 +559,7 @@ function finish(game: Game, sim: Sim, completed: boolean): void {
 
 function completeInteraction(game: Game, sim: Sim, obj: PlacedObject, inter: InteractionDef, cur: RunningAction): void {
   const now = game.state.time;
+  if (inter.tags?.includes('sleep') && obj.dirt >= 70) addMoodlet(sim, 'grubby_sheets', now);
   const cold = inter.tags?.includes('wash') && noHotWater(game);
   if (cold) addMoodlet(sim, 'cold_shower', now);
   else if (inter.moodlet) addMoodlet(sim, inter.moodlet, now);

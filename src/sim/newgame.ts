@@ -9,33 +9,61 @@ export const SAVE_VERSION = 1;
 export const LOT_WIDTH = 22;
 export const LOT_DEPTH = 18;
 
-export const SKIN_TONES = ['#f6d7c3', '#efc3a4', '#e0ac85', '#c98e63', '#a86f48', '#8a5534', '#6b3f26', '#4a2a19'];
-export const HAIR_COLORS = ['#1f1a17', '#3d2a1e', '#6b4126', '#9a6034', '#c98d4b', '#e6c27a', '#f1e1b0', '#b0372b', '#d86a3a', '#8c8c8c', '#e8e8e8', '#6a4fb3', '#e66fa6', '#3d8fd6', '#3fb37f'];
+export const SKIN_TONES = ['#f9e1d1', '#f3d0b8', '#ecc19f', '#e0ac85', '#d29a70', '#c3865c', '#a86f48', '#8f5a38', '#774629', '#5e361f', '#4a2a19', '#3a2114'];
+export const HAIR_COLORS = ['#141110', '#2a1d16', '#3d2a1e', '#5a3a24', '#7a4f2e', '#9a6034', '#b98551', '#d6ad6c', '#ead09a', '#f3e4bf', '#8e3a22', '#b5502c', '#d77a45', '#8c8c8c', '#d9d9d9', '#6a4fb3', '#e66fa6', '#3d8fd6', '#3fb37f'];
 export const EYE_COLORS = ['#3b2516', '#6b4a2b', '#2f6db3', '#4b8a4e', '#7a8a96', '#8a6bb8'];
 export const CLOTH_COLORS = ['#e05a5a', '#f08ab0', '#e7833a', '#f2c14e', '#a7c957', '#57b36a', '#2bb3a6', '#4a90d9', '#3b4ba8', '#9b6ad6', '#8b5e3c', '#333844', '#7b8794', '#f4f1ea', '#c9b79c'];
 export const HAIR_STYLES = [
-  { id: 'short', name: 'Short' }, { id: 'buzz', name: 'Buzz cut' }, { id: 'bob', name: 'Bob' },
-  { id: 'long', name: 'Long' }, { id: 'ponytail', name: 'Ponytail' }, { id: 'buns', name: 'Space buns' },
-  { id: 'curly', name: 'Curly' }, { id: 'afro', name: 'Afro' }, { id: 'quiff', name: 'Quiff' },
-  { id: 'braids', name: 'Braids' }, { id: 'bald', name: 'Bald' },
+  { id: 'long', name: 'Long straight' }, { id: 'wavy', name: 'Long wavy' }, { id: 'side_part', name: 'Shoulder length' },
+  { id: 'bob', name: 'Bob' }, { id: 'ponytail', name: 'Ponytail' }, { id: 'high_pony', name: 'High ponytail' },
+  { id: 'bun', name: 'Messy bun' }, { id: 'buns', name: 'Space buns' }, { id: 'braids', name: 'Plaits' },
+  { id: 'curly', name: 'Curly' }, { id: 'afro', name: 'Afro' }, { id: 'cornrows', name: 'Cornrows' },
+  { id: 'pixie', name: 'Pixie cut' }, { id: 'short', name: 'Short' }, { id: 'quiff', name: 'Quiff' },
+  { id: 'buzz', name: 'Buzz cut' }, { id: 'bald', name: 'Bald' },
 ];
 export const TOPS = [
-  { id: 'tshirt', name: 'T-shirt' }, { id: 'longsleeve', name: 'Long sleeves' }, { id: 'hoodie', name: 'Hoodie' },
-  { id: 'jumper', name: 'Jumper' }, { id: 'dress', name: 'Dress' },
+  { id: 'tshirt', name: 'T-shirt' }, { id: 'vest', name: 'Vest top' }, { id: 'longsleeve', name: 'Long sleeves' },
+  { id: 'shirt', name: 'Shirt' }, { id: 'hoodie', name: 'Hoodie' }, { id: 'jumper', name: 'Jumper' },
+  { id: 'jacket', name: 'Jacket' }, { id: 'dress', name: 'Dress' },
 ];
-export const BOTTOMS = [{ id: 'trousers', name: 'Trousers' }, { id: 'shorts', name: 'Shorts' }, { id: 'skirt', name: 'Skirt' }];
+export const BOTTOMS = [
+  { id: 'jeans', name: 'Jeans' }, { id: 'trousers', name: 'Trousers' }, { id: 'joggers', name: 'Joggers' },
+  { id: 'leggings', name: 'Leggings' }, { id: 'shorts', name: 'Shorts' }, { id: 'skirt', name: 'Skirt' },
+];
+export const SHOES = [{ id: 'trainers', name: 'Trainers' }, { id: 'boots', name: 'Boots' }, { id: 'shoes', name: 'Shoes' }];
+export const ACCESSORIES = [
+  { id: 'none', name: 'None' }, { id: 'glasses', name: 'Glasses' }, { id: 'sunglasses', name: 'Sunglasses' },
+  { id: 'earrings', name: 'Earrings' }, { id: 'beanie', name: 'Beanie' }, { id: 'cap', name: 'Cap' },
+];
+export const LIP_COLORS = ['#b5524f', '#c76a6a', '#a0434f', '#d47c8c', '#8e3b46', '#c9877a', '#e05a7a', '#7a3a3a'];
+
+/** Fill in appearance options added after a save was made. */
+export function normalizeAppearance(a: Appearance): Required<Appearance> {
+  return {
+    figure: 'straight', eyeSize: 1, eyeSpacing: 1, noseSize: 1, mouthWidth: 1, brows: 'medium', lashes: false,
+    lipColor: '#b5524f', blush: false, shoes: 'trainers', accessory: 'none', accessoryColor: '#2d3037',
+    ...a,
+    hairStyle: HAIR_STYLES.some((h) => h.id === a.hairStyle) ? a.hairStyle : 'short',
+  } as Required<Appearance>;
+}
 export const BODIES: Appearance['body'][] = ['slim', 'average', 'broad'];
 
 const pickR = <T,>(st: GameState, list: readonly T[]): T => list[Math.floor(random(st) * list.length)];
 
 export function randomAppearance(st: GameState): Appearance {
   const top = pickR(st, TOPS).id;
+  const curvy = random(st) < 0.5;
   return {
+    figure: curvy ? 'curvy' : 'straight',
+    eyeSize: 0.9 + random(st) * 0.2, eyeSpacing: 0.92 + random(st) * 0.16, noseSize: 0.85 + random(st) * 0.3, mouthWidth: 0.9 + random(st) * 0.2,
+    brows: pickR(st, ['thin', 'medium', 'thick'] as const), lashes: curvy && random(st) < 0.7, lipColor: pickR(st, LIP_COLORS), blush: random(st) < 0.25,
+    shoes: pickR(st, ['trainers', 'trainers', 'boots', 'shoes'] as const),
+    accessory: random(st) < 0.7 ? 'none' : pickR(st, ['glasses', 'earrings', 'beanie', 'cap'] as const), accessoryColor: pickR(st, ['#2d3037', '#8b5e3c', '#c0392b', '#3b4ba8']),
     body: pickR(st, BODIES),
     height: 0.94 + random(st) * 0.12,
     skin: pickR(st, SKIN_TONES),
     hairStyle: pickR(st, HAIR_STYLES.filter((h) => h.id !== 'bald')).id,
-    hairColor: pickR(st, HAIR_COLORS.slice(0, 9)),
+    hairColor: pickR(st, HAIR_COLORS.slice(0, 13)),
     eyeColor: pickR(st, EYE_COLORS),
     face: Math.floor(random(st) * 4),
     freckles: random(st) < 0.25,
@@ -167,7 +195,7 @@ export function starterLot(): Lot {
     // Bedroom 2
     obj('bed_single', 15, 12, 2), obj('computer', 12, 12, 1), obj('table_lamp', 15, 10, 0),
     // Outside
-    obj('boiler', 10, 5, 0), obj('wheelie_bin', 11, 2, 0),
+    obj('boiler', 10, 5, 0), obj('wheelie_bin', 11, 2, 0), obj('washer', 14, 5, 0), obj('washing_line', 12, 16, 0),
     obj('mailbox', 9, 0, 0), obj('lantern', 6, 1, 0), obj('bench', 18, 2, 0), obj('veg_patch', 18, 15, 0), obj('plant_big', 8, 4, 0),
   );
   return lot;
@@ -192,7 +220,7 @@ export function createGame(opts: NewGameOptions): GameState {
     rng: opts.seed ?? Math.floor(Math.random() * 2 ** 31),
     time: 8 * 60, // Monday 08:00
     speed: 1,
-    household: { name: opts.householdName, funds: opts.lot === 'starter' ? 14000 : 30000, memberIds: [], rewardsUnlocked: [], marketFinds: [], paintingsSold: 0, groceries: 30, neighbourMood: 80, nextDoorId: 0, dust: 0, weeds: 10, rubbish: 0, subscriptions: { netflix: false, sky: false }, discount: 0 },
+    household: { name: opts.householdName, funds: opts.lot === 'starter' ? 14000 : 30000, memberIds: [], rewardsUnlocked: [], marketFinds: [], paintingsSold: 0, groceries: 30, neighbourMood: 80, nextDoorId: 0, dust: 0, weeds: 10, rubbish: 0, subscriptions: { netflix: false, sky: false }, discount: 0, laundry: 20, wetWashing: 0, extraEnergy: 0 },
     sims: [], relationships: [], lot, bills: null, notifications: [],
     settings: { freeWill: 'full', romance: true },
     nextId: 1, selectedSimId: 0, lastVisitDay: -1, tutorialDone: false,
