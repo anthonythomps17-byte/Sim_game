@@ -8,7 +8,22 @@ export function showRadial(root: HTMLElement, x: number, y: number, title: strin
   const close = () => { bg.remove(); onClose?.(); };
   bg.addEventListener('pointerdown', (e) => { if (e.target === bg) close(); });
   const W = window.innerWidth, H = window.innerHeight;
-  const many = options.length > 7;
+  if (options.length > 7 || (W < 520 && options.length > 5)) {
+    // Too many for a ring: show a tidy list instead.
+    const list = h('div', { class: 'panel radial-list' },
+      h('div', { class: 'title-row' }, title),
+      ...options.map((opt) => h('button', { class: `ropt-row ${opt.disabled ? 'dis' : ''}`, onclick: () => { if (opt.disabled) return; close(); opt.onPick(); } },
+        h('span', { class: 'ic' }, opt.icon), h('span', null, opt.label, opt.why ? h('span', { class: 'why' }, opt.why) : null))));
+    const lw = Math.min(300, W - 24);
+    const left = Math.max(12, Math.min(W - lw - 12, x - lw / 2));
+    list.style.left = `${left}px`;
+    list.style.width = `${lw}px`;
+    list.style.top = `${Math.max(12, Math.min(H * 0.3, y - 120))}px`;
+    bg.append(list);
+    root.append(bg);
+    return close;
+  }
+  const many = false;
   const radius = options.length <= 3 ? 95 : options.length <= 5 ? 115 : 135;
   const cx = Math.max(150, Math.min(W - 150, x));
   const cy = many ? Math.max(90, Math.min(H - options.length * 27 - 60, y - (options.length * 27) / 2)) : Math.max(radius + 40, Math.min(H - radius - 40, y));

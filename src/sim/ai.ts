@@ -6,7 +6,7 @@ import { objectCenter } from './lot';
 import { needUtility } from './mood';
 import { findRel } from './relationships';
 import { random } from './rng';
-import { checkInteraction, totalEffects, socialGainMult } from './actions';
+import { activityKey, checkInteraction, totalEffects, socialGainMult } from './actions';
 import { socialCheck } from './social';
 import type { NeedId, QueuedAction, Sim, SkillId } from './types';
 
@@ -110,6 +110,12 @@ export function scoreOptions(game: Game, sim: Sim): Option[] {
       score /= 1 + dist / 18;
       if (score > 0.5) options.push({ action: { kind: 'social', targetSimId: other.id, socialId: social.id, label: `${social.name} with ${other.name}`, icon: social.icon, userQueued: false }, score, label: social.name });
     }
+  }
+  // Variety: things done recently are less appealing (but needs still win when urgent).
+  for (const o of options) {
+    const key = activityKey(o.action);
+    const repeats = key ? sim.recent.filter((r) => r === key).length : 0;
+    if (repeats) o.score *= Math.pow(0.55, repeats);
   }
   return options.sort((a, b) => b.score - a.score);
 }

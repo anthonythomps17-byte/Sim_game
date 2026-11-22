@@ -272,3 +272,28 @@ describe('saving', () => {
     expect(() => deserialize('nope')).toThrow();
   });
 });
+
+describe('long run', () => {
+  it('a household of 4 with jobs survives two weeks without errors', () => {
+    const seedState = { rng: 99 } as GameState;
+    const drafts = Array.from({ length: 4 }, () => randomDraft(seedState, 'Long'));
+    const g = new Game(createGame({ householdName: 'Long', sims: drafts, lot: 'starter', seed: 3 }));
+    const careers = ['chef', 'scientist', 'artist', 'cafe'];
+    g.household().forEach((s, i) => joinCareer(g, s, careers[i]));
+    const funds = g.state.household.funds;
+    let lowCount = 0;
+    for (let h = 0; h < 24 * 14; h++) {
+      g.tick(60);
+      for (const s of g.household()) if (s.location === 'lot' && (s.needs.hunger < 3 || s.needs.energy < 3)) lowCount++;
+    }
+    // Sims should rarely be at rock bottom.
+    expect(lowCount).toBeLessThan(40);
+    const worked = g.household().reduce((n, s) => n + (s.career?.daysWorked ?? 0), 0);
+    expect(worked).toBeGreaterThan(15);
+    expect(g.state.household.funds).toBeGreaterThan(funds - 2000);
+    // Visitors came by.
+    expect(g.state.notifications.some((n) => n.text.includes('has come to visit'))).toBe(true);
+    // Everyone has made progress on something.
+    for (const s of g.household()) expect(Object.values(s.skills).some((x) => x > 30)).toBe(true);
+  });
+});

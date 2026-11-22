@@ -63,9 +63,10 @@ export class CasView {
 
   /** Where the Sim stands on screen: 'right' (title), 'left' (wide create-a-Sim) or 'top' (narrow create-a-Sim). */
   layout(where: 'left' | 'right' | 'top') {
+    this.where = where;
     this.camera.targetScreenOffset.x = where === 'right' ? 0.6 : where === 'left' ? -0.6 : 0;
-    this.camera.targetScreenOffset.y = where === 'top' ? -0.75 : 0;
-    this.camera.radius = where === 'top' ? 4.6 : 3.4;
+    this.camera.targetScreenOffset.y = where === 'top' ? 1.9 : 0;
+    this.camera.radius = where === 'top' ? 9 : 3.4;
   }
 
   show(a: Appearance) {
@@ -73,9 +74,13 @@ export class CasView {
     else this.avatar.setAppearance(a);
   }
 
+  private where: 'left' | 'right' | 'top' = 'left';
+
   zoomFace(on: boolean) {
     this.camera.target = new Vector3(0, on ? 1.55 : 1.0, 0);
-    this.camera.radius = on ? 1.5 : 3.4;
+    const far = this.where === 'top' ? 9 : 3.4;
+    this.camera.radius = on ? far * 0.45 : far;
+    this.camera.targetScreenOffset.y = this.where === 'top' ? (on ? 0.85 : 1.9) : 0;
   }
 
   frame(dt: number) {

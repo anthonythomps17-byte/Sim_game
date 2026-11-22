@@ -45,6 +45,7 @@ export function deserialize(text: string): GameState {
   st.settings ??= { freeWill: 'full', romance: true };
   for (const sim of st.sims) {
     sim.perks ??= [];
+    sim.recent ??= [];
     sim.counters ??= {};
     sim.queue ??= [];
     sim.current = null;

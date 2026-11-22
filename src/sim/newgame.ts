@@ -77,7 +77,7 @@ export function makeSim(id: number, draft: SimDraft, isTownie: boolean): Sim {
     needs: fullNeeds(80), skills, career: null, moodlets: [],
     pos: { x: 8.5, z: 3.5 }, facing: 0, anim: 'idle', poseObjectId: null,
     location: isTownie ? 'home' : 'lot', awayUntil: 0, queue: [], current: null,
-    thinkCooldown: 1, thought: null, counters: {}, visitUntil: 0, perks: [],
+    thinkCooldown: 1, thought: null, counters: {}, visitUntil: 0, perks: [], recent: [],
   };
 }
 

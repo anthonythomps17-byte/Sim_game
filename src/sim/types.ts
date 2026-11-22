@@ -117,6 +117,8 @@ export interface Sim {
   visitUntil: number;
   /** Unlocked reward traits/perks. */
   perks: string[];
+  /** Recently finished activities, so free will doesn't repeat itself. */
+  recent: string[];
 }
 
 export type WallKind = 'wall' | 'door' | 'window';

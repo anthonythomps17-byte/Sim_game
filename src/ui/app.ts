@@ -117,7 +117,7 @@ export class App {
     this.game = null;
     this.root.replaceChildren(this.menus.title);
     this.casView.setActive(false);
-    this.casView.layout('right');
+    this.casView.layout(window.innerWidth > 760 ? 'right' : 'top');
     this.casView.anim = 'wave';
     this.casView.show(randomAppearance({ rng: Math.floor(Math.random() * 1e9) } as GameState));
     await this.menus.renderTitle();

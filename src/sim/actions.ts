@@ -13,6 +13,8 @@ import { changeRel, findRel } from './relationships';
 import type { NeedId, PlacedObject, Point, QueuedAction, RunningAction, Sim, SkillId } from './types';
 
 export const WALK_SPEED = 1.7; // tiles per game minute
+/** Global skill speed. Lower means skills take longer to master. */
+export const SKILL_SPEED = 0.6;
 
 // ---------- Queue management ----------
 
@@ -466,7 +468,7 @@ function perform(game: Game, sim: Sim, cur: RunningAction, dt: number): void {
 
 export function gainSkill(game: Game, sim: Sim, skill: SkillId, xp: number): void {
   const before = skillLevel(sim.skills[skill]);
-  sim.skills[skill] = Math.min(2200, sim.skills[skill] + xp * skillRateMult(sim, skill));
+  sim.skills[skill] = Math.min(2200, sim.skills[skill] + xp * SKILL_SPEED * skillRateMult(sim, skill));
   const after = skillLevel(sim.skills[skill]);
   if (after > before) {
     addMoodlet(sim, 'skill_up', game.state.time);
@@ -483,6 +485,11 @@ function finish(game: Game, sim: Sim, completed: boolean): void {
   sim.current = null;
   sim.anim = 'idle';
   if (!completed) return;
+  const key = activityKey(cur);
+  if (key) {
+    sim.recent.push(key);
+    if (sim.recent.length > 6) sim.recent.shift();
+  }
   const now = game.state.time;
   if (cur.kind === 'object') {
     const obj = game.object(cur.objectId!);
@@ -550,6 +557,14 @@ function completeInteraction(game: Game, sim: Sim, obj: PlacedObject, inter: Int
       inline: { anim: t.anim, duration: t.duration, effects: t.effects, tags: t.tags, moodlet: skillOk ? t.moodlet : 'tasty_snack' },
     });
   }
+}
+
+/** A key for "the same kind of thing" when judging variety. */
+export function activityKey(a: Pick<QueuedAction, 'kind' | 'objectId' | 'interactionId' | 'selfId' | 'socialId'>): string | null {
+  if (a.kind === 'object') return `o:${a.interactionId}`;
+  if (a.kind === 'self') return `s:${a.selfId}`;
+  if (a.kind === 'social') return `c:${a.socialId}`;
+  return null;
 }
 
 export function payBills(game: Game): boolean {
