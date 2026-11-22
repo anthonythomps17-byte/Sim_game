@@ -22,12 +22,11 @@ import { moodLabel, moodScore } from '../sim/mood';
 import type { Sim } from '../sim/types';
 import { Materials } from './materials';
 import { CameraController, type PointerHandlers } from './camera';
-import { buildScenery } from './scenery';
+import { buildScenery, type Scenery } from './scenery';
 import { LotView, type WallMode } from './lotView';
 import { SimAvatar } from './simAvatar';
 import { SkyEffects } from './effects';
 import { calendarOf, fireworksActive, isEventToday } from '../sim/life';
-import type { StandardMaterial } from '@babylonjs/core/Materials/standardMaterial';
 
 export type Quality = 'low' | 'medium' | 'high';
 export type PickResult =
@@ -65,7 +64,7 @@ export class WorldView {
   private selectedSim = -1;
   private fps = 60;
   readonly sky: SkyEffects;
-  private seasonMats: { trees: StandardMaterial; ground: StandardMaterial; lot: StandardMaterial } | null = null;
+  private scenery: Scenery | null = null;
   private season = '';
 
   constructor(readonly canvas: HTMLCanvasElement, handlers: PointerHandlers) {
@@ -75,13 +74,13 @@ export class WorldView {
     this.scene.clearColor = new Color4(0.62, 0.82, 0.95, 1);
     this.scene.ambientColor = new Color3(0.25, 0.25, 0.25);
     this.scene.fogMode = Scene.FOGMODE_EXP2;
-    this.scene.fogDensity = 0.006;
+    this.scene.fogDensity = 0.0045;
     this.scene.fogColor = SKY.day;
     this.mats = new Materials(this.scene);
 
     this.camera = new ArcRotateCamera('cam', -Math.PI / 2 - 0.5, 0.95, 26, new Vector3(11, 0, 8), this.scene);
     this.camera.minZ = 0.3;
-    this.camera.maxZ = 400;
+    this.camera.maxZ = 500;
     this.camera.fov = 0.75;
     this.cam = new CameraController(this.camera, this.scene, canvas, handlers);
     this.cam.alpha = this.camera.alpha;
@@ -105,7 +104,7 @@ export class WorldView {
     this.lotView = new LotView(this.scene, this.mats, () => this.shadows, (l) => this.addLamp(l), (l) => this.removeLamp(l));
     const scenery = buildScenery(this.scene, this.mats, 22, 18);
     this.sky = new SkyEffects(this.scene);
-    this.seasonMats = { trees: scenery.trees.material as StandardMaterial, ground: scenery.ground.material as StandardMaterial, lot: scenery.lotGround.material as StandardMaterial };
+    this.scenery = scenery;
     this.streetGlow = scenery.meshes.find((m) => m.metadata?.glowKind === 'street') ?? null;
     for (const p of scenery.lampPositions) {
       const l = new PointLight('street', p, this.scene);
@@ -155,7 +154,8 @@ export class WorldView {
     this.avatars.clear();
     this.lotView.init(game.state.lot);
     const lot = game.state.lot;
-    this.cam.bounds = { minX: -6, maxX: lot.width + 6, minZ: -6, maxZ: lot.depth + 4 };
+    this.cam.bounds = { minX: -40, maxX: lot.width + 40, minZ: -45, maxZ: lot.depth + 40 };
+    this.cam.maxRadius = 70;
     this.cam.focus(lot.width / 2, lot.depth / 2 - 1);
   }
 
@@ -190,31 +190,26 @@ export class WorldView {
     this.updateSeason(game.day);
     const cal = calendarOf(game.day);
     const snowing = cal.season.id === 'winter' && (cal.dayOfSeason % 2 === 1 || isEventToday(game, 'christmas'));
-    this.sky.update(dt, fireworksActive(game), snowing, this.camera.target);
+    const fwd = this.camera.target.subtract(this.camera.position).normalize();
+    this.sky.update(dt, fireworksActive(game), snowing, this.camera.target, this.camera.position, fwd);
     this.syncSims(game, dt, speed);
     this.scene.render();
   }
 
   get averageFps() { return this.fps; }
 
-  /** Tint trees and grass for the season: blossom, summer green, autumn gold, winter snow. */
+  /** Swap trees and grass for the season: blossom, summer green, autumn gold, winter snow. */
   private updateSeason(day: number) {
     const id = calendarOf(day).season.id;
-    if (id === this.season || !this.seasonMats) return;
+    if (id === this.season || !this.scenery) return;
     this.season = id;
-    const tints: Record<string, { trees: string; grass: string }> = {
-      spring: { trees: '#ffd0e4', grass: '#f2ffe6' },
-      summer: { trees: '#ffffff', grass: '#ffffff' },
-      autumn: { trees: '#ff9a3c', grass: '#e6d9a8' },
-      winter: { trees: '#e9f0ff', grass: '#ffffff' },
+    for (const [k, m] of Object.entries(this.scenery.trees)) m.setEnabled(k === id);
+    const grass: Record<string, [string, string]> = {
+      spring: ['#6fa64f', '#7dbb57'], summer: ['#79ad4c', '#86c160'], autumn: ['#8f9a4a', '#9eaa55'], winter: ['#e6ecf1', '#eef2f6'],
     };
-    const t = tints[id];
-    const tree = Color3.FromHexString(t.trees);
-    // Vertex colours are multiplied by this, so values above 1 brighten towards white.
-    this.seasonMats.trees.diffuseColor = id === 'winter' ? new Color3(2.2, 1.6, 2.6) : id === 'spring' ? new Color3(1.9, 1.15, 1.6) : id === 'autumn' ? new Color3(2.4, 1.05, 0.35) : tree;
-    const grass = id === 'winter' ? new Color3(2.1, 1.75, 2.4) : Color3.FromHexString(t.grass);
-    this.seasonMats.ground.diffuseColor = grass;
-    this.seasonMats.lot.diffuseColor = grass;
+    const [g, l] = grass[id];
+    this.scenery.ground.material = this.mats.pattern('grass_' + id, 'grass', g, 70);
+    this.scenery.lotGround.material = this.mats.pattern('lot_' + id, 'grass', l, 6);
   }
 
   private updateSky(minute: number, night: boolean) {

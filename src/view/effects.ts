@@ -21,7 +21,8 @@ export class SkyEffects {
 
   constructor(scene: Scene) {
     for (const c of FIREWORK_COLOURS) {
-      const m = MeshBuilder.CreateSphere('spark', { diameter: 0.35, segments: 3 }, scene);
+      const m = MeshBuilder.CreateSphere('spark', { diameter: 0.55, segments: 3 }, scene);
+      m.alwaysSelectAsActiveMesh = true;
       const mat = new StandardMaterial('sparkm', scene);
       mat.disableLighting = true;
       mat.emissiveColor = Color3.FromHexString(c);
@@ -32,18 +33,27 @@ export class SkyEffects {
       this.sparkMeshes.push(m);
       this.sparks.push([]);
     }
-    this.snow = MeshBuilder.CreateBox('snow', { size: 0.07 }, scene);
+    this.snow = MeshBuilder.CreateBox('snow', { size: 0.045 }, scene);
     const sm = new StandardMaterial('snowm', scene);
     sm.disableLighting = true;
     sm.emissiveColor = new Color3(0.95, 0.97, 1);
     this.snow.material = sm;
     this.snow.isPickable = false;
+    this.snow.alwaysSelectAsActiveMesh = true;
     this.snow.setEnabled(false);
     for (let i = 0; i < 700; i++) this.flakes.push(new Vector3(Math.random() * 50 - 14, Math.random() * 14, Math.random() * 40 - 12));
   }
 
-  private burst() {
-    const centre = new Vector3(-10 + Math.random() * 42, 16 + Math.random() * 10, -24 + Math.random() * 12);
+  /** Burst somewhere in the upper part of the current view, whatever the camera angle. */
+  private burst(camPos: Vector3, forward: Vector3) {
+    const yaw = Math.atan2(forward.x, forward.z) + (Math.random() - 0.5) * 0.7;
+    const pitch = Math.asin(Math.max(-1, Math.min(1, forward.y))) + 0.2 + Math.random() * 0.15;
+    const dist = 28 + Math.random() * 14;
+    const centre = new Vector3(
+      camPos.x + Math.sin(yaw) * Math.cos(pitch) * dist,
+      Math.max(6, camPos.y + Math.sin(pitch) * dist),
+      camPos.z + Math.cos(yaw) * Math.cos(pitch) * dist,
+    );
     const ci = Math.floor(Math.random() * this.sparkMeshes.length);
     const n = 40;
     for (let i = 0; i < n; i++) {
@@ -55,10 +65,10 @@ export class SkyEffects {
     this.onBurst();
   }
 
-  update(dt: number, fireworks: boolean, snowing: boolean, centre: Vector3) {
+  update(dt: number, fireworks: boolean, snowing: boolean, centre: Vector3, camPos: Vector3, forward: Vector3) {
     if (fireworks) {
       this.spawnTimer -= dt;
-      if (this.spawnTimer <= 0) { this.spawnTimer = 0.35 + Math.random() * 0.8; this.burst(); }
+      if (this.spawnTimer <= 0) { this.spawnTimer = 0.35 + Math.random() * 0.8; this.burst(camPos, forward); }
     }
     this.sparkMeshes.forEach((mesh, ci) => {
       const list = this.sparks[ci];

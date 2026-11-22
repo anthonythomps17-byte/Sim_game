@@ -1,8 +1,8 @@
-# Ashton Life
+# My Life
 
 A cosy, Sims-style life simulator set in a stylised Ashton-in-Makerfield. It runs in the browser, is built for a tablet or phone with touch controls, and works offline once installed to the home screen. No accounts, no ads, no chat, no in-app purchases.
 
-"Ashton Life" is a working title. Change it in `src/ui/title.ts` (and `index.html` / `public/manifest.webmanifest`).
+The name lives in `src/ui/title.ts` (and `index.html` / `public/manifest.webmanifest`). Live at https://ashton-life.netlify.app.
 
 ## Play it
 
@@ -52,6 +52,20 @@ All eight roadmap milestones from the spec have a playable version:
 
 Ashton flavour: red-brick terraces and slate roofs, a church spire and pit-head winding gear on the skyline, an Engineer career at the lock and hinge works, a Locksmith's Workbench, and off-lot outings to the High Street, the market (Tuesdays and Saturdays, with rare finds), the Gerard Centre, the football ground, the racecourse on Saturdays, St Thomas' green and a heritage museum. Your home, street and school stay fictional.
 
+## Everyday life
+
+- **Time:** at normal speed the day (7am–9pm) takes 15 real minutes and the night 8.5. Speeds 2x and 3x are faster. While everyone is out (work, holidays) the game skips ahead; skipping while everyone sleeps is an option in Settings.
+- **Jobs:** Chef, Musician, Athlete, Scientist, Artist, Engineer, Coffee Shop, Baker (very early starts), Lifeguard, Teacher (school holidays off), Shop Worker, Bar Worker (evenings) and Card & Balloon Shop. Some top jobs need a driving licence.
+- **Food:** cooking uses food from the fridge (🛒 next to the money). Restock with a big shop at Aldi or a corner-shop top-up. If the fridge is empty, hungry Sims order a takeaway.
+- **Clothes:** go clothes shopping, try things on, then pay for what you keep.
+- **Driving:** five driving lessons, then the test. With a licence and a car (Buy → Garden), Sims drive to work and get home from outings sooner.
+- **Calendar:** a year is four week-long seasons. Easter Sunday (egg hunt), summer holidays (book Blackpool or Spain if you have saved up), Halloween (pumpkin, trick or treating), Bonfire Night (fireworks), Christmas Eve (tree), Christmas Day (presents, no work) and New Year's Eve (midnight fireworks). Snow in winter, blossom in spring, gold leaves in autumn. Tap the clock for the calendar.
+- **Parties:** tap your Sim → Plan a party. Pick karaoke, dance or barbecue, a time and up to 6 friends. Noise after 10pm upsets the neighbours: first a bang on the wall, then a complaint, then an £80 fine.
+
+## The neighbourhood
+
+The streets around the lot follow the layout of a real corner of Ashton: a side street of red-brick terraces, a crossing road just north, an avenue and a park to the west, a curving main road to the east, a wider road to the south and a primary school beyond it, plus a few corner shops. The street and school names are made up on purpose, and no house is marked as anyone's real home, because the game is on a public website. The plan is a list of points in `streets()` in `src/view/scenery.ts`.
+
 ## How it's built
 
 | Layer | Choice |
@@ -94,6 +108,7 @@ The spec suggests Kenney/Quaternius glTF packs and Mixamo animations. This versi
 
 ## Not in this version
 
+- Multiplayer. Two people can share a household on one device by taking turns with the portraits. Playing on two devices at once would need a server and accounts, which goes against the spec's offline, no-chat design.
 - Visiting community lots in 3D (the places exist as off-lot outings for now).
 - Ageing and generations, multiple lots, online play (out of scope for v1 in the spec).
 - Hand-made art: everything is procedural for now.
