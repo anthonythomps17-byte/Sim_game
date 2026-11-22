@@ -28,7 +28,8 @@ export interface InteractionDef {
   auto?: boolean;
   visitor?: boolean;
   condition?: 'dirty' | 'grown' | 'growing' | 'empty' | 'bills' | 'lightOn' | 'lightOff' | 'night'
-    | 'once' | 'uncarved' | 'carved' | 'nightOnce' | 'canDrive';
+    | 'once' | 'uncarved' | 'carved' | 'nightOnce' | 'canDrive'
+    | 'notWinter' | 'broken' | 'working' | 'netflix' | 'sky' | 'binsIn' | 'binsBack' | 'overflowing';
   /** Groceries used from the household's food supply. */
   food?: number;
   dirties?: number; cleans?: boolean; cleansRoom?: boolean;
@@ -47,6 +48,8 @@ export interface ObjectDef {
   seatHeight?: number; market?: boolean; reward?: boolean;
   /** Seasonal decoration placed and removed automatically. */
   temp?: boolean;
+  /** Drains that can get blocked. */
+  canBlock?: boolean;
   light?: { color: string; intensity: number; range: number };
   spots: SpotDef[];
   interactions: InteractionDef[];
@@ -79,7 +82,9 @@ export interface SocialDef {
 export interface SelfDef {
   id: string; name: string; icon: string; duration: number; anim: AnimId;
   effects?: Effects; skill?: SkillId; skillRate?: number; special?: string; ui?: string; auto?: boolean; tags?: string[];
-  cost?: number; condition?: 'noFood';
+  cost?: number; condition?: 'noFood' | 'dusty' | 'weedy';
+  /** Walk to a spot indoors / in the garden first. */
+  indoors?: boolean; outdoors?: boolean;
 }
 
 export interface OutingDef {

@@ -60,6 +60,12 @@ Ashton flavour: red-brick terraces and slate roofs, a church spire and pit-head 
 - **Clothes:** go clothes shopping, try things on, then pay for what you keep.
 - **Driving:** five driving lessons, then the test. With a licence and a car (Buy → Garden), Sims drive to work and get home from outings sooner.
 - **Calendar:** a year is four week-long seasons. Easter Sunday (egg hunt), summer holidays (book Blackpool or Spain if you have saved up), Halloween (pumpkin, trick or treating), Bonfire Night (fireworks), Christmas Eve (tree), Christmas Day (presents, no work) and New Year's Eve (midnight fireworks). Snow in winter, blossom in spring, gold leaves in autumn. Tap the clock for the calendar.
+- **Running the home** (🏠 button, top right):
+  - Bills are split into rent and council tax, energy, and TV subscriptions (Netflix £8/week, Sky Sports £22/week, which add shows and live matches to the TV).
+  - Solar panels cut energy by 25% each (up to 2) and a heat pump by 35%. Neither raises your rent.
+  - Chores: dust builds up (hoover the house), weeds grow (weed the garden, faster in summer), and bin day is Thursday (take the wheelie bin out on Wednesday night or it overflows).
+  - Things break: drains get blocked (unblock them yourself or pay a plumber £120) and the boiler can fail, more often in winter (cold showers and no heating until it's fixed, by you with Logic or by an engineer for £250). Servicing the boiler makes a breakdown less likely.
+- **More to do:** summer barbecues (too cold in winter), walks in the park or round the block, bargain hunting at B&M (25% off voucher), and washing the car after driving.
 - **Parties:** tap your Sim → Plan a party. Pick karaoke, dance or barbecue, a time and up to 6 friends. Noise after 10pm upsets the neighbours: first a bang on the wall, then a complaint, then an £80 fine.
 
 ## The neighbourhood

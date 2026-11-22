@@ -3,6 +3,7 @@ import { ALL_TRAITS, ASPIRATIONS, CAREERS, NEEDS, OBJECTS, OUTINGS, REWARD_OBJEC
 import { calendarOf, DAYS_PER_SEASON, endParty, EVENTS, eventsOn, familyCar, outingCheck, PARTY_COST_PER_GUEST, PARTY_THEMES, planParty, SEASONS, YEAR_DAYS } from '../sim/life';
 import { BOTTOMS, CLOTH_COLORS, TOPS } from '../sim/newgame';
 import { addMoodlet } from '../sim/mood';
+import { billBreakdown, BIN_DAY, binsOverflowing, boiler, ENGINEER_COST, hasHeatPump, noHotWater, PLUMBER_COST, SUBSCRIPTIONS, wheelieBin, type SubscriptionId } from '../sim/home';
 import { DAY_NAMES } from '../sim/game';
 import { joinCareer, quitCareer } from '../sim/schedule';
 import { SKILL_NAMES, levelOf } from '../sim/skills';
@@ -11,7 +12,8 @@ import { payBills } from '../sim/actions';
 import { friendshipLabel, findRel } from '../sim/relationships';
 import type { NeedId, Party, PlacedObject, Sim, SkillId } from '../sim/types';
 import type { App } from './app';
-import { chip, clear, h, initials, money } from './dom';
+import { bar, chip, clear, h, initials, money } from './dom';
+const h_ = h;
 
 export function neighbourFace(mood: number): string {
   return mood >= 70 ? '😊 happy' : mood >= 40 ? '😐 putting up with you' : '😠 fed up';
@@ -326,6 +328,63 @@ export class Panels {
       ...places.map(([i, n, d]) => h('div', { class: 'row' }, h('span', { style: 'font-size:24px' }, i), h('div', { class: 'grow' }, h('div', { class: 't' }, n), h('div', { class: 's' }, d)))),
       h('div', { class: 'opt-label' }, 'Districts'),
       h('div', { class: 'grid2' }, ...districts),
+    ]);
+  }
+
+  home() {
+    const game = this.app.game!;
+    const st = game.state;
+    const h = st.household;
+    let close = () => {};
+    const b = billBreakdown(game);
+    const solar = st.lot.objects.filter((o) => o.defId === 'solar').length;
+    const broken = st.lot.objects.filter((o) => o.broken);
+    const bin = wheelieBin(game);
+    const meter = (label: string, icon: string, value: number, hint: string) => h_('div', { class: 'row' }, h_('span', { style: 'font-size:22px' }, icon),
+      h_('div', { class: 'grow' }, h_('div', { class: 't' }, label), bar(100 - value, value > 60 ? 'var(--bad)' : value > 35 ? 'var(--warn)' : 'var(--good)'), h_('div', { class: 's' }, hint)));
+    const subRow = (id: SubscriptionId) => {
+      const sub = SUBSCRIPTIONS[id];
+      const on = h.subscriptions[id];
+      return h_('div', { class: 'card' }, h_('div', { class: 'row' }, h_('span', { style: 'font-size:26px' }, sub.icon),
+        h_('div', { class: 'grow' }, h_('div', { class: 't' }, `${sub.name} · £${sub.weekly}/week`), h_('div', { class: 's' }, sub.desc)),
+        h_('button', { class: `btn small ${on ? '' : 'primary'}`, onclick: () => { h.subscriptions[id] = !on; this.app.toast(on ? `${sub.name} cancelled.` : `Subscribed to ${sub.name}! Added to your weekly bills.`, sub.icon); close(); this.home(); } }, on ? 'Cancel' : 'Subscribe')));
+    };
+    const fixButtons = broken.map((o) => {
+      const def = OBJECTS[o.defId];
+      const isBoiler = o.defId === 'boiler';
+      const cost = isBoiler ? ENGINEER_COST : PLUMBER_COST;
+      return h_('div', { class: 'card on' }, h_('div', { class: 'row' }, h_('span', { style: 'font-size:26px' }, isBoiler ? '🔥' : '🪠'),
+        h_('div', { class: 'grow' }, h_('div', { class: 't' }, isBoiler ? 'Boiler broken: no hot water' : `${def.name} is blocked`), h_('div', { class: 's' }, 'Tap it in the house to try fixing it yourself, or pay to fix it now.')),
+        h_('button', { class: 'btn small primary', disabled: h.funds < cost, onclick: () => {
+          o.broken = false;
+          if (isBoiler) o.growth = game.day;
+          game.addFunds(-cost);
+          game.lotChanged();
+          this.app.toast(isBoiler ? `Engineer fixed the boiler (£${cost}).` : `Plumber fixed the ${def.name.toLowerCase()} (£${cost}).`, '🔧');
+          this.app.sound('cash');
+          close();
+          this.home();
+        } }, `Pay £${cost}`)));
+    });
+    const nextBin = (BIN_DAY - game.weekday + 7) % 7;
+    close = modal(this.root, 'Home', [
+      ...(fixButtons.length ? [h_('div', { class: 'opt-label' }, '⚠️ Problems'), ...fixButtons] : []),
+      h_('div', { class: 'opt-label' }, 'Weekly bills (next Monday)'),
+      h_('div', { class: 'card' },
+        h_('div', { class: 'row' }, h_('span', null, '🏠'), h_('div', { class: 'grow' }, 'Rent, council tax and water'), h_('b', null, money(b.home))),
+        h_('div', { class: 'row' }, h_('span', null, '⚡'), h_('div', { class: 'grow' }, 'Gas and electricity', b.energySaved ? h_('div', { class: 's', style: 'color:var(--good)' }, `Saving £${b.energySaved}/week with ${[solar ? `${solar} solar array${solar > 1 ? 's' : ''}` : '', hasHeatPump(game) ? 'a heat pump' : ''].filter(Boolean).join(' and ')}`) : null), h_('b', null, money(b.energy))),
+        h_('div', { class: 'row' }, h_('span', null, '📺'), h_('div', { class: 'grow' }, 'TV subscriptions'), h_('b', null, money(b.subscriptions))),
+        h_('div', { class: 'row', style: 'border-top:1px solid var(--line)' }, h_('span', null, '🧾'), h_('div', { class: 'grow t' }, 'Total per week'), h_('b', null, money(b.total))),
+      ),
+      h_('p', { class: 'muted' }, `Make the house greener in Buy mode → Home & energy: solar panels (−25% energy each, up to 2) and a heat pump (−35%, and no more boiler breakdowns).${noHotWater(game) ? ' The boiler is broken right now!' : boiler(game) || hasHeatPump(game) ? '' : ' This house has no boiler or heat pump.'}`),
+      h_('div', { class: 'opt-label' }, 'Chores'),
+      meter('Dust', '🧹', h.dust, h.dust >= 35 ? 'Tap a Sim → Hoover the house' : 'Nice and clean'),
+      meter('Weeds', '🌿', h.weeds, h.weeds >= 35 ? 'Tap a Sim → Weed the garden' : 'The garden looks tidy'),
+      bin ? meter('Bins', '🗑️', Math.min(100, h.rubbish), binsOverflowing(game) ? 'Overflowing! Tap the bin to clear up.' : bin.atKerb ? 'Out on the street. Bring it back in after collection.' : nextBin === 0 ? 'Collection is today' : nextBin === 1 ? 'Bin day is tomorrow: take it out tonight' : `Bin day is Thursday (in ${nextBin} days)`) : null,
+      h_('div', { class: 'opt-label' }, 'TV subscriptions'),
+      subRow('netflix'),
+      subRow('sky'),
+      h.discount ? h_('p', { class: 'chip good' }, `🏷️ You have a ${Math.round(h.discount * 100)}% off voucher for your next Buy mode purchase.`) : null,
     ]);
   }
 

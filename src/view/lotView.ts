@@ -64,6 +64,36 @@ export class LotView {
   private highlighted: number | null = null;
   wallMode: WallMode = 'cutaway';
   private lot: Lot | null = null;
+  private weedMesh: Mesh | null = null;
+  private weedLevel = -1;
+
+  /** Weed tufts scattered over the lawn; more as the weeds level rises. */
+  setWeeds(lot: Lot, level: number, isLawn: (x: number, z: number) => boolean) {
+    const bucket = Math.round(level / 10);
+    if (bucket === this.weedLevel && this.weedMesh) return;
+    this.weedLevel = bucket;
+    if (!this.weedMesh) {
+      const m = MeshBuilder.CreateCylinder('weed', { diameterTop: 0.5, diameterBottom: 0.05, height: 0.28, tessellation: 5 }, this.scene);
+      m.material = this.mats.color('#5c7d2a');
+      m.isPickable = false;
+      m.thinInstanceEnablePicking = false;
+      this.weedMesh = m;
+    }
+    const n = Math.max(0, Math.round((level - 20) * 0.6));
+    const list: number[] = [];
+    let seed = 7;
+    const rnd = () => { seed = (seed * 16807) % 2147483647; return seed / 2147483647; };
+    for (let i = 0; i < 400 && list.length / 16 < n; i++) {
+      const x = rnd() * lot.width, z = 0.5 + rnd() * (lot.depth - 0.5);
+      if (!isLawn(Math.floor(x), Math.floor(z))) continue;
+      const s = 0.6 + rnd() * 0.7;
+      Matrix.Compose(new Vector3(s, s, s), Quaternion.RotationYawPitchRoll(rnd() * 6, 0, 0), new Vector3(x, 0.12, z)).copyToArray(list as unknown as Float32Array, list.length);
+    }
+    if (!n) { this.weedMesh.setEnabled(false); return; }
+    this.weedMesh.setEnabled(true);
+    this.weedMesh.thinInstanceSetBuffer('matrix', new Float32Array(list), 16, false);
+    this.weedMesh.thinInstanceRefreshBoundingInfo(false);
+  }
 
   constructor(private scene: Scene, private mats: Materials, private shadows: () => ShadowGenerator | null, private addLight: (l: Light) => void, private removeLight: (l: Light) => void) {
     this.ghostMat = new StandardMaterial('ghostOk', scene);
@@ -302,6 +332,11 @@ export class LotView {
     v.root.position.set(o.x + W / 2, 0.015, o.z + D / 2);
     // A car out on the road isn't on the drive.
     v.root.setEnabled(!o.outWith);
+    if (o.broken) {
+      v.root.renderOutline = true;
+      v.root.outlineColor = new Color3(0.95, 0.2, 0.2);
+      v.root.outlineWidth = 0.035;
+    } else if (this.highlighted !== o.id) v.root.renderOutline = false;
     v.root.rotation.y = (o.rot * Math.PI) / 2;
     if (v.light) v.light.position.set(o.x + W / 2, v.light.metadata.height, o.z + D / 2);
   }

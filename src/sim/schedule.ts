@@ -9,6 +9,7 @@ import { levelOf, SKILL_NAMES } from './skills';
 import { enqueue, gainSkill, interrupt, payBills } from './actions';
 import type { RunningAction, Sim, SkillId } from './types';
 import { onHour, outingReturn, returnCar, takeCar, worksToday } from './life';
+import { billBreakdown } from './home';
 
 export function careerLevel(sim: Sim): CareerLevel | null {
   if (!sim.career) return null;
@@ -246,10 +247,12 @@ export function quitCareer(game: Game, sim: Sim): void {
 }
 
 function issueBills(game: Game): void {
-  const amount = Math.round(60 + game.homeValue() * 0.012);
+  const b = billBreakdown(game);
+  const amount = b.total;
   if (game.state.bills) game.state.bills.amount += amount;
   else game.state.bills = { amount, issued: game.state.time, dueBy: game.state.time + 3 * MINUTES_PER_DAY };
-  game.notify(`Weekly bills have arrived: £${game.state.bills.amount}. Pay within 3 days.`, '🧾', 'bills');
+  const parts = [`home £${b.home}`, `energy £${b.energy}${b.energySaved ? ` (saved £${b.energySaved})` : ''}`, b.subscriptions ? `TV £${b.subscriptions}` : ''].filter(Boolean).join(', ');
+  game.notify(`Weekly bills have arrived: £${game.state.bills.amount} (${parts}). Pay within 3 days.`, '🧾', 'bills');
   game.sound('notify');
 }
 

@@ -10,6 +10,7 @@ import { changeRel } from './relationships';
 import { chance, pick } from './rng';
 import { enqueue, interrupt } from './actions';
 import type { Party, PlacedObject, Sim } from './types';
+import { homeHour } from './home';
 
 // ---------- Clock speed ----------
 
@@ -168,6 +169,7 @@ function removeExpiredTemps(game: Game): void {
 
 export function onHour(game: Game, hour: number): void {
   const st = game.state;
+  homeHour(game, hour);
   const cal = calendarOf(game.day);
   if (hour === 0) {
     removeExpiredTemps(game);
@@ -278,6 +280,7 @@ export function takeCar(game: Game, sim: Sim): boolean {
   if (!canDriveNow(game, sim)) return false;
   const car = familyCar(game)!;
   car.outWith = sim.id;
+  car.dirt = Math.min(100, car.dirt + 20);
   game.lotChanged();
   return true;
 }
@@ -347,6 +350,11 @@ export function outingReturn(game: Game, sim: Sim, id: string): void {
     game.notify(sim.driving.lessons >= 5 ? `${sim.name} has had ${sim.driving.lessons} lessons and is ready for the driving test!` : `${sim.name} had driving lesson ${sim.driving.lessons} of 5.`, '🚦', 'info');
   }
   if (o.special === 'drivingTest') drivingTest(game, sim);
+  if (o.special === 'bargain') {
+    game.state.household.discount = 0.25;
+    addMoodlet(sim, 'bargain', game.state.time);
+    game.notify(`${sim.name} came back from B&M with a voucher: 25% off your next Buy mode purchase!`, '🏷️', 'good');
+  }
   if (o.special === 'clothes') game.events.push({ type: 'openPanel', panel: 'clothes', simId: sim.id });
   if (o.souvenir && !game.state.household.marketFinds.includes(o.souvenir)) {
     game.state.household.marketFinds.push(o.souvenir);

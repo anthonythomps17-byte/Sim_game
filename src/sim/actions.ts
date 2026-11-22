@@ -10,7 +10,8 @@ import { chooseAutonomous } from './ai';
 import { resolveSocial, socialCheck } from './social';
 import { arriveAtWork, skipWork } from './schedule';
 import { changeRel, findRel } from './relationships';
-import { canDriveNow, hasFood, openPresent, useFood } from './life';
+import { calendarOf, canDriveNow, hasFood, openPresent, useFood } from './life';
+import { binsOverflowing, binWindow, homeSpecial, noHotWater, selfSpecial } from './home';
 import type { NeedId, PlacedObject, Point, QueuedAction, RunningAction, Sim, SkillId } from './types';
 
 export const WALK_SPEED = 1.7; // tiles per game minute
@@ -97,7 +98,16 @@ export function checkInteraction(game: Game, sim: Sim, obj: PlacedObject, inter:
       if (!sim.driving.licence) return { ok: false, reason: 'Needs a driving licence' };
       if (!canDriveNow(game, sim)) return { ok: false, reason: 'The car is out' };
       break;
+    case 'notWinter': if (calendarOf(game.day).season.id === 'winter') return { ok: false, reason: 'Too cold for a barbecue!' }; break;
+    case 'broken': if (!obj.broken) return { ok: false, hidden: true }; break;
+    case 'working': if (obj.broken) return { ok: false, hidden: true }; break;
+    case 'netflix': if (!game.state.household.subscriptions.netflix) return { ok: false, hidden: true }; break;
+    case 'sky': if (!game.state.household.subscriptions.sky) return { ok: false, hidden: true }; break;
+    case 'binsIn': if (obj.atKerb || !binWindow(game)) return { ok: false, hidden: true }; break;
+    case 'binsBack': if (!obj.atKerb || binWindow(game)) return { ok: false, hidden: true }; break;
+    case 'overflowing': if (!binsOverflowing(game)) return { ok: false, hidden: true }; break;
   }
+  if (obj.broken && inter.condition !== 'broken' && obj.defId !== 'boiler') return { ok: false, reason: 'Blocked! Unblock it first' };
   if (inter.food && !hasFood(game, inter.food)) return { ok: false, reason: 'No food left. Go food shopping!' };
   if (inter.minSkill && levelOf(sim, inter.minSkill.skill) < inter.minSkill.level) {
     return { ok: false, reason: `Needs ${SKILL_NAMES[inter.minSkill.skill].name} ${inter.minSkill.level}` };
@@ -278,6 +288,11 @@ function startAction(game: Game, sim: Sim, q: QueuedAction): RunningAction | nul
       r.skill = def?.skill;
       r.skillRate = def?.skillRate;
       if (def?.cost && game.state.household.funds < def.cost) { fail(game, sim, '💸', `can't afford that (£${def.cost})`, q); return null; }
+      if (def?.indoors || def?.outdoors) {
+        const path = pathToArea(game, sim, def.indoors ? 'in' : 'out');
+        if (!path) { fail(game, sim, '❓', def.indoors ? 'there is no indoors to do that' : "can't get to the garden", q); return null; }
+        r.path = path;
+      }
       if (r.anim === 'sleep') r.untilFull = ['energy'];
       return r;
     }
@@ -516,6 +531,7 @@ function finish(game: Game, sim: Sim, completed: boolean): void {
     if (inline?.counter) sim.counters[inline.counter] = (sim.counters[inline.counter] ?? 0) + 1;
     const def = cur.selfId ? SELF_ACTIONS[cur.selfId] : undefined;
     if (def?.special === 'callFriend') callFriend(game, sim);
+    if (def?.special === 'hoover' || def?.special === 'weed') selfSpecial(game, sim, def.special);
     if (def?.special === 'takeaway') {
       game.addFunds(-(def.cost ?? 0));
       game.notify(`${sim.name}'s takeaway has arrived.`, '🍕', 'info');
@@ -532,7 +548,9 @@ function finish(game: Game, sim: Sim, completed: boolean): void {
 
 function completeInteraction(game: Game, sim: Sim, obj: PlacedObject, inter: InteractionDef, cur: RunningAction): void {
   const now = game.state.time;
-  if (inter.moodlet) addMoodlet(sim, inter.moodlet, now);
+  const cold = inter.tags?.includes('wash') && noHotWater(game);
+  if (cold) addMoodlet(sim, 'cold_shower', now);
+  else if (inter.moodlet) addMoodlet(sim, inter.moodlet, now);
   if (inter.counter) sim.counters[inter.counter] = (sim.counters[inter.counter] ?? 0) + 1;
   if (inter.condition === 'once' || inter.condition === 'nightOnce') sim.counters[onceKey(obj, inter)] = 1;
   if (inter.food) useFood(game, inter.food);
@@ -554,7 +572,8 @@ function completeInteraction(game: Game, sim: Sim, obj: PlacedObject, inter: Int
     game.notify(`${sim.name} sold their ${what} for £${amount}.`, inter.icon, 'good');
     game.sound('cash');
   }
-  switch (inter.special) {
+  if (inter.special && homeSpecial(game, sim, obj, inter.special)) { /* handled */ }
+  else switch (inter.special) {
     case 'plant': obj.growth = 1; break;
     case 'tend': {
       let bonus = 12 + levelOf(sim, 'gardening') * 2;
@@ -588,6 +607,21 @@ function completeInteraction(game: Game, sim: Sim, obj: PlacedObject, inter: Int
       inline: { anim: t.anim, duration: t.duration, effects: t.effects, tags: t.tags, moodlet: skillOk ? t.moodlet : 'tasty_snack' },
     });
   }
+}
+
+/** A random reachable tile indoors (or in the garden) for chores like hoovering and weeding. */
+function pathToArea(game: Game, sim: Sim, where: 'in' | 'out'): Point[] | null {
+  const lot = game.state.lot;
+  const grid = game.grid();
+  for (let i = 0; i < 40; i++) {
+    const x = Math.floor(random(game.state) * lot.width), z = 1 + Math.floor(random(game.state) * (lot.depth - 1));
+    if (grid.occ[z * lot.width + x] !== -1) continue;
+    const room = game.roomOf({ x: x + 0.5, z: z + 0.5 });
+    if ((where === 'in') !== (room !== 0)) continue;
+    const path = findPath(grid, sim.pos, { x, z });
+    if (path) return path;
+  }
+  return null;
 }
 
 /** Counter key for things each Sim can only do once per object (open presents, hunt eggs). */

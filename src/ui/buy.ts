@@ -14,7 +14,7 @@ export const OBJECT_ICONS: Record<string, string> = {
   stereo: '📻', guitar: '🎸', piano: '🎹', easel: '🖌️', chess: '♟️', telescope: '🔭', chem_kit: '🧪', workbench: '🔐', treadmill: '🏃',
   weights: '🏋️', veg_patch: '🥕', bbq: '🍔', bench: '🪵', goal: '⚽', mailbox: '📮', floor_lamp: '💡', table_lamp: '🪔', lantern: '🏮',
   plant_small: '🪴', plant_big: '🌳', aquarium: '🐠', winding_wheel: '⛏️', lock_sculpture: '🔑', jukebox: '🎶', antique_locks: '🗝️',
-  racing_print: '🏇', karaoke: '🎤', car: '🚗', rock_jar: '🍭', flamenco_fan: '🪭', golden_guitar: '🎸', inspiring_easel: '🖼️', dream_bed: '☁️', magic_loo: '✨',
+  racing_print: '🏇', karaoke: '🎤', car: '🚗', wheelie_bin: '🗑️', boiler: '🔥', heat_pump: '🌀', solar: '☀️', rock_jar: '🍭', flamenco_fan: '🪭', golden_guitar: '🎸', inspiring_easel: '🖼️', dream_bed: '☁️', magic_loo: '✨',
 };
 
 export function summary(def: ObjectDef): string {
@@ -128,7 +128,7 @@ export class BuyMode {
       this.toolbar.style.display = '';
       this.toolbar.append(
         h('button', { class: 'btn', onclick: () => this.rotate() }, '⟳ Rotate'),
-        h('button', { class: 'btn primary', onclick: () => this.place() }, this.placing.moving !== undefined ? '✓ Put here' : `✓ Buy ${money(objectPrice(this.app.game!, def.id))}`),
+        h('button', { class: 'btn primary', onclick: () => this.place() }, this.placing.moving !== undefined ? '✓ Put here' : `✓ Buy ${money(Math.round(objectPrice(this.app.game!, def.id) * (1 - this.app.game!.state.household.discount)))}`),
         h('button', { class: 'btn ghost', onclick: () => this.cancel() }, '✕'),
       );
     } else if (this.selected !== null) {

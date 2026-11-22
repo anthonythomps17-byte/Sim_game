@@ -161,6 +161,32 @@ const carShape = (b: ModelBuilder, paint: string) => {
 
 export const BUILDERS: Record<string, Builder> = {
   car: (b) => carShape(b, '#3b6fd1'),
+  wheelie_bin: (b) => {
+    b.box(0.6, 0.95, 0.7, '#2f3a33', 0, 0.08, 0);
+    b.box(0.66, 0.08, 0.76, '#3b4a40', 0, 1.03, 0.02);
+    for (const x of [-0.24, 0.24]) b.cyl(0.18, 0.18, 0.06, '#1b1d22', x, 0.09, -0.32, 10).rotation.z = Math.PI / 2;
+    b.box(0.5, 0.04, 0.06, '#1b1d22', 0, 1.0, -0.37);
+  },
+  boiler: (b) => {
+    b.box(0.55, 0.8, 0.35, '#f1eee7', 0, 1.0, -0.3);
+    b.box(0.2, 0.08, 0.02, '#2d3037', 0, 1.25, -0.12);
+    b.glow(b.box(0.05, 0.05, 0.02, '#7dff9a', 0.15, 1.25, -0.115), 'screen');
+    for (const x of [-0.15, 0, 0.15]) b.cyl(0.04, 0.04, 1.0, '#c9a46a', x, 0, -0.38, 6);
+  },
+  heat_pump: (b) => {
+    b.box(0.95, 0.75, 0.4, '#e9ecef', 0, 0.1, -0.1);
+    b.cyl(0.55, 0.55, 0.03, '#2d3037', -0.15, 0.48, 0.11, 16).rotation.x = Math.PI / 2;
+    for (let i = 0; i < 3; i++) { const f = b.box(0.5, 0.05, 0.02, '#7b8794', -0.15, 0.48, 0.12); f.rotation.z = (i * Math.PI) / 3; }
+    b.box(0.95, 0.1, 0.45, '#9aa3ad', 0, 0, -0.1);
+  },
+  solar: (b) => {
+    for (const x of [-0.5, 0.5]) for (const z of [-0.5, 0.5]) {
+      b.box(0.06, 0.6, 0.06, '#9aa3ad', x, 0, z + 0.25);
+      b.box(0.06, 0.3, 0.06, '#9aa3ad', x, 0, z - 0.25);
+    }
+    const p = b.box(1.9, 0.05, 1.7, '#1f3a6b', 0, 0.45, 0); p.rotation.x = -0.35;
+    for (let i = 0; i < 5; i++) { const l = b.box(0.02, 0.06, 1.7, '#8fb3e6', -0.76 + i * 0.38, 0.46, 0); l.rotation.x = -0.35; }
+  },
   karaoke: (b) => {
     b.box(0.6, 0.8, 0.45, '#2b2440', 0, 0, -0.05);
     b.glow(b.box(0.45, 0.28, 0.01, '#ff8ac8', 0, 0.42, 0.18), 'screen');

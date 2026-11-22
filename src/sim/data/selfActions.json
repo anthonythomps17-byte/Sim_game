@@ -66,6 +66,43 @@
    "anim": "phone",
    "ui": "party",
    "auto": false
+  },
+  {
+   "id": "hoover",
+   "name": "Hoover the house",
+   "icon": "🧹",
+   "duration": 40,
+   "anim": "hoover",
+   "special": "hoover",
+   "condition": "dusty",
+   "indoors": true,
+   "effects": {
+    "hygiene": -5
+   },
+   "tags": [
+    "cleaning"
+   ]
+  },
+  {
+   "id": "weed",
+   "name": "Weed the garden",
+   "icon": "🌿",
+   "duration": 45,
+   "anim": "garden",
+   "special": "weed",
+   "condition": "weedy",
+   "outdoors": true,
+   "skill": "gardening",
+   "skillRate": 30,
+   "effects": {
+    "hygiene": -12,
+    "fun": 5
+   },
+   "tags": [
+    "gardening",
+    "outdoors",
+    "cleaning"
+   ]
   }
  ],
  "outings": [
@@ -497,6 +534,58 @@
    "hours": [
     6,
     11
+   ]
+  },
+  {
+   "id": "walk",
+   "name": "Walk round Town Green Park",
+   "icon": "🚶",
+   "duration": 60,
+   "effects": {
+    "fun": 25,
+    "comfort": 10,
+    "energy": -8
+   },
+   "skill": "fitness",
+   "skillXp": 20,
+   "moodlet": "fresh_air",
+   "hours": [
+    6,
+    22
+   ],
+   "tags": [
+    "outdoors"
+   ]
+  },
+  {
+   "id": "block",
+   "name": "Quick walk round the block",
+   "icon": "👟",
+   "duration": 25,
+   "effects": {
+    "fun": 10,
+    "energy": -4
+   },
+   "skill": "fitness",
+   "skillXp": 8,
+   "moodlet": "fresh_air",
+   "tags": [
+    "outdoors"
+   ]
+  },
+  {
+   "id": "bm",
+   "name": "Bargain hunting at B&M",
+   "icon": "🏷️",
+   "duration": 75,
+   "cost": 10,
+   "effects": {
+    "fun": 25
+   },
+   "special": "bargain",
+   "hours": [
+    8,
+    20
    ]
   }
  ]

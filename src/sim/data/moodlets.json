@@ -293,6 +293,83 @@
    "icon": "🥡",
    "value": -10,
    "duration": 120
+  },
+  {
+   "id": "summer_bbq",
+   "name": "Summer barbecue",
+   "icon": "🍔",
+   "value": 20,
+   "duration": 300
+  },
+  {
+   "id": "shiny_car",
+   "name": "Shiny car",
+   "icon": "🚘",
+   "value": 8,
+   "duration": 240
+  },
+  {
+   "id": "fresh_air",
+   "name": "Fresh air",
+   "icon": "🌳",
+   "value": 12,
+   "duration": 240
+  },
+  {
+   "id": "cold_shower",
+   "name": "Freezing cold shower",
+   "icon": "🥶",
+   "value": -20,
+   "duration": 180
+  },
+  {
+   "id": "cold_house",
+   "name": "No heating",
+   "icon": "🧊",
+   "value": -15,
+   "duration": 90
+  },
+  {
+   "id": "smelly_bins",
+   "name": "Smelly bins",
+   "icon": "🪰",
+   "value": -10,
+   "duration": 120
+  },
+  {
+   "id": "clean_house",
+   "name": "Spotless house",
+   "icon": "✨",
+   "value": 12,
+   "duration": 300
+  },
+  {
+   "id": "tidy_garden",
+   "name": "Tidy garden",
+   "icon": "🌷",
+   "value": 10,
+   "duration": 300
+  },
+  {
+   "id": "fixed_it",
+   "name": "Fixed it myself!",
+   "icon": "🛠️",
+   "value": 20,
+   "duration": 300
+  },
+  {
+   "id": "bargain",
+   "name": "Got a bargain",
+   "icon": "🏷️",
+   "value": 12,
+   "duration": 240
+  },
+  {
+   "id": "eco_home",
+   "name": "Eco-friendly home",
+   "icon": "🌍",
+   "value": 8,
+   "duration": 1440
   }
  ]
 }

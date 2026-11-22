@@ -177,17 +177,23 @@ export function buyObject(game: Game, defId: string, x: number, z: number, rot: 
   if (!isFinite(price)) return { ok: false, cost: 0, reason: 'Not unlocked yet' };
   if (price > game.state.household.funds) return { ok: false, cost: price, reason: 'Not enough money' };
   if (!canPlaceObject(game.state.lot, defId, x, z, rot)) return { ok: false, cost: price, reason: "Doesn't fit there" };
+  const voucher = game.state.household.discount;
+  const paid = voucher > 0 && price > 0 ? Math.round(price * (1 - voucher)) : price;
+  if (paid !== price) {
+    game.state.household.discount = 0;
+    game.notify(`Voucher used: saved £${price - paid}!`, '🏷️', 'good');
+  }
   const obj: PlacedObject = {
     id: game.nextId(), defId, x, z, rot, users: def.spots.map(() => null), dirt: 0, growth: 0,
     lightOn: !!def.light && game.isNight(), bought: game.state.time,
   };
   game.state.lot.objects.push(obj);
   if (def.reward) consumeRewardUnlock(game, defId);
-  game.addFunds(-price);
+  game.addFunds(-paid);
   bumpSimsOffObject(game, obj);
   game.lotChanged();
   game.sound('place');
-  return { ok: true, cost: price, id: obj.id };
+  return { ok: true, cost: paid, id: obj.id };
 }
 
 export function moveObject(game: Game, id: number, x: number, z: number, rot: 0 | 1 | 2 | 3): BuildResult {

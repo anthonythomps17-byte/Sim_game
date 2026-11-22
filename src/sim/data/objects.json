@@ -32,6 +32,11 @@
    "hidden": true
   },
   {
+   "id": "home",
+   "name": "Home & energy",
+   "icon": "🔌"
+  },
+  {
    "id": "outdoor",
    "name": "Garden",
    "icon": "🌱"
@@ -336,8 +341,36 @@
       "cleaning"
      ],
      "cleansRoom": true
+    },
+    {
+     "id": "unblock",
+     "name": "Unblock the drain",
+     "icon": "🪠",
+     "duration": 40,
+     "anim": "use",
+     "condition": "broken",
+     "special": "unblock",
+     "skill": "fitness",
+     "skillRate": 20,
+     "effects": {
+      "hygiene": -20
+     },
+     "tags": [
+      "cleaning"
+     ]
+    },
+    {
+     "id": "plumber",
+     "name": "Call a plumber (£120)",
+     "icon": "🔧",
+     "duration": 5,
+     "anim": "phone",
+     "condition": "broken",
+     "special": "plumber",
+     "auto": false
     }
-   ]
+   ],
+   "canBlock": true
   },
   {
    "id": "coffee",
@@ -505,8 +538,36 @@
       "cleaning"
      ],
      "poseless": true
+    },
+    {
+     "id": "unblock",
+     "name": "Unblock the drain",
+     "icon": "🪠",
+     "duration": 40,
+     "anim": "use",
+     "condition": "broken",
+     "special": "unblock",
+     "skill": "fitness",
+     "skillRate": 20,
+     "effects": {
+      "hygiene": -20
+     },
+     "tags": [
+      "cleaning"
+     ]
+    },
+    {
+     "id": "plumber",
+     "name": "Call a plumber (£120)",
+     "icon": "🔧",
+     "duration": 5,
+     "anim": "phone",
+     "condition": "broken",
+     "special": "plumber",
+     "auto": false
     }
-   ]
+   ],
+   "canBlock": true
   },
   {
    "id": "shower",
@@ -561,8 +622,36 @@
       "cleaning"
      ],
      "poseless": true
+    },
+    {
+     "id": "unblock",
+     "name": "Unblock the drain",
+     "icon": "🪠",
+     "duration": 40,
+     "anim": "use",
+     "condition": "broken",
+     "special": "unblock",
+     "skill": "fitness",
+     "skillRate": 20,
+     "effects": {
+      "hygiene": -20
+     },
+     "tags": [
+      "cleaning"
+     ]
+    },
+    {
+     "id": "plumber",
+     "name": "Call a plumber (£120)",
+     "icon": "🔧",
+     "duration": 5,
+     "anim": "phone",
+     "condition": "broken",
+     "special": "plumber",
+     "auto": false
     }
-   ]
+   ],
+   "canBlock": true
   },
   {
    "id": "bath",
@@ -619,8 +708,36 @@
       "cleaning"
      ],
      "poseless": true
+    },
+    {
+     "id": "unblock",
+     "name": "Unblock the drain",
+     "icon": "🪠",
+     "duration": 40,
+     "anim": "use",
+     "condition": "broken",
+     "special": "unblock",
+     "skill": "fitness",
+     "skillRate": 20,
+     "effects": {
+      "hygiene": -20
+     },
+     "tags": [
+      "cleaning"
+     ]
+    },
+    {
+     "id": "plumber",
+     "name": "Call a plumber (£120)",
+     "icon": "🔧",
+     "duration": 5,
+     "anim": "phone",
+     "condition": "broken",
+     "special": "plumber",
+     "auto": false
     }
-   ]
+   ],
+   "canBlock": true
   },
   {
    "id": "bathroom_sink",
@@ -662,8 +779,36 @@
       "hygiene": 15
      },
      "anim": "use"
+    },
+    {
+     "id": "unblock",
+     "name": "Unblock the drain",
+     "icon": "🪠",
+     "duration": 40,
+     "anim": "use",
+     "condition": "broken",
+     "special": "unblock",
+     "skill": "fitness",
+     "skillRate": 20,
+     "effects": {
+      "hygiene": -20
+     },
+     "tags": [
+      "cleaning"
+     ]
+    },
+    {
+     "id": "plumber",
+     "name": "Call a plumber (£120)",
+     "icon": "🔧",
+     "duration": 5,
+     "anim": "phone",
+     "condition": "broken",
+     "special": "plumber",
+     "auto": false
     }
-   ]
+   ],
+   "canBlock": true
   },
   {
    "id": "mirror",
@@ -1259,6 +1404,52 @@
       "sport"
      ],
      "visitor": true
+    },
+    {
+     "id": "netflix",
+     "name": "Binge a series on Netflix",
+     "icon": "🍿",
+     "duration": 90,
+     "effects": {
+      "fun": 60,
+      "comfort": 15
+     },
+     "anim": "watch",
+     "seatNear": true,
+     "shared": true,
+     "tags": [
+      "tv"
+     ],
+     "condition": "netflix",
+     "visitor": true
+    },
+    {
+     "id": "sky",
+     "name": "Live match on Sky Sports",
+     "icon": "📡",
+     "duration": 110,
+     "effects": {
+      "fun": 65,
+      "social": 10
+     },
+     "anim": "watch",
+     "seatNear": true,
+     "shared": true,
+     "tags": [
+      "tv",
+      "sport"
+     ],
+     "condition": "sky",
+     "visitor": true
+    },
+    {
+     "id": "subs",
+     "name": "Manage subscriptions",
+     "icon": "🧾",
+     "duration": 3,
+     "anim": "use",
+     "ui": "home",
+     "auto": false
     }
    ]
   },
@@ -1322,6 +1513,52 @@
       "sport"
      ],
      "visitor": true
+    },
+    {
+     "id": "netflix",
+     "name": "Binge a series on Netflix",
+     "icon": "🍿",
+     "duration": 90,
+     "effects": {
+      "fun": 80,
+      "comfort": 20
+     },
+     "anim": "watch",
+     "seatNear": true,
+     "shared": true,
+     "tags": [
+      "tv"
+     ],
+     "condition": "netflix",
+     "visitor": true
+    },
+    {
+     "id": "sky",
+     "name": "Live match on Sky Sports",
+     "icon": "📡",
+     "duration": 110,
+     "effects": {
+      "fun": 85,
+      "social": 15
+     },
+     "anim": "watch",
+     "seatNear": true,
+     "shared": true,
+     "tags": [
+      "tv",
+      "sport"
+     ],
+     "condition": "sky",
+     "visitor": true
+    },
+    {
+     "id": "subs",
+     "name": "Manage subscriptions",
+     "icon": "🧾",
+     "duration": 3,
+     "anim": "use",
+     "ui": "home",
+     "auto": false
     }
    ]
   },
@@ -2012,7 +2249,9 @@
       "moodlet": "great_meal",
       "moodletMinSkill": 4
      },
-     "food": 2
+     "food": 2,
+     "condition": "notWinter",
+     "special": "bbq"
     }
    ]
   },
@@ -2808,7 +3047,9 @@
      "tags": [
       "cleaning",
       "outdoors"
-     ]
+     ],
+     "cleans": true,
+     "moodlet": "shiny_car"
     }
    ]
   },
@@ -3093,6 +3334,160 @@
    "decor": 3,
    "market": true,
    "description": "A souvenir from a holiday in Spain.",
+   "spots": [],
+   "interactions": []
+  },
+  {
+   "id": "wheelie_bin",
+   "name": "Wheelie Bin",
+   "category": "home",
+   "price": 60,
+   "footprint": [
+    1,
+    1
+   ],
+   "decor": 0,
+   "description": "Bin day is Thursday. Take it out on Wednesday night!",
+   "spots": [
+    {
+     "at": [
+      0,
+      1
+     ],
+     "alt": [
+      [
+       1,
+       0
+      ],
+      [
+       -1,
+       0
+      ],
+      [
+       0,
+       -1
+      ]
+     ]
+    }
+   ],
+   "interactions": [
+    {
+     "id": "out",
+     "name": "Take the bins out",
+     "icon": "🗑️",
+     "duration": 10,
+     "anim": "use",
+     "condition": "binsIn",
+     "special": "binsOut",
+     "effects": {
+      "hygiene": -3
+     }
+    },
+    {
+     "id": "in",
+     "name": "Bring the bins in",
+     "icon": "↩️",
+     "duration": 8,
+     "anim": "use",
+     "condition": "binsBack",
+     "special": "binsIn"
+    },
+    {
+     "id": "tidy",
+     "name": "Clear up the spilled rubbish",
+     "icon": "🧹",
+     "duration": 30,
+     "anim": "garden",
+     "condition": "overflowing",
+     "special": "tidyBins",
+     "effects": {
+      "hygiene": -15
+     },
+     "tags": [
+      "cleaning",
+      "outdoors"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "boiler",
+   "name": "Gas Boiler",
+   "category": "home",
+   "price": 1800,
+   "footprint": [
+    1,
+    1
+   ],
+   "decor": 0,
+   "description": "Hot water and heating. Can break down, especially in winter.",
+   "spots": [
+    {
+     "at": [
+      0,
+      1
+     ]
+    }
+   ],
+   "interactions": [
+    {
+     "id": "fix",
+     "name": "Try to fix the boiler",
+     "icon": "🔧",
+     "duration": 60,
+     "anim": "use",
+     "condition": "broken",
+     "special": "fixBoiler",
+     "skill": "logic",
+     "skillRate": 30
+    },
+    {
+     "id": "engineer",
+     "name": "Call a heating engineer (£250)",
+     "icon": "📞",
+     "duration": 5,
+     "anim": "phone",
+     "condition": "broken",
+     "special": "engineer",
+     "auto": false
+    },
+    {
+     "id": "service",
+     "name": "Service the boiler (£60)",
+     "icon": "🧰",
+     "duration": 30,
+     "anim": "use",
+     "condition": "working",
+     "special": "service",
+     "auto": false
+    }
+   ]
+  },
+  {
+   "id": "heat_pump",
+   "name": "Air Source Heat Pump",
+   "category": "home",
+   "price": 3800,
+   "footprint": [
+    1,
+    1
+   ],
+   "decor": 1,
+   "description": "Replaces the boiler: cuts energy bills by 35% and hardly ever breaks.",
+   "spots": [],
+   "interactions": []
+  },
+  {
+   "id": "solar",
+   "name": "Solar Panel Array",
+   "category": "home",
+   "price": 2400,
+   "footprint": [
+    2,
+    2
+   ],
+   "decor": 1,
+   "description": "Each array cuts the energy bill by 25% (up to 2 arrays). Best in summer.",
    "spots": [],
    "interactions": []
   }

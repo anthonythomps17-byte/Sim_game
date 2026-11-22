@@ -17,6 +17,7 @@ export class Hud {
   el: HTMLElement;
   private fundsEl!: HTMLElement;
   private foodEl!: HTMLElement;
+  private homeBadge!: HTMLElement;
   private partyEl!: HTMLElement;
   private timeEl!: HTMLElement;
   private speedBtns: HTMLButtonElement[] = [];
@@ -52,10 +53,12 @@ export class Hud {
     this.bellBadge = h('span', { class: 'badge' });
     const bell = h('button', { class: 'btn icon-btn round rel', 'aria-label': 'Messages', onclick: () => app.panels.notifications() }, '🔔', this.bellBadge);
     const menu = h('button', { class: 'btn icon-btn round', 'aria-label': 'Menu', onclick: () => app.menus.pauseMenu() }, '☰');
+    this.homeBadge = h('span', { class: 'badge' });
+    const home = h('button', { class: 'btn icon-btn round rel', 'aria-label': 'Home and bills', onclick: () => app.panels.home() }, '🏠', this.homeBadge);
     const top = h('div', { class: 'topbar' },
       h('div', { class: 'panel money' }, this.fundsEl, this.foodEl),
       h('div', { class: 'panel clock' }, this.timeEl, ...this.speedBtns, this.ffEl),
-      h('div', { class: 'top-right' }, bell, menu),
+      h('div', { class: 'top-right' }, home, bell, menu),
     );
     this.portraitsEl = h('div', { class: 'portraits' });
     this.panelEl = h('div', { class: 'panel simpanel' });
@@ -110,6 +113,10 @@ export class Hud {
     const cal = calendarOf(game.day);
     const ev = eventsOn(game.day).map((e) => e.icon).join('');
     this.timeEl.append(`${hour12}:${String(mm).padStart(2, '0')} ${hh < 12 ? 'am' : 'pm'}`, h('small', null, `${DAY_NAMES[game.weekday].slice(0, 3)} · ${cal.season.icon} ${cal.season.name} ${cal.dayOfSeason} ${ev}`));
+    const house = st.household;
+    const problems = st.lot.objects.filter((o) => o.broken).length + (house.dust >= 70 ? 1 : 0) + (house.weeds >= 70 ? 1 : 0) + (house.rubbish >= 100 ? 1 : 0);
+    this.homeBadge.textContent = problems ? '!' : '';
+    this.homeBadge.style.display = problems ? '' : 'none';
     const food = st.household.groceries;
     this.foodEl.textContent = `🛒 ${food}`;
     this.foodEl.classList.toggle('low', food <= 6);

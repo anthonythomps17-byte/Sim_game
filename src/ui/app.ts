@@ -330,6 +330,7 @@ export class App {
         if (e.panel === 'relationships') this.panels.invite(sim);
         if (e.panel === 'clothes') this.panels.clothes(sim);
         if (e.panel === 'party') this.panels.party(sim);
+        if (e.panel === 'home') this.panels.home();
         break;
       }
     }
@@ -400,11 +401,15 @@ export class App {
     const options: RadialOption[] = [];
     if (sel && target.id === sel.id) {
       for (const s of Object.values(SELF_ACTIONS)) {
+        const hh = game.state.household;
+        if (s.condition === 'dusty' && hh.dust < 15) continue;
+        if (s.condition === 'weedy' && hh.weeds < 15) continue;
         options.push({
           icon: s.icon, label: s.name,
           onPick: () => s.ui === 'relationships' ? this.panels.invite(sel) : s.ui === 'party' ? this.panels.party(sel) : this.queue(sel, { kind: 'self', selfId: s.id, label: s.name, icon: s.icon, userQueued: true }),
         });
       }
+      options.push({ icon: '🌳', label: 'Go for a walk', onPick: () => this.queueOuting(sel, 'walk') });
       options.push({ icon: '🚶', label: 'Go out…', onPick: () => this.panels.outings(sel) });
       options.push({ icon: 'ℹ️', label: 'About', onPick: () => this.panels.simInfo(sel) });
       showRadial(this.root, x, y, sel.name.split(' ')[0], options);

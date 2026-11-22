@@ -167,6 +167,7 @@ export function starterLot(): Lot {
     // Bedroom 2
     obj('bed_single', 15, 12, 2), obj('computer', 12, 12, 1), obj('table_lamp', 15, 10, 0),
     // Outside
+    obj('boiler', 10, 5, 0), obj('wheelie_bin', 11, 2, 0),
     obj('mailbox', 9, 0, 0), obj('lantern', 6, 1, 0), obj('bench', 18, 2, 0), obj('veg_patch', 18, 15, 0), obj('plant_big', 8, 4, 0),
   );
   return lot;
@@ -175,7 +176,7 @@ export function starterLot(): Lot {
 export function emptyPlotLot(): Lot {
   const lot = emptyLot();
   objId = 1000;
-  lot.objects.push(obj('mailbox', 9, 0, 0));
+  lot.objects.push(obj('mailbox', 9, 0, 0), obj('wheelie_bin', 11, 2, 0));
   floorRect(lot, 7, 0, 7, 3, 'brick_paving');
   return lot;
 }
@@ -191,7 +192,7 @@ export function createGame(opts: NewGameOptions): GameState {
     rng: opts.seed ?? Math.floor(Math.random() * 2 ** 31),
     time: 8 * 60, // Monday 08:00
     speed: 1,
-    household: { name: opts.householdName, funds: opts.lot === 'starter' ? 14000 : 30000, memberIds: [], rewardsUnlocked: [], marketFinds: [], paintingsSold: 0, groceries: 30, neighbourMood: 80, nextDoorId: 0 },
+    household: { name: opts.householdName, funds: opts.lot === 'starter' ? 14000 : 30000, memberIds: [], rewardsUnlocked: [], marketFinds: [], paintingsSold: 0, groceries: 30, neighbourMood: 80, nextDoorId: 0, dust: 0, weeds: 10, rubbish: 0, subscriptions: { netflix: false, sky: false }, discount: 0 },
     sims: [], relationships: [], lot, bills: null, notifications: [],
     settings: { freeWill: 'full', romance: true },
     nextId: 1, selectedSimId: 0, lastVisitDay: -1, tutorialDone: false,

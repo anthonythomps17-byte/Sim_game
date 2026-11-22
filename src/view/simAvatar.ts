@@ -330,6 +330,16 @@ export class SimAvatar {
       neck.parent = p;
       neck.position.y = 0.42;
       neck.scaling.set(1, 0.8, 2.8);
+    } else if (name === 'hoover') {
+      p = MeshBuilder.CreateBox('hoover', { width: 0.3, height: 0.25, depth: 0.22 }, s);
+      p.material = mat(s, 'hooverm', '#e05a5a');
+      p.parent = this.root;
+      p.position.set(0, 0.13, 0.55);
+      const stick = MeshBuilder.CreateCylinder('hstick', { diameter: 0.04, height: 0.9 }, s);
+      stick.material = mat(s, 'hstickm', '#555');
+      stick.parent = p;
+      stick.position.set(0, 0.45, -0.15);
+      stick.rotation.x = -0.45;
     } else {
       p = MeshBuilder.CreateBox('fork', { width: 0.02, height: 0.12, depth: 0.02 }, s);
       p.material = mat(s, 'forkm', '#c0c4c9');
@@ -342,7 +352,7 @@ export class SimAvatar {
   }
 
   private showProps(names: string[]): void {
-    for (const n of ['book', 'phone', 'guitar', 'fork']) {
+    for (const n of ['book', 'phone', 'guitar', 'fork', 'hoover']) {
       if (names.includes(n)) this.prop(n).setEnabled(true);
       else this.props[n]?.setEnabled(false);
     }
@@ -542,6 +552,16 @@ export class SimAvatar {
         ra.root.rotation.x = -0.65; ra.mid.rotation.x = -2.2; ra.root.rotation.z = -0.15;
         la.root.rotation.x = -0.4; la.mid.rotation.x = -1.3; la.root.rotation.z = 0.3;
         this.head.rotation.z = 0.12; this.head.rotation.x = -0.1;
+        break;
+      }
+      case 'hoover': {
+        props.push('hoover');
+        const push = Math.sin(t * 4 * sp);
+        ra.root.rotation.x = la.root.rotation.x = -0.75 - push * 0.15;
+        ra.mid.rotation.x = la.mid.rotation.x = -0.35;
+        this.spine.rotation.x = 0.12;
+        if (this.props.hoover) this.props.hoover.position.z = 0.55 + push * 0.18;
+        this.legs.forEach((l, i) => { l.root.rotation.x = (i ? 1 : -1) * push * 0.15; });
         break;
       }
       case 'sad': {

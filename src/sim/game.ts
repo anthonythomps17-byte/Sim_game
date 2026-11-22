@@ -10,6 +10,7 @@ import type { PathGrid } from './path';
 import { stepSim, releaseAll } from './actions';
 import { runSchedules } from './schedule';
 import { runLife } from './life';
+import { roomPenalty } from './home';
 import type { GameEvent, GameNotification, GameState, NeedId, PlacedObject, Point, Sim } from './types';
 import { NEED_IDS } from './types';
 
@@ -125,6 +126,7 @@ export class Game {
         if (size < 6) score -= 10; else if (size >= 14) score += 5;
         score -= dirt * 9;
       }
+      score -= roomPenalty(this, r);
       scores.push(clamp(Math.round(score), 0, 100));
     }
     this.roomScores = scores;

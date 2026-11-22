@@ -185,6 +185,8 @@ export class WorldView {
     if (this.dynTimer <= 0 || night !== this.lastNight) {
       this.dynTimer = 0.5;
       this.lotView.refreshDynamic(st.lot, night);
+      const occ = game.grid().occ;
+      this.lotView.setWeeds(st.lot, st.household.weeds, (x, z) => !st.lot.floors[z * st.lot.width + x] && occ[z * st.lot.width + x] === -1 && game.roomOf({ x: x + 0.5, z: z + 0.5 }) === 0);
     }
     this.updateSky(game.minuteOfDay, night);
     this.updateSeason(game.day);

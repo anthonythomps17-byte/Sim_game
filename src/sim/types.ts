@@ -11,7 +11,7 @@ export const SKILL_IDS: SkillId[] = ['cooking', 'fitness', 'creativity', 'music'
 export type AnimId =
   | 'idle' | 'walk' | 'sit' | 'sleep' | 'eat' | 'talk' | 'dance' | 'workout' | 'use' | 'cook'
   | 'guitar' | 'piano' | 'paint' | 'read' | 'watch' | 'shower' | 'garden' | 'phone' | 'wave' | 'think'
-  | 'sad' | 'cheer' | 'run';
+  | 'sad' | 'cheer' | 'run' | 'hoover';
 
 export type FreeWill = 'off' | 'low' | 'full';
 
@@ -142,6 +142,11 @@ export interface PlacedObject {
   expiresDay?: number;
   /** A car out on the road with this Sim. */
   outWith?: number | null;
+  /** Blocked drain or broken boiler. */
+  broken?: boolean;
+  /** Wheelie bin out on the kerb, and where it lives the rest of the week. */
+  atKerb?: boolean;
+  home?: { x: number; z: number };
 }
 
 export interface Lot {
@@ -184,6 +189,13 @@ export interface GameState {
     /** 0–100. Late-night noise makes the neighbours unhappy. */
     neighbourMood: number;
     nextDoorId: number;
+    /** 0–100 chores that build up. */
+    dust: number;
+    weeds: number;
+    rubbish: number;
+    subscriptions: { netflix: boolean; sky: boolean };
+    /** One-off money off the next Buy mode purchase (0–1). */
+    discount: number;
   };
   sims: Sim[];
   relationships: Relationship[];

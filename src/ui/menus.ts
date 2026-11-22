@@ -67,6 +67,7 @@ export class Menus {
       btn('📂  Load game', () => this.loadMenu()),
       btn('📤  Export save (backup file)', () => this.app.exportSave()),
       btn('📥  Import save file', () => this.app.importSave()),
+      btn('🏠  Home, bills and subscriptions', () => this.app.panels.home()),
       btn('🗺️  Ashton map', () => this.app.panels.map()),
       btn('🏡  Invite someone over', () => this.app.panels.invite(this.app.selectedSim())),
       btn('⚙️  Settings', () => this.settings()),
