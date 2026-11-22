@@ -7,6 +7,7 @@ import { enqueue, cancelAction, checkInteraction } from '../sim/actions';
 import { availableSocials } from '../sim/social';
 import { OBJECTS, OUTINGS, SELF_ACTIONS } from '../sim/defs';
 import { scheduleNextVisit } from '../sim/schedule';
+import { gameMinutesPerSecond, householdOuting } from '../sim/life';
 import type { GameEvent, GameState, Sim } from '../sim/types';
 import { WorldView } from '../view/world';
 import { CasView } from '../view/casView';
@@ -62,6 +63,7 @@ export class App {
     };
     this.world = new WorldView(canvas, handlers);
     this.casView = new CasView(this.world.engine, canvas);
+    this.world.sky.onBurst = () => this.sound('firework');
     this.hud = new Hud(this);
     this.panels = new Panels(this);
     this.menus = new Menus(this);
@@ -98,9 +100,12 @@ export class App {
     const st = game.state;
     let speed = this.mode === 'live' && !this.pausedByMenu ? st.speed : 0;
     const members = game.household();
-    this.fastForward = speed > 0 && members.length > 0 && members.every((s) => s.location !== 'lot' || (s.current?.anim === 'sleep' && s.current.phase === 'perform'));
+    // Skip ahead while everyone is out (and, if chosen in Settings, while everyone sleeps).
+    const allAway = members.length > 0 && members.every((s) => s.location !== 'lot');
+    const allAsleep = members.length > 0 && members.every((s) => s.location !== 'lot' || (s.current?.anim === 'sleep' && s.current.phase === 'perform'));
+    this.fastForward = speed > 0 && (allAway || (this.settings.skipSleep && allAsleep));
     if (this.fastForward) speed *= 8;
-    if (speed > 0) game.tick(dt * speed);
+    if (speed > 0) game.tick(dt * speed * gameMinutesPerSecond(game.minuteOfDay));
     this.flushEvents();
     this.world.setSelected(st.selectedSimId);
     this.world.frame(dt, speed);
@@ -285,6 +290,11 @@ export class App {
 
   queueOuting(sim: Sim, id: string) {
     const o = OUTINGS[id];
+    if (o.household) {
+      const n = this.game!.household().filter((s) => s.location === 'lot').length;
+      this.panels.confirm(o.name.replace(/ \(.*\)$/, ''), `Everyone at home goes together. It costs £${(o.cost ?? 0) * n} in total. Jobs give you the time off.`, 'Book it! ✈️', () => { householdOuting(this.game!, id); this.hud.refresh(); });
+      return;
+    }
     this.queue(sim, { kind: 'outing', selfId: id, label: o.name, icon: o.icon, userQueued: true });
   }
 
@@ -318,6 +328,8 @@ export class App {
         if (!sim) break;
         if (e.panel === 'careers') this.panels.careers(sim);
         if (e.panel === 'relationships') this.panels.invite(sim);
+        if (e.panel === 'clothes') this.panels.clothes(sim);
+        if (e.panel === 'party') this.panels.party(sim);
         break;
       }
     }
@@ -390,7 +402,7 @@ export class App {
       for (const s of Object.values(SELF_ACTIONS)) {
         options.push({
           icon: s.icon, label: s.name,
-          onPick: () => s.ui === 'relationships' ? this.panels.invite(sel) : this.queue(sel, { kind: 'self', selfId: s.id, label: s.name, icon: s.icon, userQueued: true }),
+          onPick: () => s.ui === 'relationships' ? this.panels.invite(sel) : s.ui === 'party' ? this.panels.party(sel) : this.queue(sel, { kind: 'self', selfId: s.id, label: s.name, icon: s.icon, userQueued: true }),
         });
       }
       options.push({ icon: '🚶', label: 'Go out…', onPick: () => this.panels.outings(sel) });

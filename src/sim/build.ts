@@ -164,6 +164,7 @@ export function paintWall(game: Game, key: string, side: 0 | 1, paintId: string,
 
 export function objectPrice(game: Game, defId: string): number {
   const def = OBJECTS[defId];
+  if (def.temp) return Infinity;
   if (def.reward) return game.state.household.rewardsUnlocked.includes(defId) ? 0 : Infinity;
   if (def.market && !game.state.household.marketFinds.includes(defId)) return Infinity;
   return def.price;

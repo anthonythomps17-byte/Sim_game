@@ -27,7 +27,10 @@ export interface InteractionDef {
   /** false = only when the player asks. */
   auto?: boolean;
   visitor?: boolean;
-  condition?: 'dirty' | 'grown' | 'growing' | 'empty' | 'bills' | 'lightOn' | 'lightOff' | 'night';
+  condition?: 'dirty' | 'grown' | 'growing' | 'empty' | 'bills' | 'lightOn' | 'lightOff' | 'night'
+    | 'once' | 'uncarved' | 'carved' | 'nightOnce' | 'canDrive';
+  /** Groceries used from the household's food supply. */
+  food?: number;
   dirties?: number; cleans?: boolean; cleansRoom?: boolean;
   seatNear?: boolean; shared?: boolean; seated?: boolean; poseless?: boolean;
   then?: FollowUpDef;
@@ -42,6 +45,8 @@ export interface ObjectDef {
   footprint: [number, number]; decor: number;
   seat?: boolean; dining?: boolean; surface?: boolean; walkable?: boolean;
   seatHeight?: number; market?: boolean; reward?: boolean;
+  /** Seasonal decoration placed and removed automatically. */
+  temp?: boolean;
   light?: { color: string; intensity: number; range: number };
   spots: SpotDef[];
   interactions: InteractionDef[];
@@ -74,16 +79,26 @@ export interface SocialDef {
 export interface SelfDef {
   id: string; name: string; icon: string; duration: number; anim: AnimId;
   effects?: Effects; skill?: SkillId; skillRate?: number; special?: string; ui?: string; auto?: boolean; tags?: string[];
+  cost?: number; condition?: 'noFood';
 }
 
 export interface OutingDef {
   id: string; name: string; icon: string; duration: number; cost?: number;
   effects: Effects; skill?: SkillId; skillXp?: number; moodlet?: string;
   days?: number[]; hours?: [number, number]; special?: string; tags?: string[];
+  /** Food added to the household supply. */
+  groceries?: number;
+  condition?: 'learner' | 'testReady' | 'canDrive';
+  season?: string; seasonDays?: number[]; event?: string;
+  /** The whole household goes together (holidays). */
+  household?: boolean;
+  /** Counts as time off work. */
+  leave?: boolean;
+  souvenir?: string;
 }
 
-export interface CareerLevel { title: string; pay: number; start: number; end: number; days: number[]; req: Partial<Record<SkillId, number>> }
-export interface CareerDef { id: string; name: string; icon: string; desc: string; skills: SkillId[]; levels: CareerLevel[] }
+export interface CareerLevel { title: string; pay: number; start: number; end: number; days: number[]; req: Partial<Record<SkillId, number>>; licence?: boolean }
+export interface CareerDef { id: string; name: string; icon: string; desc: string; skills: SkillId[]; levels: CareerLevel[]; schoolHolidays?: boolean }
 
 export type AspirationCond =
   | { type: 'skill'; skill: SkillId; level: number }
@@ -112,7 +127,7 @@ export const NEED_TUNING = {
   workDecayMult: needsData.workDecayMult,
 };
 
-export const OBJECT_CATEGORIES = objectsData.categories as { id: string; name: string; icon: string }[];
+export const OBJECT_CATEGORIES = objectsData.categories as { id: string; name: string; icon: string; hidden?: boolean }[];
 export const OBJECTS = byId(objectsData.objects as unknown as ObjectDef[]);
 export const TRAITS = byId(traitsData.traits as TraitDef[]);
 export const REWARD_TRAITS = byId(traitsData.rewardTraits as TraitDef[]);

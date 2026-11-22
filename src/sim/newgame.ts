@@ -77,7 +77,7 @@ export function makeSim(id: number, draft: SimDraft, isTownie: boolean): Sim {
     needs: fullNeeds(80), skills, career: null, moodlets: [],
     pos: { x: 8.5, z: 3.5 }, facing: 0, anim: 'idle', poseObjectId: null,
     location: isTownie ? 'home' : 'lot', awayUntil: 0, queue: [], current: null,
-    thinkCooldown: 1, thought: null, counters: {}, visitUntil: 0, perks: [], recent: [],
+    thinkCooldown: 1, thought: null, counters: {}, visitUntil: 0, perks: [], recent: [], driving: { lessons: 0, licence: false },
   };
 }
 
@@ -191,11 +191,12 @@ export function createGame(opts: NewGameOptions): GameState {
     rng: opts.seed ?? Math.floor(Math.random() * 2 ** 31),
     time: 8 * 60, // Monday 08:00
     speed: 1,
-    household: { name: opts.householdName, funds: opts.lot === 'starter' ? 14000 : 30000, memberIds: [], rewardsUnlocked: [], marketFinds: [], paintingsSold: 0 },
+    household: { name: opts.householdName, funds: opts.lot === 'starter' ? 14000 : 30000, memberIds: [], rewardsUnlocked: [], marketFinds: [], paintingsSold: 0, groceries: 30, neighbourMood: 80, nextDoorId: 0 },
     sims: [], relationships: [], lot, bills: null, notifications: [],
     settings: { freeWill: 'full', romance: true },
     nextId: 1, selectedSimId: 0, lastVisitDay: -1, tutorialDone: false,
     pendingVisits: [], flags: { lastHour: 8, nextVisitAt: 13 * 60 },
+    party: null, noise: { tonight: 0, stage: 0 }, fireworksUntil: 0,
   };
   const spawn = [{ x: 7.5, z: 3.5 }, { x: 8.5, z: 2.5 }, { x: 6.5, z: 2.5 }, { x: 9.5, z: 3.5 }];
   opts.sims.slice(0, 4).forEach((draft, i) => {
@@ -217,6 +218,8 @@ export function createGame(opts: NewGameOptions): GameState {
     t.district = NAMES.districts[i % NAMES.districts.length];
     st.sims.push(t);
   }
+  const nextDoor = st.sims.find((s) => s.isTownie && s.district === 'Town Green') ?? st.sims.find((s) => s.isTownie);
+  st.household.nextDoorId = nextDoor?.id ?? 0;
   st.selectedSimId = ids[0] ?? 0;
   return st;
 }

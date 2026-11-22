@@ -13,7 +13,7 @@ import type { Materials } from './materials';
 const BRICKS = ['#a14b35', '#9a4431', '#ad5640', '#8f3f2d', '#b05a43'];
 const DOORS = ['#2f5d50', '#3b4ba8', '#7a2b2b', '#2d3037', '#c9a227', '#5c3a6e'];
 
-export interface Scenery { ground: Mesh; lampPositions: Vector3[]; meshes: Mesh[] }
+export interface Scenery { ground: Mesh; lotGround: Mesh; trees: Mesh; lampPositions: Vector3[]; meshes: Mesh[] }
 
 function terraceHouse(b: ModelBuilder, x: number, z: number, facing: 1 | -1, i: number) {
   const w = 5, d = 6, h = 5.4;
@@ -101,7 +101,14 @@ export function buildScenery(scene: Scene, mats: Materials, lotW: number, lotD: 
   }
   for (let x = 0; x < lotW; x += 1) b.box(1.0, 1.1, 0.08, '#8a6a48', x + 0.5, 0, lotD + 0.3);
   for (let x = 0; x < lotW; x += 2) if (x < 5 || x > 10) b.sphere(1.0, '#3f7a3a', x + 1, 0.45, -0.25, 1.1, 0.8, 0.7, 5);
-  for (const [x, z, s] of [[-4, -1.2, 0.8], [26, -1.2, 0.9], [-3, 16, 1.1], [25, 6, 1.0], [-14, 30, 1.3], [40, 30, 1.2], [12, -20, 1.0], [-25, -20, 1.2]] as const) tree(b, x, z, s);
+  const tb = new ModelBuilder(scene);
+  for (const [x, z, s] of [[-4, -1.2, 0.8], [26, -1.2, 0.9], [-3, 16, 1.1], [25, 6, 1.0], [-14, 30, 1.3], [40, 30, 1.2], [12, -20, 1.0], [-25, -20, 1.2]] as const) tree(tb, x, z, s);
+  const trees = Mesh.MergeMeshes(tb.parts, true, true)!;
+  const treeMat = mats.vertexColor.clone('treeMat');
+  trees.material = treeMat;
+  trees.isPickable = false;
+  trees.receiveShadows = true;
+  meshes.push(trees);
   const lamps: Vector3[] = [];
   for (const x of [-10, 4, 18, 32]) { streetLamp(b, x, -1.7); lamps.push(new Vector3(x, 3.85, -0.8)); }
   // A bus stop.
@@ -163,5 +170,5 @@ export function buildScenery(scene: Scene, mats: Materials, lotW: number, lotD: 
   post.position.set(-6, 1, -2.55);
   meshes.push(sign, post);
 
-  return { ground, lampPositions: lamps, meshes };
+  return { ground, lotGround, trees, lampPositions: lamps, meshes };
 }

@@ -26,6 +26,12 @@
    "icon": "🎸"
   },
   {
+   "id": "seasonal",
+   "name": "Seasonal",
+   "icon": "🎄",
+   "hidden": true
+  },
+  {
    "id": "outdoor",
    "name": "Garden",
    "icon": "🌱"
@@ -85,7 +91,8 @@
       "food"
      ],
      "moodlet": "tasty_snack",
-     "visitor": true
+     "visitor": true,
+     "food": 1
     },
     {
      "id": "sandwich",
@@ -109,7 +116,8 @@
       "tags": [
        "food"
       ]
-     }
+     },
+     "food": 1
     }
    ]
   },
@@ -160,7 +168,8 @@
       ],
       "moodlet": "great_meal",
       "moodletMinSkill": 3
-     }
+     },
+     "food": 2
     },
     {
      "id": "clean",
@@ -229,7 +238,8 @@
       ],
       "moodlet": "great_meal",
       "moodletMinSkill": 1
-     }
+     },
+     "food": 3
     },
     {
      "id": "clean",
@@ -1381,7 +1391,8 @@
      "tags": [
       "music",
       "fitness",
-      "dance"
+      "dance",
+      "loud"
      ],
      "visitor": true
     },
@@ -1395,7 +1406,8 @@
      },
      "anim": "idle",
      "tags": [
-      "music"
+      "music",
+      "loud"
      ],
      "visitor": true
     }
@@ -1503,7 +1515,8 @@
      "skillRate": 65,
      "tags": [
       "music",
-      "instrument"
+      "instrument",
+      "loud"
      ]
     },
     {
@@ -1998,7 +2011,8 @@
       ],
       "moodlet": "great_meal",
       "moodletMinSkill": 4
-     }
+     },
+     "food": 2
     }
    ]
   },
@@ -2437,7 +2451,8 @@
      "skillRate": 15,
      "tags": [
       "music",
-      "dance"
+      "dance",
+      "loud"
      ],
      "visitor": true
     }
@@ -2698,6 +2713,388 @@
      "private": true
     }
    ]
+  },
+  {
+   "id": "karaoke",
+   "name": "Karaoke Machine",
+   "category": "living",
+   "price": 450,
+   "footprint": [
+    1,
+    1
+   ],
+   "decor": 1,
+   "description": "Sing your heart out. Loud! Keep it down after 10pm.",
+   "spots": [
+    {
+     "at": [
+      0,
+      1
+     ]
+    }
+   ],
+   "interactions": [
+    {
+     "id": "sing",
+     "name": "Sing karaoke",
+     "icon": "🎤",
+     "duration": 45,
+     "effects": {
+      "fun": 40,
+      "social": 15
+     },
+     "anim": "cheer",
+     "skill": "music",
+     "skillRate": 30,
+     "tags": [
+      "music",
+      "loud",
+      "karaoke",
+      "party"
+     ],
+     "visitor": true,
+     "counter": "karaoke"
+    }
+   ]
+  },
+  {
+   "id": "car",
+   "name": "Little Hatchback",
+   "category": "outdoor",
+   "price": 4500,
+   "footprint": [
+    2,
+    4
+   ],
+   "decor": 2,
+   "description": "Sims with a driving licence drive to work and outings, and get home sooner.",
+   "spots": [
+    {
+     "at": [
+      2,
+      1
+     ]
+    },
+    {
+     "at": [
+      -1,
+      2
+     ]
+    }
+   ],
+   "interactions": [
+    {
+     "id": "drive",
+     "name": "Go for a drive",
+     "icon": "🚗",
+     "duration": 2,
+     "anim": "use",
+     "special": "drive",
+     "condition": "canDrive",
+     "auto": false
+    },
+    {
+     "id": "wash",
+     "name": "Wash the car",
+     "icon": "🧽",
+     "duration": 30,
+     "effects": {
+      "fun": 10,
+      "hygiene": -15
+     },
+     "anim": "use",
+     "skill": "fitness",
+     "skillRate": 15,
+     "tags": [
+      "cleaning",
+      "outdoors"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "easter_eggs",
+   "name": "Easter Egg Hunt",
+   "category": "seasonal",
+   "price": 0,
+   "footprint": [
+    1,
+    1
+   ],
+   "decor": 2,
+   "temp": true,
+   "description": "Chocolate eggs hidden around the garden!",
+   "spots": [
+    {
+     "at": [
+      0,
+      1
+     ]
+    },
+    {
+     "at": [
+      1,
+      0
+     ]
+    },
+    {
+     "at": [
+      -1,
+      0
+     ]
+    },
+    {
+     "at": [
+      0,
+      -1
+     ]
+    }
+   ],
+   "interactions": [
+    {
+     "id": "hunt",
+     "name": "Hunt for Easter eggs",
+     "icon": "🥚",
+     "duration": 30,
+     "effects": {
+      "fun": 35,
+      "hunger": 10
+     },
+     "anim": "garden",
+     "condition": "once",
+     "moodlet": "egg_hunt",
+     "visitor": true,
+     "tags": [
+      "outdoors"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "pumpkin",
+   "name": "Halloween Pumpkin",
+   "category": "seasonal",
+   "price": 0,
+   "footprint": [
+    1,
+    1
+   ],
+   "decor": 2,
+   "temp": true,
+   "description": "Carve a spooky face. It glows once carved!",
+   "spots": [
+    {
+     "at": [
+      0,
+      1
+     ]
+    }
+   ],
+   "interactions": [
+    {
+     "id": "carve",
+     "name": "Carve the pumpkin",
+     "icon": "🎃",
+     "duration": 40,
+     "effects": {
+      "fun": 30
+     },
+     "anim": "use",
+     "skill": "creativity",
+     "skillRate": 30,
+     "condition": "uncarved",
+     "special": "carve",
+     "moodlet": "inspired"
+    },
+    {
+     "id": "admire",
+     "name": "Admire the pumpkin",
+     "icon": "👻",
+     "duration": 10,
+     "effects": {
+      "fun": 10
+     },
+     "anim": "think",
+     "condition": "carved",
+     "visitor": true
+    }
+   ]
+  },
+  {
+   "id": "fireworks_box",
+   "name": "Garden Fireworks",
+   "category": "seasonal",
+   "price": 0,
+   "footprint": [
+    1,
+    1
+   ],
+   "decor": 1,
+   "temp": true,
+   "description": "For Bonfire Night. Best after dark. Loud, but the neighbours expect it tonight.",
+   "spots": [
+    {
+     "at": [
+      0,
+      2
+     ]
+    }
+   ],
+   "interactions": [
+    {
+     "id": "launch",
+     "name": "Set off fireworks",
+     "icon": "🎆",
+     "duration": 15,
+     "effects": {
+      "fun": 35
+     },
+     "anim": "cheer",
+     "condition": "nightOnce",
+     "special": "fireworks",
+     "moodlet": "fireworks",
+     "visitor": true
+    }
+   ]
+  },
+  {
+   "id": "christmas_tree",
+   "name": "Christmas Tree",
+   "category": "seasonal",
+   "price": 0,
+   "footprint": [
+    1,
+    1
+   ],
+   "decor": 5,
+   "temp": true,
+   "light": {
+    "color": "#ffd27a",
+    "intensity": 0.8,
+    "range": 4
+   },
+   "description": "Twinkly lights and tinsel.",
+   "spots": [
+    {
+     "at": [
+      0,
+      1
+     ]
+    },
+    {
+     "at": [
+      1,
+      0
+     ]
+    }
+   ],
+   "interactions": [
+    {
+     "id": "decorate",
+     "name": "Decorate the tree",
+     "icon": "🎄",
+     "duration": 30,
+     "effects": {
+      "fun": 30
+     },
+     "anim": "use",
+     "skill": "creativity",
+     "skillRate": 20,
+     "condition": "once",
+     "moodlet": "christmas",
+     "visitor": true
+    },
+    {
+     "id": "admire",
+     "name": "Admire the tree",
+     "icon": "✨",
+     "duration": 10,
+     "effects": {
+      "fun": 10,
+      "comfort": 5
+     },
+     "anim": "think",
+     "visitor": true
+    }
+   ]
+  },
+  {
+   "id": "presents",
+   "name": "Christmas Presents",
+   "category": "seasonal",
+   "price": 0,
+   "footprint": [
+    1,
+    1
+   ],
+   "decor": 2,
+   "temp": true,
+   "description": "Something for everyone!",
+   "spots": [
+    {
+     "at": [
+      0,
+      1
+     ]
+    },
+    {
+     "at": [
+      1,
+      0
+     ]
+    },
+    {
+     "at": [
+      -1,
+      0
+     ]
+    }
+   ],
+   "interactions": [
+    {
+     "id": "open",
+     "name": "Open presents",
+     "icon": "🎁",
+     "duration": 20,
+     "effects": {
+      "fun": 45
+     },
+     "anim": "cheer",
+     "condition": "once",
+     "special": "present",
+     "moodlet": "christmas"
+    }
+   ]
+  },
+  {
+   "id": "rock_jar",
+   "name": "Jar of Blackpool Rock",
+   "category": "market",
+   "price": 40,
+   "footprint": [
+    1,
+    1
+   ],
+   "decor": 3,
+   "market": true,
+   "description": "A souvenir from the seaside.",
+   "spots": [],
+   "interactions": []
+  },
+  {
+   "id": "flamenco_fan",
+   "name": "Flamenco Fan Display",
+   "category": "market",
+   "price": 120,
+   "footprint": [
+    1,
+    1
+   ],
+   "decor": 3,
+   "market": true,
+   "description": "A souvenir from a holiday in Spain.",
+   "spots": [],
+   "interactions": []
   }
  ]
 }

@@ -58,8 +58,20 @@ input, select { font: inherit; }
   display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; pointer-events: none;
 }
 .topbar > * { pointer-events: auto; }
-.funds { padding: 0 16px; height: var(--tap); display: flex; align-items: center; font-weight: 800; font-size: 19px; gap: 6px; }
+.money { display: flex; align-items: center; gap: 12px; padding: 0 16px; height: var(--tap); }
+.funds { display: flex; align-items: center; font-weight: 800; font-size: 19px; gap: 6px; }
 .funds.neg { color: var(--bad); }
+.food { font-weight: 800; font-size: 15px; color: var(--ink-soft); }
+.food.low { color: var(--bad); }
+.clock .time { text-align: left; }
+.partybar { position: absolute; left: 50%; transform: translateX(-50%); top: calc(64px + var(--safe-top)); display: flex; gap: 10px; align-items: center; padding: 6px 8px 6px 16px; font-weight: 700; font-size: 14px; white-space: nowrap; }
+.cal-row { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; margin-top: 6px; }
+.cal-day { border-radius: 10px; background: rgba(44,42,51,0.05); padding: 4px; text-align: center; min-height: 46px; display: flex; flex-direction: column; align-items: center; }
+.cal-day .n { font-size: 11px; font-weight: 700; color: var(--ink-soft); }
+.cal-day .e { font-size: 18px; }
+.cal-day.today { background: var(--accent); }
+.cal-day.today .n { color: white; }
+.cal-day.past { opacity: 0.5; }
 .clock { display: flex; align-items: center; gap: 4px; padding: 4px 6px 4px 14px; }
 .clock .time { font-weight: 800; font-size: 18px; min-width: 112px; line-height: 1.1; }
 .clock .time small { display: block; font-size: 12px; font-weight: 600; color: var(--ink-soft); }
@@ -244,7 +256,9 @@ input[type=text] { border: 2px solid var(--line); border-radius: 12px; padding: 
   .needs { gap: 5px 10px; }
   .clock .time { min-width: 84px; font-size: 15px; }
   .speed { width: 36px; height: 36px; }
-  .funds { font-size: 15px; padding: 0 12px; }
+  .funds { font-size: 15px; }
+  .money { padding: 0 12px; gap: 8px; }
+  .partybar { top: calc(118px + var(--safe-top)); font-size: 12px; }
   .modebar { flex-direction: column-reverse; align-items: flex-end; }
   .modes { flex-direction: column; }
   .camtools { flex-direction: column; }

@@ -1,6 +1,6 @@
 {
-  "name": "Ashton Life",
-  "short_name": "Ashton Life",
+  "name": "My Life",
+  "short_name": "My Life",
   "description": "A cosy life sim set in Ashton-in-Makerfield.",
   "start_url": "./",
   "scope": "./",

@@ -14,7 +14,7 @@ export const OBJECT_ICONS: Record<string, string> = {
   stereo: '📻', guitar: '🎸', piano: '🎹', easel: '🖌️', chess: '♟️', telescope: '🔭', chem_kit: '🧪', workbench: '🔐', treadmill: '🏃',
   weights: '🏋️', veg_patch: '🥕', bbq: '🍔', bench: '🪵', goal: '⚽', mailbox: '📮', floor_lamp: '💡', table_lamp: '🪔', lantern: '🏮',
   plant_small: '🪴', plant_big: '🌳', aquarium: '🐠', winding_wheel: '⛏️', lock_sculpture: '🔑', jukebox: '🎶', antique_locks: '🗝️',
-  racing_print: '🏇', golden_guitar: '🎸', inspiring_easel: '🖼️', dream_bed: '☁️', magic_loo: '✨',
+  racing_print: '🏇', karaoke: '🎤', car: '🚗', rock_jar: '🍭', flamenco_fan: '🪭', golden_guitar: '🎸', inspiring_easel: '🖼️', dream_bed: '☁️', magic_loo: '✨',
 };
 
 export function summary(def: ObjectDef): string {
@@ -49,7 +49,7 @@ export class BuyMode {
   }
 
   private buildSheet(): HTMLElement {
-    const cats = h('div', { class: 'cats' }, ...OBJECT_CATEGORIES.map((c) =>
+    const cats = h('div', { class: 'cats' }, ...OBJECT_CATEGORIES.filter((c) => !c.hidden).map((c) =>
       h('button', { class: `tab ${c.id === this.cat ? 'on' : ''}`, 'data-cat': c.id, onclick: () => { this.cat = c.id; this.renderItems(); for (const b of cats.children) b.classList.toggle('on', (b as HTMLElement).dataset.cat === c.id); } }, `${c.icon} ${c.name}`)));
     this.itemsEl = h('div', { class: 'items' });
     return h('div', { class: 'panel sheet' }, cats, this.itemsEl);

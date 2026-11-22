@@ -1,82 +1,495 @@
 {
-  "aspirations": [
-    { "id": "rock_star", "name": "Rock Star", "icon": "🎸", "desc": "Learn guitar, write songs and play big gigs.",
-      "steps": [
-        { "desc": "Reach Music level 3", "cond": { "type": "skill", "skill": "music", "level": 3 }, "points": 2 },
-        { "desc": "Write a song", "cond": { "type": "counter", "key": "songs", "count": 1 }, "points": 2 },
-        { "desc": "Reach Music level 6", "cond": { "type": "skill", "skill": "music", "level": 6 }, "points": 3 },
-        { "desc": "Become a Band Member (Musician level 4)", "cond": { "type": "career", "career": "musician", "level": 4 }, "points": 4 },
-        { "desc": "Write 5 songs", "cond": { "type": "counter", "key": "songs", "count": 5 }, "points": 4 },
-        { "desc": "Reach Music level 10", "cond": { "type": "skill", "skill": "music", "level": 10 }, "points": 6 }
-      ] },
-    { "id": "master_chef", "name": "Master Chef", "icon": "👩‍🍳", "desc": "Cook your way to the top.",
-      "steps": [
-        { "desc": "Reach Cooking level 3", "cond": { "type": "skill", "skill": "cooking", "level": 3 }, "points": 2 },
-        { "desc": "Cook 10 meals", "cond": { "type": "counter", "key": "meals", "count": 10 }, "points": 3 },
-        { "desc": "Reach Cooking level 6", "cond": { "type": "skill", "skill": "cooking", "level": 6 }, "points": 3 },
-        { "desc": "Become a Head Chef (Chef level 4)", "cond": { "type": "career", "career": "chef", "level": 4 }, "points": 4 },
-        { "desc": "Reach Cooking level 10", "cond": { "type": "skill", "skill": "cooking", "level": 10 }, "points": 6 }
-      ] },
-    { "id": "football_hero", "name": "Football Hero", "icon": "⚽", "desc": "Train hard and make the first team.",
-      "steps": [
-        { "desc": "Reach Fitness level 3", "cond": { "type": "skill", "skill": "fitness", "level": 3 }, "points": 2 },
-        { "desc": "Practise football 10 times", "cond": { "type": "counter", "key": "football", "count": 10 }, "points": 3 },
-        { "desc": "Join the Reserve Team (Athlete level 3)", "cond": { "type": "career", "career": "athlete", "level": 3 }, "points": 3 },
-        { "desc": "Reach Fitness level 8", "cond": { "type": "skill", "skill": "fitness", "level": 8 }, "points": 4 },
-        { "desc": "Become Club Captain (Athlete level 5)", "cond": { "type": "career", "career": "athlete", "level": 5 }, "points": 6 }
-      ] },
-    { "id": "genius", "name": "Genius", "icon": "🧠", "desc": "Master logic and science.",
-      "steps": [
-        { "desc": "Reach Logic level 3", "cond": { "type": "skill", "skill": "logic", "level": 3 }, "points": 2 },
-        { "desc": "Play 5 games of chess", "cond": { "type": "counter", "key": "chess", "count": 5 }, "points": 2 },
-        { "desc": "Reach Logic level 6", "cond": { "type": "skill", "skill": "logic", "level": 6 }, "points": 3 },
-        { "desc": "Become a Researcher (Scientist level 3)", "cond": { "type": "career", "career": "scientist", "level": 3 }, "points": 4 },
-        { "desc": "Reach Logic level 10", "cond": { "type": "skill", "skill": "logic", "level": 10 }, "points": 6 }
-      ] },
-    { "id": "painter", "name": "Painter", "icon": "🖼️", "desc": "Paint, sell and become famous for it.",
-      "steps": [
-        { "desc": "Reach Creativity level 3", "cond": { "type": "skill", "skill": "creativity", "level": 3 }, "points": 2 },
-        { "desc": "Paint 3 pictures", "cond": { "type": "counter", "key": "paintings", "count": 3 }, "points": 2 },
-        { "desc": "Reach Creativity level 6", "cond": { "type": "skill", "skill": "creativity", "level": 6 }, "points": 3 },
-        { "desc": "Paint 10 pictures", "cond": { "type": "counter", "key": "paintings", "count": 10 }, "points": 4 },
-        { "desc": "Reach Creativity level 10", "cond": { "type": "skill", "skill": "creativity", "level": 10 }, "points": 6 }
-      ] },
-    { "id": "social_butterfly", "name": "Social Butterfly", "icon": "🦋", "desc": "Know everyone in Ashton.",
-      "steps": [
-        { "desc": "Make a friend", "cond": { "type": "friends", "count": 1, "min": 40 }, "points": 2 },
-        { "desc": "Reach Charisma level 3", "cond": { "type": "skill", "skill": "charisma", "level": 3 }, "points": 2 },
-        { "desc": "Have 3 friends", "cond": { "type": "friends", "count": 3, "min": 40 }, "points": 3 },
-        { "desc": "Have a best friend", "cond": { "type": "friends", "count": 1, "min": 80 }, "points": 4 },
-        { "desc": "Have 5 friends", "cond": { "type": "friends", "count": 5, "min": 40 }, "points": 6 }
-      ] },
-    { "id": "green_fingers", "name": "Green Fingers", "icon": "🌻", "desc": "Grow the best veg in Ashton.",
-      "steps": [
-        { "desc": "Reach Gardening level 2", "cond": { "type": "skill", "skill": "gardening", "level": 2 }, "points": 2 },
-        { "desc": "Harvest 3 times", "cond": { "type": "counter", "key": "harvests", "count": 3 }, "points": 2 },
-        { "desc": "Reach Gardening level 5", "cond": { "type": "skill", "skill": "gardening", "level": 5 }, "points": 3 },
-        { "desc": "Harvest 15 times", "cond": { "type": "counter", "key": "harvests", "count": 15 }, "points": 4 },
-        { "desc": "Reach Gardening level 10", "cond": { "type": "skill", "skill": "gardening", "level": 10 }, "points": 6 }
-      ] },
-    { "id": "home_maker", "name": "Home Maker", "icon": "🏡", "desc": "Build the loveliest home on the street.",
-      "steps": [
-        { "desc": "Home worth £20,000", "cond": { "type": "homeValue", "amount": 20000 }, "points": 2 },
-        { "desc": "Have 5 rooms", "cond": { "type": "rooms", "count": 5 }, "points": 3 },
-        { "desc": "Home worth £40,000", "cond": { "type": "homeValue", "amount": 40000 }, "points": 4 },
-        { "desc": "Home worth £75,000", "cond": { "type": "homeValue", "amount": 75000 }, "points": 6 }
-      ] },
-    { "id": "ashton_maker", "name": "Ashton Maker", "icon": "🔐", "desc": "Master the town's old craft of lock-making.",
-      "steps": [
-        { "desc": "Reach Logic level 2", "cond": { "type": "skill", "skill": "logic", "level": 2 }, "points": 2 },
-        { "desc": "Craft 5 locks", "cond": { "type": "counter", "key": "locks", "count": 5 }, "points": 3 },
-        { "desc": "Become a Lock Engineer (Engineer level 3)", "cond": { "type": "career", "career": "engineer", "level": 3 }, "points": 3 },
-        { "desc": "Reach Logic level 7", "cond": { "type": "skill", "skill": "logic", "level": 7 }, "points": 4 },
-        { "desc": "Become a Master Maker (Engineer level 5)", "cond": { "type": "career", "career": "engineer", "level": 5 }, "points": 6 }
-      ] }
-  ],
-  "rewardObjects": [
-    { "id": "golden_guitar", "cost": 6 },
-    { "id": "inspiring_easel", "cost": 6 },
-    { "id": "dream_bed", "cost": 8 },
-    { "id": "magic_loo", "cost": 5 }
-  ]
+ "aspirations": [
+  {
+   "id": "rock_star",
+   "name": "Rock Star",
+   "icon": "🎸",
+   "desc": "Learn guitar, write songs and play big gigs.",
+   "steps": [
+    {
+     "desc": "Reach Music level 3",
+     "cond": {
+      "type": "skill",
+      "skill": "music",
+      "level": 3
+     },
+     "points": 2
+    },
+    {
+     "desc": "Write a song",
+     "cond": {
+      "type": "counter",
+      "key": "songs",
+      "count": 1
+     },
+     "points": 2
+    },
+    {
+     "desc": "Reach Music level 6",
+     "cond": {
+      "type": "skill",
+      "skill": "music",
+      "level": 6
+     },
+     "points": 3
+    },
+    {
+     "desc": "Become a Band Member (Musician level 4)",
+     "cond": {
+      "type": "career",
+      "career": "musician",
+      "level": 4
+     },
+     "points": 4
+    },
+    {
+     "desc": "Write 5 songs",
+     "cond": {
+      "type": "counter",
+      "key": "songs",
+      "count": 5
+     },
+     "points": 4
+    },
+    {
+     "desc": "Reach Music level 10",
+     "cond": {
+      "type": "skill",
+      "skill": "music",
+      "level": 10
+     },
+     "points": 6
+    }
+   ]
+  },
+  {
+   "id": "master_chef",
+   "name": "Master Chef",
+   "icon": "👩‍🍳",
+   "desc": "Cook your way to the top.",
+   "steps": [
+    {
+     "desc": "Reach Cooking level 3",
+     "cond": {
+      "type": "skill",
+      "skill": "cooking",
+      "level": 3
+     },
+     "points": 2
+    },
+    {
+     "desc": "Cook 10 meals",
+     "cond": {
+      "type": "counter",
+      "key": "meals",
+      "count": 10
+     },
+     "points": 3
+    },
+    {
+     "desc": "Reach Cooking level 6",
+     "cond": {
+      "type": "skill",
+      "skill": "cooking",
+      "level": 6
+     },
+     "points": 3
+    },
+    {
+     "desc": "Become a Head Chef (Chef level 4)",
+     "cond": {
+      "type": "career",
+      "career": "chef",
+      "level": 4
+     },
+     "points": 4
+    },
+    {
+     "desc": "Reach Cooking level 10",
+     "cond": {
+      "type": "skill",
+      "skill": "cooking",
+      "level": 10
+     },
+     "points": 6
+    }
+   ]
+  },
+  {
+   "id": "football_hero",
+   "name": "Football Hero",
+   "icon": "⚽",
+   "desc": "Train hard and make the first team.",
+   "steps": [
+    {
+     "desc": "Reach Fitness level 3",
+     "cond": {
+      "type": "skill",
+      "skill": "fitness",
+      "level": 3
+     },
+     "points": 2
+    },
+    {
+     "desc": "Practise football 10 times",
+     "cond": {
+      "type": "counter",
+      "key": "football",
+      "count": 10
+     },
+     "points": 3
+    },
+    {
+     "desc": "Join the Reserve Team (Athlete level 3)",
+     "cond": {
+      "type": "career",
+      "career": "athlete",
+      "level": 3
+     },
+     "points": 3
+    },
+    {
+     "desc": "Reach Fitness level 8",
+     "cond": {
+      "type": "skill",
+      "skill": "fitness",
+      "level": 8
+     },
+     "points": 4
+    },
+    {
+     "desc": "Become Club Captain (Athlete level 5)",
+     "cond": {
+      "type": "career",
+      "career": "athlete",
+      "level": 5
+     },
+     "points": 6
+    }
+   ]
+  },
+  {
+   "id": "genius",
+   "name": "Genius",
+   "icon": "🧠",
+   "desc": "Master logic and science.",
+   "steps": [
+    {
+     "desc": "Reach Logic level 3",
+     "cond": {
+      "type": "skill",
+      "skill": "logic",
+      "level": 3
+     },
+     "points": 2
+    },
+    {
+     "desc": "Play 5 games of chess",
+     "cond": {
+      "type": "counter",
+      "key": "chess",
+      "count": 5
+     },
+     "points": 2
+    },
+    {
+     "desc": "Reach Logic level 6",
+     "cond": {
+      "type": "skill",
+      "skill": "logic",
+      "level": 6
+     },
+     "points": 3
+    },
+    {
+     "desc": "Become a Researcher (Scientist level 3)",
+     "cond": {
+      "type": "career",
+      "career": "scientist",
+      "level": 3
+     },
+     "points": 4
+    },
+    {
+     "desc": "Reach Logic level 10",
+     "cond": {
+      "type": "skill",
+      "skill": "logic",
+      "level": 10
+     },
+     "points": 6
+    }
+   ]
+  },
+  {
+   "id": "painter",
+   "name": "Painter",
+   "icon": "🖼️",
+   "desc": "Paint, sell and become famous for it.",
+   "steps": [
+    {
+     "desc": "Reach Creativity level 3",
+     "cond": {
+      "type": "skill",
+      "skill": "creativity",
+      "level": 3
+     },
+     "points": 2
+    },
+    {
+     "desc": "Paint 3 pictures",
+     "cond": {
+      "type": "counter",
+      "key": "paintings",
+      "count": 3
+     },
+     "points": 2
+    },
+    {
+     "desc": "Reach Creativity level 6",
+     "cond": {
+      "type": "skill",
+      "skill": "creativity",
+      "level": 6
+     },
+     "points": 3
+    },
+    {
+     "desc": "Paint 10 pictures",
+     "cond": {
+      "type": "counter",
+      "key": "paintings",
+      "count": 10
+     },
+     "points": 4
+    },
+    {
+     "desc": "Reach Creativity level 10",
+     "cond": {
+      "type": "skill",
+      "skill": "creativity",
+      "level": 10
+     },
+     "points": 6
+    }
+   ]
+  },
+  {
+   "id": "social_butterfly",
+   "name": "Social Butterfly",
+   "icon": "🦋",
+   "desc": "Know everyone in Ashton.",
+   "steps": [
+    {
+     "desc": "Make a friend",
+     "cond": {
+      "type": "friends",
+      "count": 1,
+      "min": 40
+     },
+     "points": 2
+    },
+    {
+     "desc": "Reach Charisma level 3",
+     "cond": {
+      "type": "skill",
+      "skill": "charisma",
+      "level": 3
+     },
+     "points": 2
+    },
+    {
+     "desc": "Have 3 friends",
+     "cond": {
+      "type": "friends",
+      "count": 3,
+      "min": 40
+     },
+     "points": 3
+    },
+    {
+     "desc": "Have a best friend",
+     "cond": {
+      "type": "friends",
+      "count": 1,
+      "min": 80
+     },
+     "points": 4
+    },
+    {
+     "desc": "Have 5 friends",
+     "cond": {
+      "type": "friends",
+      "count": 5,
+      "min": 40
+     },
+     "points": 6
+    }
+   ]
+  },
+  {
+   "id": "green_fingers",
+   "name": "Green Fingers",
+   "icon": "🌻",
+   "desc": "Grow the best veg in Ashton.",
+   "steps": [
+    {
+     "desc": "Reach Gardening level 2",
+     "cond": {
+      "type": "skill",
+      "skill": "gardening",
+      "level": 2
+     },
+     "points": 2
+    },
+    {
+     "desc": "Harvest 3 times",
+     "cond": {
+      "type": "counter",
+      "key": "harvests",
+      "count": 3
+     },
+     "points": 2
+    },
+    {
+     "desc": "Reach Gardening level 5",
+     "cond": {
+      "type": "skill",
+      "skill": "gardening",
+      "level": 5
+     },
+     "points": 3
+    },
+    {
+     "desc": "Harvest 15 times",
+     "cond": {
+      "type": "counter",
+      "key": "harvests",
+      "count": 15
+     },
+     "points": 4
+    },
+    {
+     "desc": "Reach Gardening level 10",
+     "cond": {
+      "type": "skill",
+      "skill": "gardening",
+      "level": 10
+     },
+     "points": 6
+    }
+   ]
+  },
+  {
+   "id": "home_maker",
+   "name": "Home Maker",
+   "icon": "🏡",
+   "desc": "Build the loveliest home on the street.",
+   "steps": [
+    {
+     "desc": "Home worth £20,000",
+     "cond": {
+      "type": "homeValue",
+      "amount": 20000
+     },
+     "points": 2
+    },
+    {
+     "desc": "Have 5 rooms",
+     "cond": {
+      "type": "rooms",
+      "count": 5
+     },
+     "points": 3
+    },
+    {
+     "desc": "Home worth £40,000",
+     "cond": {
+      "type": "homeValue",
+      "amount": 40000
+     },
+     "points": 4
+    },
+    {
+     "desc": "Home worth £75,000",
+     "cond": {
+      "type": "homeValue",
+      "amount": 75000
+     },
+     "points": 6
+    }
+   ]
+  },
+  {
+   "id": "ashton_maker",
+   "name": "Ashton Maker",
+   "icon": "🔐",
+   "desc": "Master the town's old craft of lock-making.",
+   "steps": [
+    {
+     "desc": "Reach Logic level 2",
+     "cond": {
+      "type": "skill",
+      "skill": "logic",
+      "level": 2
+     },
+     "points": 2
+    },
+    {
+     "desc": "Craft 5 locks",
+     "cond": {
+      "type": "counter",
+      "key": "locks",
+      "count": 5
+     },
+     "points": 3
+    },
+    {
+     "desc": "Become a Lock Engineer (Engineer level 3)",
+     "cond": {
+      "type": "career",
+      "career": "engineer",
+      "level": 3
+     },
+     "points": 3
+    },
+    {
+     "desc": "Reach Logic level 7",
+     "cond": {
+      "type": "skill",
+      "skill": "logic",
+      "level": 7
+     },
+     "points": 4
+    },
+    {
+     "desc": "Become a Master Maker (Engineer level 5)",
+     "cond": {
+      "type": "career",
+      "career": "engineer",
+      "level": 5
+     },
+     "points": 6
+    }
+   ]
+  }
+ ],
+ "rewardObjects": [
+  {
+   "id": "golden_guitar",
+   "cost": 6
+  },
+  {
+   "id": "inspiring_easel",
+   "cost": 6
+  },
+  {
+   "id": "dream_bed",
+   "cost": 8
+  },
+  {
+   "id": "magic_loo",
+   "cost": 5
+  }
+ ]
 }

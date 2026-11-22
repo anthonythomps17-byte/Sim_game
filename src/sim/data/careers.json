@@ -1,65 +1,1300 @@
 {
-  "careers": [
-    { "id": "chef", "name": "Chef", "icon": "🍳", "skills": ["cooking", "charisma"], "desc": "From washing pots to running your own kitchen.",
-      "levels": [
-        { "title": "Kitchen Porter", "pay": 11, "start": 10, "end": 16, "days": [0, 1, 2, 3, 4], "req": {} },
-        { "title": "Line Cook", "pay": 14, "start": 10, "end": 16, "days": [0, 1, 2, 3, 4], "req": { "cooking": 2 } },
-        { "title": "Sous Chef", "pay": 19, "start": 12, "end": 19, "days": [1, 2, 3, 4, 5], "req": { "cooking": 4 } },
-        { "title": "Head Chef", "pay": 27, "start": 12, "end": 19, "days": [1, 2, 3, 4, 5], "req": { "cooking": 6, "charisma": 2 } },
-        { "title": "Restaurant Owner", "pay": 38, "start": 13, "end": 19, "days": [1, 2, 3, 4, 5], "req": { "cooking": 8, "charisma": 4 } },
-        { "title": "TV Celebrity Chef", "pay": 55, "start": 13, "end": 18, "days": [1, 2, 3, 4], "req": { "cooking": 10, "charisma": 6 } }
-      ] },
-    { "id": "musician", "name": "Musician", "icon": "🎸", "skills": ["music", "creativity"], "desc": "Busk on Gerard Street, then headline.",
-      "levels": [
-        { "title": "Street Busker", "pay": 10, "start": 12, "end": 17, "days": [1, 2, 3, 4, 5], "req": {} },
-        { "title": "Pub Gig Regular", "pay": 13, "start": 16, "end": 21, "days": [2, 3, 4, 5, 6], "req": { "music": 2 } },
-        { "title": "Session Player", "pay": 18, "start": 14, "end": 20, "days": [1, 2, 3, 4, 5], "req": { "music": 4 } },
-        { "title": "Band Member", "pay": 26, "start": 16, "end": 22, "days": [2, 3, 4, 5, 6], "req": { "music": 6, "creativity": 2 } },
-        { "title": "Headliner", "pay": 40, "start": 17, "end": 22, "days": [3, 4, 5, 6], "req": { "music": 8, "creativity": 4 } },
-        { "title": "Rock Legend", "pay": 60, "start": 18, "end": 22, "days": [4, 5, 6], "req": { "music": 10, "creativity": 6 } }
-      ] },
-    { "id": "athlete", "name": "Athlete", "icon": "⚽", "skills": ["fitness", "charisma"], "desc": "Train with the local club and make the first team.",
-      "levels": [
-        { "title": "Kit Washer", "pay": 10, "start": 9, "end": 15, "days": [0, 1, 2, 3, 4], "req": {} },
-        { "title": "Youth Squad", "pay": 13, "start": 9, "end": 15, "days": [0, 1, 2, 3, 4], "req": { "fitness": 2 } },
-        { "title": "Reserve Team", "pay": 18, "start": 9, "end": 15, "days": [0, 1, 2, 3, 5], "req": { "fitness": 4 } },
-        { "title": "First Team", "pay": 28, "start": 10, "end": 16, "days": [0, 1, 2, 3, 5], "req": { "fitness": 6, "charisma": 2 } },
-        { "title": "Club Captain", "pay": 40, "start": 10, "end": 16, "days": [0, 1, 2, 3, 5], "req": { "fitness": 8, "charisma": 4 } },
-        { "title": "Club Legend", "pay": 58, "start": 11, "end": 16, "days": [0, 1, 2, 5], "req": { "fitness": 10, "charisma": 6 } }
-      ] },
-    { "id": "scientist", "name": "Scientist", "icon": "🔬", "skills": ["logic", "creativity"], "desc": "Lab coats, experiments and big discoveries.",
-      "levels": [
-        { "title": "Lab Assistant", "pay": 12, "start": 9, "end": 15, "days": [0, 1, 2, 3, 4], "req": {} },
-        { "title": "Lab Technician", "pay": 15, "start": 9, "end": 15, "days": [0, 1, 2, 3, 4], "req": { "logic": 2 } },
-        { "title": "Researcher", "pay": 21, "start": 9, "end": 16, "days": [0, 1, 2, 3, 4], "req": { "logic": 4 } },
-        { "title": "Senior Scientist", "pay": 29, "start": 9, "end": 16, "days": [0, 1, 2, 3, 4], "req": { "logic": 6, "creativity": 2 } },
-        { "title": "Professor", "pay": 40, "start": 10, "end": 16, "days": [0, 1, 2, 3, 4], "req": { "logic": 8, "creativity": 4 } },
-        { "title": "Nobel Contender", "pay": 56, "start": 10, "end": 15, "days": [0, 1, 2, 3], "req": { "logic": 10, "creativity": 6 } }
-      ] },
-    { "id": "artist", "name": "Artist", "icon": "🎨", "skills": ["creativity", "charisma"], "desc": "Sketch, paint and exhibit.",
-      "levels": [
-        { "title": "Art Student", "pay": 10, "start": 10, "end": 15, "days": [0, 1, 2, 3, 4], "req": {} },
-        { "title": "Illustrator", "pay": 14, "start": 10, "end": 16, "days": [0, 1, 2, 3, 4], "req": { "creativity": 2 } },
-        { "title": "Gallery Assistant", "pay": 18, "start": 10, "end": 16, "days": [1, 2, 3, 4, 5], "req": { "creativity": 4 } },
-        { "title": "Exhibiting Artist", "pay": 26, "start": 11, "end": 17, "days": [1, 2, 3, 4, 5], "req": { "creativity": 6, "charisma": 2 } },
-        { "title": "Renowned Painter", "pay": 38, "start": 11, "end": 16, "days": [1, 2, 3, 4], "req": { "creativity": 8, "charisma": 4 } },
-        { "title": "National Treasure", "pay": 55, "start": 12, "end": 16, "days": [1, 2, 3, 4], "req": { "creativity": 10, "charisma": 6 } }
-      ] },
-    { "id": "engineer", "name": "Engineer (Lock & Hinge Works)", "icon": "🔐", "skills": ["logic", "fitness"], "desc": "Carry on Ashton's lock-making tradition.",
-      "levels": [
-        { "title": "Apprentice Locksmith", "pay": 12, "start": 8, "end": 14, "days": [0, 1, 2, 3, 4], "req": {} },
-        { "title": "Hinge Fitter", "pay": 15, "start": 8, "end": 14, "days": [0, 1, 2, 3, 4], "req": { "logic": 2 } },
-        { "title": "Lock Engineer", "pay": 20, "start": 8, "end": 15, "days": [0, 1, 2, 3, 4], "req": { "logic": 4, "fitness": 1 } },
-        { "title": "Design Engineer", "pay": 28, "start": 9, "end": 16, "days": [0, 1, 2, 3, 4], "req": { "logic": 6, "fitness": 3 } },
-        { "title": "Master Maker", "pay": 38, "start": 9, "end": 16, "days": [0, 1, 2, 3, 4], "req": { "logic": 8, "fitness": 4 } },
-        { "title": "Chief Engineer", "pay": 52, "start": 9, "end": 15, "days": [0, 1, 2, 3], "req": { "logic": 10, "fitness": 5 } }
-      ] },
-    { "id": "cafe", "name": "Part-time: High Street Café", "icon": "☕", "skills": ["charisma", "cooking"], "desc": "Weekend shifts on Gerard Street. Easy-going.",
-      "levels": [
-        { "title": "Café Assistant", "pay": 9, "start": 9, "end": 13, "days": [5, 6], "req": {} },
-        { "title": "Barista", "pay": 11, "start": 9, "end": 13, "days": [5, 6], "req": { "charisma": 2 } },
-        { "title": "Shift Leader", "pay": 14, "start": 9, "end": 14, "days": [4, 5, 6], "req": { "charisma": 3, "cooking": 2 } },
-        { "title": "Café Manager", "pay": 19, "start": 9, "end": 15, "days": [3, 4, 5, 6], "req": { "charisma": 5, "cooking": 3 } }
-      ] }
-  ]
+ "careers": [
+  {
+   "id": "chef",
+   "name": "Chef",
+   "icon": "🍳",
+   "skills": [
+    "cooking",
+    "charisma"
+   ],
+   "desc": "From washing pots to running your own kitchen.",
+   "levels": [
+    {
+     "title": "Kitchen Porter",
+     "pay": 11,
+     "start": 10,
+     "end": 16,
+     "days": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ],
+     "req": {}
+    },
+    {
+     "title": "Line Cook",
+     "pay": 14,
+     "start": 10,
+     "end": 16,
+     "days": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ],
+     "req": {
+      "cooking": 2
+     }
+    },
+    {
+     "title": "Sous Chef",
+     "pay": 19,
+     "start": 12,
+     "end": 19,
+     "days": [
+      1,
+      2,
+      3,
+      4,
+      5
+     ],
+     "req": {
+      "cooking": 4
+     }
+    },
+    {
+     "title": "Head Chef",
+     "pay": 27,
+     "start": 12,
+     "end": 19,
+     "days": [
+      1,
+      2,
+      3,
+      4,
+      5
+     ],
+     "req": {
+      "cooking": 6,
+      "charisma": 2
+     }
+    },
+    {
+     "title": "Restaurant Owner",
+     "pay": 38,
+     "start": 13,
+     "end": 19,
+     "days": [
+      1,
+      2,
+      3,
+      4,
+      5
+     ],
+     "req": {
+      "cooking": 8,
+      "charisma": 4
+     }
+    },
+    {
+     "title": "TV Celebrity Chef",
+     "pay": 55,
+     "start": 13,
+     "end": 18,
+     "days": [
+      1,
+      2,
+      3,
+      4
+     ],
+     "req": {
+      "cooking": 10,
+      "charisma": 6
+     }
+    }
+   ]
+  },
+  {
+   "id": "musician",
+   "name": "Musician",
+   "icon": "🎸",
+   "skills": [
+    "music",
+    "creativity"
+   ],
+   "desc": "Busk on Gerard Street, then headline.",
+   "levels": [
+    {
+     "title": "Street Busker",
+     "pay": 10,
+     "start": 12,
+     "end": 17,
+     "days": [
+      1,
+      2,
+      3,
+      4,
+      5
+     ],
+     "req": {}
+    },
+    {
+     "title": "Pub Gig Regular",
+     "pay": 13,
+     "start": 16,
+     "end": 21,
+     "days": [
+      2,
+      3,
+      4,
+      5,
+      6
+     ],
+     "req": {
+      "music": 2
+     }
+    },
+    {
+     "title": "Session Player",
+     "pay": 18,
+     "start": 14,
+     "end": 20,
+     "days": [
+      1,
+      2,
+      3,
+      4,
+      5
+     ],
+     "req": {
+      "music": 4
+     }
+    },
+    {
+     "title": "Band Member",
+     "pay": 26,
+     "start": 16,
+     "end": 22,
+     "days": [
+      2,
+      3,
+      4,
+      5,
+      6
+     ],
+     "req": {
+      "music": 6,
+      "creativity": 2
+     }
+    },
+    {
+     "title": "Headliner",
+     "pay": 40,
+     "start": 17,
+     "end": 22,
+     "days": [
+      3,
+      4,
+      5,
+      6
+     ],
+     "req": {
+      "music": 8,
+      "creativity": 4
+     }
+    },
+    {
+     "title": "Rock Legend",
+     "pay": 60,
+     "start": 18,
+     "end": 22,
+     "days": [
+      4,
+      5,
+      6
+     ],
+     "req": {
+      "music": 10,
+      "creativity": 6
+     }
+    }
+   ]
+  },
+  {
+   "id": "athlete",
+   "name": "Athlete",
+   "icon": "⚽",
+   "skills": [
+    "fitness",
+    "charisma"
+   ],
+   "desc": "Train with the local club and make the first team.",
+   "levels": [
+    {
+     "title": "Kit Washer",
+     "pay": 10,
+     "start": 9,
+     "end": 15,
+     "days": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ],
+     "req": {}
+    },
+    {
+     "title": "Youth Squad",
+     "pay": 13,
+     "start": 9,
+     "end": 15,
+     "days": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ],
+     "req": {
+      "fitness": 2
+     }
+    },
+    {
+     "title": "Reserve Team",
+     "pay": 18,
+     "start": 9,
+     "end": 15,
+     "days": [
+      0,
+      1,
+      2,
+      3,
+      5
+     ],
+     "req": {
+      "fitness": 4
+     }
+    },
+    {
+     "title": "First Team",
+     "pay": 28,
+     "start": 10,
+     "end": 16,
+     "days": [
+      0,
+      1,
+      2,
+      3,
+      5
+     ],
+     "req": {
+      "fitness": 6,
+      "charisma": 2
+     }
+    },
+    {
+     "title": "Club Captain",
+     "pay": 40,
+     "start": 10,
+     "end": 16,
+     "days": [
+      0,
+      1,
+      2,
+      3,
+      5
+     ],
+     "req": {
+      "fitness": 8,
+      "charisma": 4
+     }
+    },
+    {
+     "title": "Club Legend",
+     "pay": 58,
+     "start": 11,
+     "end": 16,
+     "days": [
+      0,
+      1,
+      2,
+      5
+     ],
+     "req": {
+      "fitness": 10,
+      "charisma": 6
+     }
+    }
+   ]
+  },
+  {
+   "id": "scientist",
+   "name": "Scientist",
+   "icon": "🔬",
+   "skills": [
+    "logic",
+    "creativity"
+   ],
+   "desc": "Lab coats, experiments and big discoveries.",
+   "levels": [
+    {
+     "title": "Lab Assistant",
+     "pay": 12,
+     "start": 9,
+     "end": 15,
+     "days": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ],
+     "req": {}
+    },
+    {
+     "title": "Lab Technician",
+     "pay": 15,
+     "start": 9,
+     "end": 15,
+     "days": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ],
+     "req": {
+      "logic": 2
+     }
+    },
+    {
+     "title": "Researcher",
+     "pay": 21,
+     "start": 9,
+     "end": 16,
+     "days": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ],
+     "req": {
+      "logic": 4
+     }
+    },
+    {
+     "title": "Senior Scientist",
+     "pay": 29,
+     "start": 9,
+     "end": 16,
+     "days": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ],
+     "req": {
+      "logic": 6,
+      "creativity": 2
+     }
+    },
+    {
+     "title": "Professor",
+     "pay": 40,
+     "start": 10,
+     "end": 16,
+     "days": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ],
+     "req": {
+      "logic": 8,
+      "creativity": 4
+     }
+    },
+    {
+     "title": "Nobel Contender",
+     "pay": 56,
+     "start": 10,
+     "end": 15,
+     "days": [
+      0,
+      1,
+      2,
+      3
+     ],
+     "req": {
+      "logic": 10,
+      "creativity": 6
+     }
+    }
+   ]
+  },
+  {
+   "id": "artist",
+   "name": "Artist",
+   "icon": "🎨",
+   "skills": [
+    "creativity",
+    "charisma"
+   ],
+   "desc": "Sketch, paint and exhibit.",
+   "levels": [
+    {
+     "title": "Art Student",
+     "pay": 10,
+     "start": 10,
+     "end": 15,
+     "days": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ],
+     "req": {}
+    },
+    {
+     "title": "Illustrator",
+     "pay": 14,
+     "start": 10,
+     "end": 16,
+     "days": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ],
+     "req": {
+      "creativity": 2
+     }
+    },
+    {
+     "title": "Gallery Assistant",
+     "pay": 18,
+     "start": 10,
+     "end": 16,
+     "days": [
+      1,
+      2,
+      3,
+      4,
+      5
+     ],
+     "req": {
+      "creativity": 4
+     }
+    },
+    {
+     "title": "Exhibiting Artist",
+     "pay": 26,
+     "start": 11,
+     "end": 17,
+     "days": [
+      1,
+      2,
+      3,
+      4,
+      5
+     ],
+     "req": {
+      "creativity": 6,
+      "charisma": 2
+     }
+    },
+    {
+     "title": "Renowned Painter",
+     "pay": 38,
+     "start": 11,
+     "end": 16,
+     "days": [
+      1,
+      2,
+      3,
+      4
+     ],
+     "req": {
+      "creativity": 8,
+      "charisma": 4
+     }
+    },
+    {
+     "title": "National Treasure",
+     "pay": 55,
+     "start": 12,
+     "end": 16,
+     "days": [
+      1,
+      2,
+      3,
+      4
+     ],
+     "req": {
+      "creativity": 10,
+      "charisma": 6
+     }
+    }
+   ]
+  },
+  {
+   "id": "engineer",
+   "name": "Engineer (Lock & Hinge Works)",
+   "icon": "🔐",
+   "skills": [
+    "logic",
+    "fitness"
+   ],
+   "desc": "Carry on Ashton's lock-making tradition.",
+   "levels": [
+    {
+     "title": "Apprentice Locksmith",
+     "pay": 12,
+     "start": 8,
+     "end": 14,
+     "days": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ],
+     "req": {}
+    },
+    {
+     "title": "Hinge Fitter",
+     "pay": 15,
+     "start": 8,
+     "end": 14,
+     "days": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ],
+     "req": {
+      "logic": 2
+     }
+    },
+    {
+     "title": "Lock Engineer",
+     "pay": 20,
+     "start": 8,
+     "end": 15,
+     "days": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ],
+     "req": {
+      "logic": 4,
+      "fitness": 1
+     }
+    },
+    {
+     "title": "Design Engineer",
+     "pay": 28,
+     "start": 9,
+     "end": 16,
+     "days": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ],
+     "req": {
+      "logic": 6,
+      "fitness": 3
+     }
+    },
+    {
+     "title": "Master Maker",
+     "pay": 38,
+     "start": 9,
+     "end": 16,
+     "days": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ],
+     "req": {
+      "logic": 8,
+      "fitness": 4
+     }
+    },
+    {
+     "title": "Chief Engineer",
+     "pay": 52,
+     "start": 9,
+     "end": 15,
+     "days": [
+      0,
+      1,
+      2,
+      3
+     ],
+     "req": {
+      "logic": 10,
+      "fitness": 5
+     }
+    }
+   ]
+  },
+  {
+   "id": "coffee",
+   "name": "Coffee Shop",
+   "icon": "☕",
+   "skills": [
+    "charisma",
+    "cooking"
+   ],
+   "desc": "Make the best flat white on Gerard Street.",
+   "levels": [
+    {
+     "title": "Café Assistant",
+     "pay": 10,
+     "start": 8,
+     "end": 14,
+     "days": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ],
+     "req": {}
+    },
+    {
+     "title": "Barista",
+     "pay": 12,
+     "start": 8,
+     "end": 14,
+     "days": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ],
+     "req": {
+      "charisma": 2
+     }
+    },
+    {
+     "title": "Head Barista",
+     "pay": 15,
+     "start": 7,
+     "end": 14,
+     "days": [
+      0,
+      1,
+      2,
+      3,
+      5
+     ],
+     "req": {
+      "charisma": 3,
+      "cooking": 2
+     }
+    },
+    {
+     "title": "Shift Manager",
+     "pay": 19,
+     "start": 7,
+     "end": 15,
+     "days": [
+      0,
+      1,
+      2,
+      3,
+      5
+     ],
+     "req": {
+      "charisma": 5,
+      "cooking": 3
+     }
+    },
+    {
+     "title": "Café Owner",
+     "pay": 28,
+     "start": 8,
+     "end": 15,
+     "days": [
+      1,
+      2,
+      3,
+      4
+     ],
+     "req": {
+      "charisma": 7,
+      "cooking": 5
+     }
+    }
+   ]
+  },
+  {
+   "id": "baker",
+   "name": "Baker",
+   "icon": "🥐",
+   "skills": [
+    "cooking",
+    "creativity"
+   ],
+   "desc": "Early starts, warm bread and cakes for the whole town.",
+   "levels": [
+    {
+     "title": "Bakery Assistant",
+     "pay": 10,
+     "start": 6,
+     "end": 12,
+     "days": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ],
+     "req": {}
+    },
+    {
+     "title": "Baker",
+     "pay": 13,
+     "start": 5,
+     "end": 12,
+     "days": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ],
+     "req": {
+      "cooking": 2
+     }
+    },
+    {
+     "title": "Pastry Chef",
+     "pay": 17,
+     "start": 5,
+     "end": 12,
+     "days": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ],
+     "req": {
+      "cooking": 4,
+      "creativity": 2
+     }
+    },
+    {
+     "title": "Head Baker",
+     "pay": 23,
+     "start": 5,
+     "end": 12,
+     "days": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ],
+     "req": {
+      "cooking": 6,
+      "creativity": 3
+     },
+     "licence": true
+    },
+    {
+     "title": "Bakery Owner",
+     "pay": 32,
+     "start": 6,
+     "end": 12,
+     "days": [
+      0,
+      1,
+      2,
+      3
+     ],
+     "req": {
+      "cooking": 8,
+      "creativity": 5
+     },
+     "licence": true
+    }
+   ]
+  },
+  {
+   "id": "lifeguard",
+   "name": "Lifeguard",
+   "icon": "🛟",
+   "skills": [
+    "fitness",
+    "charisma"
+   ],
+   "desc": "Keep swimmers safe at the leisure centre pool.",
+   "levels": [
+    {
+     "title": "Pool Attendant",
+     "pay": 11,
+     "start": 9,
+     "end": 15,
+     "days": [
+      0,
+      1,
+      2,
+      3,
+      5
+     ],
+     "req": {}
+    },
+    {
+     "title": "Lifeguard",
+     "pay": 14,
+     "start": 9,
+     "end": 15,
+     "days": [
+      0,
+      1,
+      2,
+      3,
+      5
+     ],
+     "req": {
+      "fitness": 3
+     }
+    },
+    {
+     "title": "Senior Lifeguard",
+     "pay": 18,
+     "start": 9,
+     "end": 16,
+     "days": [
+      0,
+      1,
+      2,
+      3,
+      5
+     ],
+     "req": {
+      "fitness": 5
+     }
+    },
+    {
+     "title": "Swimming Coach",
+     "pay": 24,
+     "start": 10,
+     "end": 16,
+     "days": [
+      0,
+      1,
+      2,
+      3,
+      5
+     ],
+     "req": {
+      "fitness": 6,
+      "charisma": 3
+     }
+    },
+    {
+     "title": "Leisure Centre Manager",
+     "pay": 33,
+     "start": 9,
+     "end": 15,
+     "days": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ],
+     "req": {
+      "fitness": 7,
+      "charisma": 5
+     },
+     "licence": true
+    }
+   ]
+  },
+  {
+   "id": "teacher",
+   "name": "Teacher",
+   "icon": "🍎",
+   "skills": [
+    "logic",
+    "charisma"
+   ],
+   "desc": "Help children learn. Time off in the school holidays!",
+   "schoolHolidays": true,
+   "levels": [
+    {
+     "title": "Teaching Assistant",
+     "pay": 12,
+     "start": 8,
+     "end": 15,
+     "days": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ],
+     "req": {}
+    },
+    {
+     "title": "Teacher",
+     "pay": 17,
+     "start": 8,
+     "end": 16,
+     "days": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ],
+     "req": {
+      "logic": 3,
+      "charisma": 2
+     }
+    },
+    {
+     "title": "Head of Year",
+     "pay": 22,
+     "start": 8,
+     "end": 16,
+     "days": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ],
+     "req": {
+      "logic": 5,
+      "charisma": 3
+     }
+    },
+    {
+     "title": "Deputy Head",
+     "pay": 29,
+     "start": 8,
+     "end": 16,
+     "days": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ],
+     "req": {
+      "logic": 6,
+      "charisma": 5
+     }
+    },
+    {
+     "title": "Head Teacher",
+     "pay": 38,
+     "start": 8,
+     "end": 16,
+     "days": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ],
+     "req": {
+      "logic": 8,
+      "charisma": 7
+     },
+     "licence": true
+    }
+   ]
+  },
+  {
+   "id": "shop",
+   "name": "Shop Worker",
+   "icon": "🛒",
+   "skills": [
+    "charisma",
+    "logic"
+   ],
+   "desc": "Stack shelves, run the tills and maybe the whole shop.",
+   "levels": [
+    {
+     "title": "Shelf Stacker",
+     "pay": 10,
+     "start": 7,
+     "end": 13,
+     "days": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ],
+     "req": {}
+    },
+    {
+     "title": "Checkout Assistant",
+     "pay": 11,
+     "start": 9,
+     "end": 15,
+     "days": [
+      0,
+      1,
+      2,
+      3,
+      5
+     ],
+     "req": {
+      "charisma": 2
+     }
+    },
+    {
+     "title": "Supervisor",
+     "pay": 14,
+     "start": 9,
+     "end": 16,
+     "days": [
+      0,
+      1,
+      2,
+      3,
+      5
+     ],
+     "req": {
+      "charisma": 3,
+      "logic": 2
+     }
+    },
+    {
+     "title": "Assistant Manager",
+     "pay": 18,
+     "start": 9,
+     "end": 17,
+     "days": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ],
+     "req": {
+      "charisma": 4,
+      "logic": 4
+     }
+    },
+    {
+     "title": "Store Manager",
+     "pay": 25,
+     "start": 9,
+     "end": 17,
+     "days": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ],
+     "req": {
+      "charisma": 6,
+      "logic": 5
+     },
+     "licence": true
+    }
+   ]
+  },
+  {
+   "id": "bar",
+   "name": "Bar Worker",
+   "icon": "🍹",
+   "skills": [
+    "charisma",
+    "music"
+   ],
+   "desc": "Evening shifts at the local. Quiz nights and live music.",
+   "levels": [
+    {
+     "title": "Glass Collector",
+     "pay": 10,
+     "start": 18,
+     "end": 23,
+     "days": [
+      2,
+      3,
+      4,
+      5
+     ],
+     "req": {}
+    },
+    {
+     "title": "Bartender",
+     "pay": 12,
+     "start": 18,
+     "end": 24,
+     "days": [
+      2,
+      3,
+      4,
+      5
+     ],
+     "req": {
+      "charisma": 2
+     }
+    },
+    {
+     "title": "Mixologist",
+     "pay": 15,
+     "start": 18,
+     "end": 24,
+     "days": [
+      3,
+      4,
+      5,
+      6
+     ],
+     "req": {
+      "charisma": 4
+     }
+    },
+    {
+     "title": "Bar Manager",
+     "pay": 20,
+     "start": 17,
+     "end": 24,
+     "days": [
+      2,
+      3,
+      4,
+      5
+     ],
+     "req": {
+      "charisma": 5,
+      "music": 2
+     }
+    },
+    {
+     "title": "Pub Landlord",
+     "pay": 28,
+     "start": 16,
+     "end": 23,
+     "days": [
+      3,
+      4,
+      5,
+      6
+     ],
+     "req": {
+      "charisma": 7,
+      "music": 4
+     }
+    }
+   ]
+  },
+  {
+   "id": "cardshop",
+   "name": "Card & Balloon Shop",
+   "icon": "🎈",
+   "skills": [
+    "creativity",
+    "charisma"
+   ],
+   "desc": "Cards, balloons and party planning for every occasion.",
+   "levels": [
+    {
+     "title": "Shop Assistant",
+     "pay": 10,
+     "start": 9,
+     "end": 15,
+     "days": [
+      0,
+      1,
+      2,
+      4,
+      5
+     ],
+     "req": {}
+    },
+    {
+     "title": "Balloon Artist",
+     "pay": 12,
+     "start": 9,
+     "end": 15,
+     "days": [
+      0,
+      1,
+      2,
+      4,
+      5
+     ],
+     "req": {
+      "creativity": 2
+     }
+    },
+    {
+     "title": "Party Planner",
+     "pay": 16,
+     "start": 10,
+     "end": 17,
+     "days": [
+      1,
+      2,
+      4,
+      5
+     ],
+     "req": {
+      "creativity": 4,
+      "charisma": 2
+     },
+     "licence": true
+    },
+    {
+     "title": "Shop Manager",
+     "pay": 20,
+     "start": 9,
+     "end": 16,
+     "days": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ],
+     "req": {
+      "creativity": 5,
+      "charisma": 4
+     },
+     "licence": true
+    },
+    {
+     "title": "Shop Owner",
+     "pay": 27,
+     "start": 10,
+     "end": 16,
+     "days": [
+      0,
+      1,
+      2,
+      3
+     ],
+     "req": {
+      "creativity": 7,
+      "charisma": 6
+     },
+     "licence": true
+    }
+   ]
+  }
+ ]
 }

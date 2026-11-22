@@ -1,18 +1,503 @@
 {
-  "self": [
-    { "id": "phone", "name": "Call a friend", "icon": "📱", "duration": 30, "anim": "phone", "effects": { "social": 30, "fun": 5 }, "special": "callFriend" },
-    { "id": "daydream", "name": "Daydream", "icon": "💭", "duration": 20, "anim": "think", "effects": { "fun": 10 }, "auto": true },
-    { "id": "stretch", "name": "Stretch", "icon": "🧘", "duration": 20, "anim": "workout", "effects": { "comfort": 15, "fun": 5 }, "skill": "fitness", "skillRate": 20, "tags": ["fitness"] },
-    { "id": "invite", "name": "Invite someone over", "icon": "🏡", "duration": 5, "anim": "phone", "ui": "relationships", "auto": false }
-  ],
-  "outings": [
-    { "id": "jog", "name": "Jog round the Rec", "icon": "🏃", "duration": 60, "effects": { "fun": 15, "energy": -15, "hygiene": -25 }, "skill": "fitness", "skillXp": 45, "moodlet": "good_workout", "tags": ["fitness", "outdoors"] },
-    { "id": "cafe", "name": "Café on Gerard Street", "icon": "☕", "duration": 120, "cost": 12, "effects": { "hunger": 40, "social": 40, "fun": 25 }, "moodlet": "fun_outing", "tags": ["social", "food"], "hours": [8, 20] },
-    { "id": "market", "name": "Market Square", "icon": "🧺", "duration": 120, "cost": 10, "effects": { "fun": 30, "social": 25, "hunger": 20 }, "moodlet": "fun_outing", "days": [1, 5], "hours": [8, 16], "special": "marketFind", "tags": ["social"] },
-    { "id": "gerard", "name": "Shopping at the Gerard Centre", "icon": "🛍️", "duration": 90, "cost": 25, "effects": { "fun": 30, "social": 15 }, "moodlet": "fun_outing", "hours": [9, 20] },
-    { "id": "match", "name": "Watch a match at the football ground", "icon": "⚽", "duration": 150, "cost": 15, "effects": { "fun": 60, "social": 40 }, "moodlet": "fun_outing", "days": [5, 6], "hours": [12, 17], "tags": ["sport"] },
-    { "id": "green", "name": "Stroll by St Thomas' green", "icon": "⛪", "duration": 60, "effects": { "fun": 20, "comfort": 10, "social": 10 }, "hours": [7, 21], "tags": ["outdoors"] },
-    { "id": "races", "name": "Race day at the racecourse", "icon": "🏇", "duration": 240, "cost": 30, "effects": { "fun": 80, "social": 50 }, "moodlet": "fun_outing", "days": [5], "hours": [11, 15], "tags": ["sport", "social"] },
-    { "id": "museum", "name": "Heritage museum (mining and locks)", "icon": "🏛️", "duration": 120, "cost": 5, "effects": { "fun": 25 }, "skill": "logic", "skillXp": 40, "moodlet": "inspired", "hours": [10, 17], "tags": ["logic"] }
-  ]
+ "self": [
+  {
+   "id": "phone",
+   "name": "Call a friend",
+   "icon": "📱",
+   "duration": 30,
+   "anim": "phone",
+   "effects": {
+    "social": 30,
+    "fun": 5
+   },
+   "special": "callFriend"
+  },
+  {
+   "id": "daydream",
+   "name": "Daydream",
+   "icon": "💭",
+   "duration": 20,
+   "anim": "think",
+   "effects": {
+    "fun": 10
+   },
+   "auto": true
+  },
+  {
+   "id": "stretch",
+   "name": "Stretch",
+   "icon": "🧘",
+   "duration": 20,
+   "anim": "workout",
+   "effects": {
+    "comfort": 15,
+    "fun": 5
+   },
+   "skill": "fitness",
+   "skillRate": 20,
+   "tags": [
+    "fitness"
+   ]
+  },
+  {
+   "id": "invite",
+   "name": "Invite someone over",
+   "icon": "🏡",
+   "duration": 5,
+   "anim": "phone",
+   "ui": "relationships",
+   "auto": false
+  },
+  {
+   "id": "takeaway",
+   "name": "Order a takeaway (£16)",
+   "icon": "🍕",
+   "duration": 30,
+   "anim": "phone",
+   "special": "takeaway",
+   "cost": 16,
+   "condition": "noFood"
+  },
+  {
+   "id": "party",
+   "name": "Plan a party",
+   "icon": "🎉",
+   "duration": 5,
+   "anim": "phone",
+   "ui": "party",
+   "auto": false
+  }
+ ],
+ "outings": [
+  {
+   "id": "jog",
+   "name": "Jog round the Rec",
+   "icon": "🏃",
+   "duration": 60,
+   "effects": {
+    "fun": 15,
+    "energy": -15,
+    "hygiene": -25
+   },
+   "skill": "fitness",
+   "skillXp": 45,
+   "moodlet": "good_workout",
+   "tags": [
+    "fitness",
+    "outdoors"
+   ]
+  },
+  {
+   "id": "cafe",
+   "name": "Café on Gerard Street",
+   "icon": "☕",
+   "duration": 120,
+   "cost": 12,
+   "effects": {
+    "hunger": 40,
+    "social": 40,
+    "fun": 25
+   },
+   "moodlet": "fun_outing",
+   "tags": [
+    "social",
+    "food"
+   ],
+   "hours": [
+    8,
+    20
+   ]
+  },
+  {
+   "id": "market",
+   "name": "Market Square",
+   "icon": "🧺",
+   "duration": 120,
+   "cost": 10,
+   "effects": {
+    "fun": 30,
+    "social": 25,
+    "hunger": 20
+   },
+   "moodlet": "fun_outing",
+   "days": [
+    1,
+    5
+   ],
+   "hours": [
+    8,
+    16
+   ],
+   "special": "marketFind",
+   "tags": [
+    "social"
+   ]
+  },
+  {
+   "id": "gerard",
+   "name": "Browse the Gerard Centre",
+   "icon": "🛍️",
+   "duration": 90,
+   "cost": 25,
+   "effects": {
+    "fun": 30,
+    "social": 15
+   },
+   "moodlet": "fun_outing",
+   "hours": [
+    9,
+    20
+   ]
+  },
+  {
+   "id": "match",
+   "name": "Watch a match at the football ground",
+   "icon": "⚽",
+   "duration": 150,
+   "cost": 15,
+   "effects": {
+    "fun": 60,
+    "social": 40
+   },
+   "moodlet": "fun_outing",
+   "days": [
+    5,
+    6
+   ],
+   "hours": [
+    12,
+    17
+   ],
+   "tags": [
+    "sport"
+   ]
+  },
+  {
+   "id": "green",
+   "name": "Stroll by St Thomas' green",
+   "icon": "⛪",
+   "duration": 60,
+   "effects": {
+    "fun": 20,
+    "comfort": 10,
+    "social": 10
+   },
+   "hours": [
+    7,
+    21
+   ],
+   "tags": [
+    "outdoors"
+   ]
+  },
+  {
+   "id": "races",
+   "name": "Race day at the racecourse",
+   "icon": "🏇",
+   "duration": 240,
+   "cost": 30,
+   "effects": {
+    "fun": 80,
+    "social": 50
+   },
+   "moodlet": "fun_outing",
+   "days": [
+    5
+   ],
+   "hours": [
+    11,
+    15
+   ],
+   "tags": [
+    "sport",
+    "social"
+   ]
+  },
+  {
+   "id": "museum",
+   "name": "Heritage museum (mining and locks)",
+   "icon": "🏛️",
+   "duration": 120,
+   "cost": 5,
+   "effects": {
+    "fun": 25
+   },
+   "skill": "logic",
+   "skillXp": 40,
+   "moodlet": "inspired",
+   "hours": [
+    10,
+    17
+   ],
+   "tags": [
+    "logic"
+   ]
+  },
+  {
+   "id": "food_big",
+   "name": "Big food shop at Aldi",
+   "icon": "🛒",
+   "duration": 90,
+   "cost": 55,
+   "groceries": 35,
+   "effects": {
+    "fun": 5
+   },
+   "hours": [
+    8,
+    22
+   ]
+  },
+  {
+   "id": "food_top",
+   "name": "Top-up at the corner shop",
+   "icon": "🥛",
+   "duration": 30,
+   "cost": 15,
+   "groceries": 8,
+   "effects": {},
+   "hours": [
+    7,
+    23
+   ]
+  },
+  {
+   "id": "clothes",
+   "name": "Clothes shopping on Gerard Street",
+   "icon": "👗",
+   "duration": 90,
+   "effects": {
+    "fun": 20
+   },
+   "special": "clothes",
+   "hours": [
+    9,
+    18
+   ]
+  },
+  {
+   "id": "lesson",
+   "name": "Driving lesson",
+   "icon": "🚦",
+   "duration": 60,
+   "cost": 30,
+   "effects": {
+    "fun": 5
+   },
+   "special": "lesson",
+   "condition": "learner",
+   "hours": [
+    8,
+    20
+   ]
+  },
+  {
+   "id": "test",
+   "name": "Driving test",
+   "icon": "📋",
+   "duration": 45,
+   "cost": 62,
+   "effects": {},
+   "special": "drivingTest",
+   "condition": "testReady",
+   "hours": [
+    9,
+    16
+   ],
+   "days": [
+    0,
+    1,
+    2,
+    3,
+    4
+   ]
+  },
+  {
+   "id": "drive",
+   "name": "Go for a drive",
+   "icon": "🚗",
+   "duration": 60,
+   "effects": {
+    "fun": 30,
+    "comfort": 10
+   },
+   "moodlet": "enjoyed_drive",
+   "condition": "canDrive"
+  },
+  {
+   "id": "seaside",
+   "name": "Day trip to Southport beach",
+   "icon": "🏖️",
+   "duration": 300,
+   "cost": 20,
+   "effects": {
+    "fun": 70,
+    "social": 30,
+    "hygiene": -20
+   },
+   "moodlet": "fun_outing",
+   "season": "summer",
+   "hours": [
+    8,
+    14
+   ]
+  },
+  {
+   "id": "summer_fair",
+   "name": "Summer fair on the green",
+   "icon": "🎡",
+   "duration": 150,
+   "cost": 15,
+   "effects": {
+    "fun": 55,
+    "social": 40
+   },
+   "moodlet": "fun_outing",
+   "season": "summer",
+   "hours": [
+    11,
+    18
+   ]
+  },
+  {
+   "id": "christmas_market",
+   "name": "Christmas market",
+   "icon": "🎅",
+   "duration": 120,
+   "cost": 20,
+   "effects": {
+    "fun": 45,
+    "social": 30,
+    "hunger": 20
+   },
+   "moodlet": "christmas",
+   "season": "winter",
+   "seasonDays": [
+    1,
+    2,
+    3,
+    4,
+    5
+   ],
+   "hours": [
+    10,
+    20
+   ],
+   "special": "marketFind"
+  },
+  {
+   "id": "skating",
+   "name": "Ice skating",
+   "icon": "⛸️",
+   "duration": 120,
+   "cost": 12,
+   "effects": {
+    "fun": 50,
+    "energy": -15
+   },
+   "moodlet": "fun_outing",
+   "season": "winter",
+   "hours": [
+    10,
+    20
+   ],
+   "skill": "fitness",
+   "skillXp": 30
+  },
+  {
+   "id": "trick",
+   "name": "Trick or treating",
+   "icon": "🍬",
+   "duration": 90,
+   "effects": {
+    "fun": 55,
+    "social": 35,
+    "hunger": 10
+   },
+   "moodlet": "fun_outing",
+   "event": "halloween",
+   "hours": [
+    17,
+    21
+   ]
+  },
+  {
+   "id": "bonfire",
+   "name": "Bonfire and fireworks display",
+   "icon": "🔥",
+   "duration": 150,
+   "cost": 8,
+   "effects": {
+    "fun": 60,
+    "social": 40,
+    "comfort": 10
+   },
+   "moodlet": "fireworks",
+   "event": "bonfire",
+   "hours": [
+    18,
+    22
+   ]
+  },
+  {
+   "id": "easter_fair",
+   "name": "Easter fair",
+   "icon": "🐰",
+   "duration": 120,
+   "cost": 10,
+   "effects": {
+    "fun": 45,
+    "social": 30
+   },
+   "moodlet": "egg_hunt",
+   "event": "easter",
+   "hours": [
+    10,
+    17
+   ]
+  },
+  {
+   "id": "holiday_blackpool",
+   "name": "Holiday: Blackpool (1 day, £250 each)",
+   "icon": "🎢",
+   "duration": 1440,
+   "cost": 250,
+   "effects": {
+    "fun": 100,
+    "social": 60,
+    "comfort": 30
+   },
+   "moodlet": "amazing_holiday",
+   "season": "summer",
+   "household": true,
+   "leave": true,
+   "souvenir": "rock_jar",
+   "hours": [
+    7,
+    12
+   ]
+  },
+  {
+   "id": "holiday_spain",
+   "name": "Holiday: Spain (2 days, £700 each)",
+   "icon": "✈️",
+   "duration": 2880,
+   "cost": 700,
+   "effects": {
+    "fun": 100,
+    "social": 60,
+    "comfort": 40,
+    "energy": 30
+   },
+   "moodlet": "amazing_holiday",
+   "season": "summer",
+   "household": true,
+   "leave": true,
+   "souvenir": "flamenco_fan",
+   "hours": [
+    6,
+    11
+   ]
+  }
+ ]
 }

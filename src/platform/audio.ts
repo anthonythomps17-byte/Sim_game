@@ -61,6 +61,22 @@ export class Audio {
       case 'place': this.tone(220, t, 0.12, 'triangle', 0.2, out); this.tone(330, t + 0.04, 0.1, 'triangle', 0.12, out); break;
       case 'build': this.tone(180, t, 0.1, 'square', 0.06, out); this.tone(240, t + 0.05, 0.08, 'square', 0.05, out); break;
       case 'erase': this.tone(300, t, 0.15, 'sawtooth', 0.04, out); break;
+      case 'fireworks':
+      case 'firework': {
+        const ctx = this.ctx!;
+        const len = 0.6;
+        const buf = ctx.createBuffer(1, Math.floor(ctx.sampleRate * len), ctx.sampleRate);
+        const d = buf.getChannelData(0);
+        for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / d.length, 3);
+        const src = ctx.createBufferSource();
+        const g = ctx.createGain();
+        g.gain.value = 0.25;
+        src.buffer = buf;
+        src.connect(g);
+        g.connect(out);
+        src.start(t);
+        break;
+      }
       case 'error': this.tone(200, t, 0.2, 'square', 0.06, out); break;
     }
   }

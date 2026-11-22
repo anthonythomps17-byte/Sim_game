@@ -51,9 +51,9 @@ export async function listSlots(): Promise<SlotMeta[]> {
   }
 }
 
-export interface DeviceSettings { quality: 'low' | 'medium' | 'high'; music: number; sfx: number; wallMode: 'up' | 'cutaway' | 'down'; seenTutorial: boolean }
+export interface DeviceSettings { quality: 'low' | 'medium' | 'high'; music: number; sfx: number; wallMode: 'up' | 'cutaway' | 'down'; seenTutorial: boolean; skipSleep: boolean }
 
-const DEFAULTS: DeviceSettings = { quality: 'medium', music: 0.4, sfx: 0.7, wallMode: 'cutaway', seenTutorial: false };
+const DEFAULTS: DeviceSettings = { quality: 'medium', music: 0.4, sfx: 0.7, wallMode: 'cutaway', seenTutorial: false, skipSleep: false };
 
 export function loadSettings(): DeviceSettings {
   try {

@@ -240,7 +240,7 @@ export class LotView {
   // ---------- Objects ----------
 
   private objectKey(o: PlacedObject): string {
-    const stage = o.defId === 'veg_patch' ? (o.growth >= 100 ? 3 : o.growth >= 50 ? 2 : o.growth > 0 ? 1 : 0) : 0;
+    const stage = o.defId === 'veg_patch' ? (o.growth >= 100 ? 3 : o.growth >= 50 ? 2 : o.growth > 0 ? 1 : 0) : o.defId === 'pumpkin' ? (o.growth >= 100 ? 1 : 0) : 0;
     return `${o.defId}:${stage}`;
   }
 
@@ -300,6 +300,8 @@ export class LotView {
     const def = OBJECTS[o.defId];
     const [W, D] = footprintSize(def, o.rot);
     v.root.position.set(o.x + W / 2, 0.015, o.z + D / 2);
+    // A car out on the road isn't on the drive.
+    v.root.setEnabled(!o.outWith);
     v.root.rotation.y = (o.rot * Math.PI) / 2;
     if (v.light) v.light.position.set(o.x + W / 2, v.light.metadata.height, o.z + D / 2);
   }
@@ -314,7 +316,7 @@ export class LotView {
     v.light.intensity = on ? def.light!.intensity * (night ? 1 : 0.4) : 0;
     v.light.setEnabled(on);
     for (const g of v.glow) {
-      if (g.metadata?.glowKind === 'lamp') g.material = this.mats.color('#ffd9a0', { emissive: on ? 0.95 : 0.12 });
+      if (g.metadata?.glowKind === 'lamp' && o.defId !== 'christmas_tree') g.material = this.mats.color('#ffd9a0', { emissive: on ? 0.95 : 0.12 });
     }
   }
 

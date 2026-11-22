@@ -72,6 +72,7 @@ export interface RunningAction extends QueuedAction {
   rates: Partial<Record<NeedId, number>>;
   anim: AnimId;
   untilFull: NeedId[];
+  tags?: string[];
   /** Object + spot this action has reserved (may differ from objectId when sitting near a TV). */
   reserved?: { objectId: number; spot: number };
   /** Where the Sim stands/sits while performing. */
@@ -119,6 +120,7 @@ export interface Sim {
   perks: string[];
   /** Recently finished activities, so free will doesn't repeat itself. */
   recent: string[];
+  driving: { lessons: number; licence: boolean };
 }
 
 export type WallKind = 'wall' | 'door' | 'window';
@@ -136,6 +138,10 @@ export interface PlacedObject {
   growth: number;
   lightOn: boolean;
   bought: number;
+  /** Seasonal objects disappear after this day. */
+  expiresDay?: number;
+  /** A car out on the road with this Sim. */
+  outWith?: number | null;
 }
 
 export interface Lot {
@@ -173,6 +179,11 @@ export interface GameState {
     rewardsUnlocked: string[];
     marketFinds: string[];
     paintingsSold: number;
+    /** Units of food in the fridge. */
+    groceries: number;
+    /** 0–100. Late-night noise makes the neighbours unhappy. */
+    neighbourMood: number;
+    nextDoorId: number;
   };
   sims: Sim[];
   relationships: Relationship[];
@@ -185,7 +196,19 @@ export interface GameState {
   lastVisitDay: number;
   tutorialDone: boolean;
   pendingVisits: { simId: number; at: number }[];
-  flags: { lastHour: number; nextVisitAt: number };
+  flags: { lastHour: number; nextVisitAt: number; lowFoodWarned?: boolean };
+  party: Party | null;
+  noise: { tonight: number; stage: number };
+  fireworksUntil: number;
+}
+
+export interface Party {
+  host: number;
+  theme: 'karaoke' | 'dance' | 'bbq';
+  start: number;
+  end: number;
+  guests: number[];
+  started: boolean;
 }
 
 export type GameEvent =

@@ -9,6 +9,7 @@ import { addMoodlet, clamp, expireMoodlets, needDecayMult } from './mood';
 import type { PathGrid } from './path';
 import { stepSim, releaseAll } from './actions';
 import { runSchedules } from './schedule';
+import { runLife } from './life';
 import type { GameEvent, GameNotification, GameState, NeedId, PlacedObject, Point, Sim } from './types';
 import { NEED_IDS } from './types';
 
@@ -183,6 +184,7 @@ export class Game {
 
     this.growPlants(dt);
     runSchedules(this, dt);
+    runLife(this, dt);
 
     if (this.day !== prevDay) this.endOfDay(prevDay);
   }

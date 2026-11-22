@@ -7,6 +7,8 @@ import { condMet, missingForPromotion } from '../sim/schedule';
 import { SKILL_NAMES, skillLevel, skillProgress } from '../sim/skills';
 import { NEED_IDS, SKILL_IDS, type GameNotification, type Sim } from '../sim/types';
 import type { App } from './app';
+import { calendarOf, eventsOn, PARTY_THEMES } from '../sim/life';
+import { neighbourFace } from './panels';
 import { bar, clear, h, initials, money } from './dom';
 
 type Tab = 'needs' | 'skills' | 'career' | 'people' | 'goals';
@@ -14,6 +16,8 @@ type Tab = 'needs' | 'skills' | 'career' | 'people' | 'goals';
 export class Hud {
   el: HTMLElement;
   private fundsEl!: HTMLElement;
+  private foodEl!: HTMLElement;
+  private partyEl!: HTMLElement;
   private timeEl!: HTMLElement;
   private speedBtns: HTMLButtonElement[] = [];
   private ffEl!: HTMLElement;
@@ -38,8 +42,10 @@ export class Hud {
   private build() {
     const app = this.app;
     this.bubblesEl = h('div', { class: 'bubbles' });
-    this.fundsEl = h('div', { class: 'panel funds', title: 'Household money' });
-    this.timeEl = h('div', { class: 'time' });
+    this.fundsEl = h('div', { class: 'funds' });
+    this.foodEl = h('div', { class: 'food', title: 'Food in the fridge' });
+    this.partyEl = h('div', { class: 'panel partybar', style: 'display:none' });
+    this.timeEl = h('button', { class: 'time', title: 'Calendar', onclick: () => app.panels.calendar() });
     const speeds: [string, 0 | 1 | 2 | 3][] = [['❚❚', 0], ['▶', 1], ['▶▶', 2], ['▶▶▶', 3]];
     this.speedBtns = speeds.map(([label, s]) => h('button', { class: 'speed', 'aria-label': s === 0 ? 'Pause' : `Speed ${s}`, onclick: () => app.setSpeed(s) }, label) as HTMLButtonElement);
     this.ffEl = h('span', { class: 'ff' });
@@ -47,7 +53,7 @@ export class Hud {
     const bell = h('button', { class: 'btn icon-btn round rel', 'aria-label': 'Messages', onclick: () => app.panels.notifications() }, '🔔', this.bellBadge);
     const menu = h('button', { class: 'btn icon-btn round', 'aria-label': 'Menu', onclick: () => app.menus.pauseMenu() }, '☰');
     const top = h('div', { class: 'topbar' },
-      this.fundsEl,
+      h('div', { class: 'panel money' }, this.fundsEl, this.foodEl),
       h('div', { class: 'panel clock' }, this.timeEl, ...this.speedBtns, this.ffEl),
       h('div', { class: 'top-right' }, bell, menu),
     );
@@ -70,7 +76,7 @@ export class Hud {
     );
     const modebar = h('div', { class: 'modebar' }, camtools, modes);
     this.toastsEl = h('div', { class: 'toasts' });
-    this.el.append(this.bubblesEl, top, this.portraitsEl, this.panelEl, this.queueEl, modebar, this.toastsEl);
+    this.el.append(this.bubblesEl, top, this.partyEl, this.portraitsEl, this.panelEl, this.queueEl, modebar, this.toastsEl);
   }
 
   setMode(mode: string) {
@@ -101,7 +107,24 @@ export class Hud {
     const hh = Math.floor(m / 60), mm = Math.floor(m % 60);
     const hour12 = ((hh + 11) % 12) + 1;
     clear(this.timeEl);
-    this.timeEl.append(`${hour12}:${String(mm).padStart(2, '0')} ${hh < 12 ? 'am' : 'pm'}`, h('small', null, `${DAY_NAMES[game.weekday]} · Day ${game.day + 1}`));
+    const cal = calendarOf(game.day);
+    const ev = eventsOn(game.day).map((e) => e.icon).join('');
+    this.timeEl.append(`${hour12}:${String(mm).padStart(2, '0')} ${hh < 12 ? 'am' : 'pm'}`, h('small', null, `${DAY_NAMES[game.weekday].slice(0, 3)} · ${cal.season.icon} ${cal.season.name} ${cal.dayOfSeason} ${ev}`));
+    const food = st.household.groceries;
+    this.foodEl.textContent = `🛒 ${food}`;
+    this.foodEl.classList.toggle('low', food <= 6);
+    const p = st.party;
+    const showNeighbours = st.household.neighbourMood < 60;
+    if (p || showNeighbours) {
+      this.partyEl.style.display = '';
+      clear(this.partyEl);
+      if (p) {
+        const t = (m: number) => { const hr = Math.floor((m % 1440) / 60); return `${((hr + 11) % 12) + 1}${hr < 12 ? 'am' : 'pm'}`; };
+        this.partyEl.append(h('span', null, `${PARTY_THEMES[p.theme].icon} ${PARTY_THEMES[p.theme].name} ${t(p.start)}–${t(p.end)}${p.started ? ' · on now!' : ''}`));
+      }
+      this.partyEl.append(h('span', { class: 'muted' }, `Neighbours ${neighbourFace(st.household.neighbourMood).split(' ')[0]}`));
+      if (p) this.partyEl.append(h('button', { class: 'btn small', onclick: () => { const host = game.sim(p.host); if (host) this.app.panels.party(host); } }, p.started ? 'End' : 'Details'));
+    } else this.partyEl.style.display = 'none';
     this.speedBtns.forEach((b, i) => b.classList.toggle('on', st.speed === i));
     this.ffEl.textContent = this.app.fastForward ? '⏩ Skipping ahead' : '';
     const unread = st.notifications.filter((n) => !n.read).length;
@@ -197,7 +220,7 @@ export class Hud {
   }
 
   private renderSkills(el: HTMLElement, sim: Sim) {
-    const sig = SKILL_IDS.map((s) => Math.floor(sim.skills[s])).join(',');
+    const sig = SKILL_IDS.map((s) => Math.floor(sim.skills[s])).join(',') + `|${sim.driving.lessons}${sim.driving.licence}`;
     if (!this.changed('content', sig)) return;
     clear(el);
     el.append(h('div', { class: 'list' }, ...SKILL_IDS.map((s) => {
@@ -205,7 +228,8 @@ export class Hud {
       return h('div', { class: 'row' }, h('span', { style: 'font-size:20px' }, SKILL_NAMES[s].icon),
         h('div', { class: 'grow' }, h('div', { class: 't' }, SKILL_NAMES[s].name), bar(skillProgress(sim.skills[s]) * 100, 'var(--teal)')),
         h('span', { class: 'skill-lvl' }, `Lv ${lvl}`));
-    })));
+    }), h('div', { class: 'row' }, h('span', { style: 'font-size:20px' }, '🚗'),
+      h('div', { class: 'grow' }, h('div', { class: 't' }, 'Driving'), h('div', { class: 's' }, sim.driving.licence ? 'Full licence ✅' : sim.driving.lessons >= 5 ? 'Ready for the test (Go out → Driving test)' : `Learner: ${sim.driving.lessons}/5 lessons (Go out → Driving lesson)`)))));
   }
 
   private renderCareer(el: HTMLElement, sim: Sim) {

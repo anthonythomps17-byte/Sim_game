@@ -10,6 +10,7 @@ import { chooseAutonomous } from './ai';
 import { resolveSocial, socialCheck } from './social';
 import { arriveAtWork, skipWork } from './schedule';
 import { changeRel, findRel } from './relationships';
+import { canDriveNow, hasFood, openPresent, useFood } from './life';
 import type { NeedId, PlacedObject, Point, QueuedAction, RunningAction, Sim, SkillId } from './types';
 
 export const WALK_SPEED = 1.7; // tiles per game minute
@@ -85,7 +86,19 @@ export function checkInteraction(game: Game, sim: Sim, obj: PlacedObject, inter:
     case 'lightOn': if (!obj.lightOn) return { ok: false, hidden: true }; break;
     case 'lightOff': if (obj.lightOn) return { ok: false, hidden: true }; break;
     case 'night': if (!game.isNight()) return { ok: false, reason: 'Only at night' }; break;
+    case 'once': if (sim.counters[onceKey(obj, inter)]) return { ok: false, hidden: true }; break;
+    case 'nightOnce':
+      if (sim.counters[onceKey(obj, inter)]) return { ok: false, hidden: true };
+      if (!game.isNight()) return { ok: false, reason: 'Wait until dark' };
+      break;
+    case 'uncarved': if (obj.growth >= 100) return { ok: false, hidden: true }; break;
+    case 'carved': if (obj.growth < 100) return { ok: false, hidden: true }; break;
+    case 'canDrive':
+      if (!sim.driving.licence) return { ok: false, reason: 'Needs a driving licence' };
+      if (!canDriveNow(game, sim)) return { ok: false, reason: 'The car is out' };
+      break;
   }
+  if (inter.food && !hasFood(game, inter.food)) return { ok: false, reason: 'No food left. Go food shopping!' };
   if (inter.minSkill && levelOf(sim, inter.minSkill.skill) < inter.minSkill.level) {
     return { ok: false, reason: `Needs ${SKILL_NAMES[inter.minSkill.skill].name} ${inter.minSkill.level}` };
   }
@@ -204,6 +217,7 @@ function startAction(game: Game, sim: Sim, q: QueuedAction): RunningAction | nul
       r.untilFull = inter.untilFull ? (Object.keys(effects).filter((k) => effects[k as NeedId]! > 0) as NeedId[]) : [];
       r.skill = inter.skill;
       r.skillRate = inter.skillRate;
+      r.tags = inter.tags;
       if (inter.seatNear) {
         const centre = objectCenter(obj);
         const faceTv = inter.tags?.includes('tv') ? centre : undefined;
@@ -263,6 +277,7 @@ function startAction(game: Game, sim: Sim, q: QueuedAction): RunningAction | nul
       r.anim = inline?.anim ?? def?.anim ?? 'idle';
       r.skill = def?.skill;
       r.skillRate = def?.skillRate;
+      if (def?.cost && game.state.household.funds < def.cost) { fail(game, sim, '💸', `can't afford that (£${def.cost})`, q); return null; }
       if (r.anim === 'sleep') r.untilFull = ['energy'];
       return r;
     }
@@ -501,6 +516,14 @@ function finish(game: Game, sim: Sim, completed: boolean): void {
     if (inline?.counter) sim.counters[inline.counter] = (sim.counters[inline.counter] ?? 0) + 1;
     const def = cur.selfId ? SELF_ACTIONS[cur.selfId] : undefined;
     if (def?.special === 'callFriend') callFriend(game, sim);
+    if (def?.special === 'takeaway') {
+      game.addFunds(-(def.cost ?? 0));
+      game.notify(`${sim.name}'s takeaway has arrived.`, '🍕', 'info');
+      sim.queue.unshift({
+        uid: game.nextId(), kind: 'seat', label: 'Eat takeaway', icon: '🍕', userQueued: cur.userQueued,
+        inline: { anim: 'eat', duration: 25, effects: { hunger: 75, fun: 10 }, moodlet: 'tasty_snack', tags: ['food'] },
+      });
+    }
     if (def?.ui) game.events.push({ type: 'openPanel', panel: def.ui, simId: sim.id });
   } else if (cur.kind === 'social') {
     resolveSocial(game, sim, cur);
@@ -511,6 +534,8 @@ function completeInteraction(game: Game, sim: Sim, obj: PlacedObject, inter: Int
   const now = game.state.time;
   if (inter.moodlet) addMoodlet(sim, inter.moodlet, now);
   if (inter.counter) sim.counters[inter.counter] = (sim.counters[inter.counter] ?? 0) + 1;
+  if (inter.condition === 'once' || inter.condition === 'nightOnce') sim.counters[onceKey(obj, inter)] = 1;
+  if (inter.food) useFood(game, inter.food);
   if (inter.dirties && obj.defId !== 'magic_loo') obj.dirt = Math.min(100, obj.dirt + inter.dirties);
   if (inter.cleans) { obj.dirt = 0; game.recomputeRooms(); }
   if (inter.cleansRoom) {
@@ -538,6 +563,12 @@ function completeInteraction(game: Game, sim: Sim, obj: PlacedObject, inter: Int
       break;
     }
     case 'harvest': obj.growth = 0; break;
+    case 'carve': obj.growth = 100; game.lotChanged(); break;
+    case 'fireworks': game.state.fireworksUntil = game.state.time + 25; game.sound('fireworks'); break;
+    case 'present': if (game.isHousehold(sim)) openPresent(game, sim); break;
+    case 'drive':
+      sim.queue.unshift({ uid: game.nextId(), kind: 'outing', selfId: 'drive', label: 'Go for a drive', icon: '🚗', userQueued: true });
+      break;
     case 'payBills': payBills(game); break;
     case 'lightOn': obj.lightOn = true; game.lotChanged(); break;
     case 'lightOff': obj.lightOn = false; game.lotChanged(); break;
@@ -557,6 +588,11 @@ function completeInteraction(game: Game, sim: Sim, obj: PlacedObject, inter: Int
       inline: { anim: t.anim, duration: t.duration, effects: t.effects, tags: t.tags, moodlet: skillOk ? t.moodlet : 'tasty_snack' },
     });
   }
+}
+
+/** Counter key for things each Sim can only do once per object (open presents, hunt eggs). */
+export function onceKey(obj: PlacedObject, inter: InteractionDef): string {
+  return `once:${obj.id}:${inter.id}`;
 }
 
 /** A key for "the same kind of thing" when judging variety. */

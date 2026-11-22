@@ -8,6 +8,7 @@ import { chance, pick, randInt, random } from './rng';
 import { levelOf, SKILL_NAMES } from './skills';
 import { enqueue, gainSkill, interrupt, payBills } from './actions';
 import type { RunningAction, Sim, SkillId } from './types';
+import { onHour, outingReturn, returnCar, takeCar, worksToday } from './life';
 
 export function careerLevel(sim: Sim): CareerLevel | null {
   if (!sim.career) return null;
@@ -15,8 +16,7 @@ export function careerLevel(sim: Sim): CareerLevel | null {
 }
 
 export function workToday(game: Game, sim: Sim): boolean {
-  const lvl = careerLevel(sim);
-  return !!lvl && lvl.days.includes(game.weekday);
+  return worksToday(game, sim);
 }
 
 export function runSchedules(game: Game, dt: number): void {
@@ -29,7 +29,7 @@ export function runSchedules(game: Game, dt: number): void {
     if ((sim.location === 'work' || sim.location === 'away') && now >= sim.awayUntil) returnHome(game, sim);
     if (!sim.career || sim.location !== 'lot') continue;
     const lvl = careerLevel(sim)!;
-    if (!lvl.days.includes(game.weekday) || sim.career.workedToday) continue;
+    if (!worksToday(game, sim) || sim.career.workedToday) continue;
     const start = lvl.start * 60;
     const busyWithWork = sim.current?.kind === 'work' || sim.queue.some((q) => q.kind === 'work');
     if (minute >= start - 40 && minute < start + 30 && !busyWithWork) {
@@ -70,6 +70,7 @@ export function runSchedules(game: Game, dt: number): void {
     }
     if (prev !== -1 && hour === 9 && game.weekday === 0 && game.day > 0) issueBills(game);
     checkAspirations(game);
+    onHour(game, hour);
   }
 
   // Overdue bills get paid automatically, with a late fee.
@@ -139,13 +140,17 @@ export function arriveAtWork(game: Game, sim: Sim, action: RunningAction): void 
     if (o.cost) game.addFunds(-o.cost);
     sim.location = 'away';
     sim.awayReason = action.selfId;
-    sim.awayUntil = now + o.duration;
+    // Drivers get there and back quicker (lessons and tests use the instructor's car).
+    const usesCar = o.special !== 'lesson' && o.special !== 'drivingTest' && takeCar(game, sim);
+    sim.awayUntil = now + (usesCar && o.duration > 60 && !o.household ? o.duration - 20 : o.duration);
+    if (usesCar && o.id !== 'drive') addMoodlet(sim, 'enjoyed_drive', now);
     return;
   }
   const lvl = careerLevel(sim);
   if (!lvl || !sim.career) return;
   sim.location = 'work';
   sim.awayReason = 'work';
+  takeCar(game, sim);
   sim.career.workedToday = true;
   const day = Math.floor(now / MINUTES_PER_DAY);
   sim.awayUntil = Math.max(now + 60, day * MINUTES_PER_DAY + lvl.end * 60);
@@ -162,7 +167,7 @@ function returnHome(game: Game, sim: Sim): void {
   sim.thinkCooldown = 0;
   const reason = sim.awayReason;
   sim.awayReason = undefined;
-  if (reason === 'work') finishWorkDay(game, sim);
+  if (reason === 'work') { finishWorkDay(game, sim); returnCar(game, sim); }
   else if (reason && OUTINGS[reason]) {
     const o = OUTINGS[reason];
     for (const k in o.effects) {
@@ -172,7 +177,8 @@ function returnHome(game: Game, sim: Sim): void {
     if (o.moodlet) addMoodlet(sim, o.moodlet, now);
     if (o.skill && o.skillXp) gainSkill(game, sim, o.skill, o.skillXp);
     if (o.special === 'marketFind') marketFind(game, sim);
-    game.notify(`${sim.name} is back from ${o.name}.`, o.icon, 'info');
+    if (!o.groceries && !o.special) game.notify(`${sim.name} is back from ${o.name.replace(/ \(.*\)$/, '')}.`, o.icon, 'info');
+    outingReturn(game, sim, reason);
   }
 }
 
@@ -211,9 +217,10 @@ function tryPromote(game: Game, sim: Sim): void {
   const next = def.levels[career.level + 1];
   if (!next) { career.performance = 100; return; }
   const missing = missingForPromotion(sim);
-  if (missing.length) {
+  const needLicence = !!next.licence && !sim.driving.licence;
+  if (missing.length || needLicence) {
     career.performance = 100;
-    const m = missing.map((x) => `${SKILL_NAMES[x.skill].name} ${x.level}`).join(' and ');
+    const m = [...missing.map((x) => `${SKILL_NAMES[x.skill].name} ${x.level}`), ...(needLicence ? ['a driving licence'] : [])].join(' and ');
     game.notify(`${sim.name} is ready for promotion but needs ${m}.`, '📈', 'info');
     return;
   }

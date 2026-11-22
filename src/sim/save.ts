@@ -42,10 +42,18 @@ export function deserialize(text: string): GameState {
   st.flags ??= { lastHour: -1, nextVisitAt: st.time + 600 };
   st.household.marketFinds ??= [];
   st.household.rewardsUnlocked ??= [];
+  st.household.groceries ??= 30;
+  st.household.neighbourMood ??= 80;
+  st.household.nextDoorId ??= st.sims.find((s) => s.isTownie)?.id ?? 0;
+  st.party ??= null;
+  st.noise ??= { tonight: 0, stage: 0 };
+  st.fireworksUntil ??= 0;
+  for (const c of st.sims) if (c.career?.id === 'cafe') c.career = { ...c.career, id: 'coffee', level: Math.min(c.career.level, 4) };
   st.settings ??= { freeWill: 'full', romance: true };
   for (const sim of st.sims) {
     sim.perks ??= [];
     sim.recent ??= [];
+    sim.driving ??= { lessons: 0, licence: false };
     sim.counters ??= {};
     sim.queue ??= [];
     sim.current = null;

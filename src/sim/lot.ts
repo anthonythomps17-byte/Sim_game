@@ -195,6 +195,7 @@ export function homeValue(lot: Lot, prices: { wall: number; door: number; window
   let v = 0;
   for (const obj of lot.objects) {
     const def = OBJECTS[obj.defId];
+    if (def.temp) continue;
     v += def.reward ? 500 : def.price;
   }
   for (const key in lot.walls) {

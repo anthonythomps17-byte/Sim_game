@@ -1,34 +1,298 @@
 {
-  "moodlets": [
-    { "id": "great_meal", "name": "Great meal", "icon": "😋", "value": 20, "duration": 240 },
-    { "id": "tasty_snack", "name": "Tasty snack", "icon": "🍎", "value": 5, "duration": 60 },
-    { "id": "well_rested", "name": "Well rested", "icon": "😌", "value": 15, "duration": 240 },
-    { "id": "fresh", "name": "Fresh and clean", "icon": "✨", "value": 10, "duration": 180 },
-    { "id": "relaxing_soak", "name": "Relaxing soak", "icon": "🛁", "value": 18, "duration": 240 },
-    { "id": "embarrassed", "name": "Embarrassed", "icon": "😳", "value": -25, "duration": 180 },
-    { "id": "inspired", "name": "Inspired", "icon": "💡", "value": 15, "duration": 180 },
-    { "id": "good_chat", "name": "Had a good chat", "icon": "😊", "value": 10, "duration": 120 },
-    { "id": "awkward", "name": "Awkward", "icon": "😬", "value": -10, "duration": 90 },
-    { "id": "promoted", "name": "Promoted!", "icon": "🎉", "value": 35, "duration": 720 },
-    { "id": "good_day", "name": "Good day at work", "icon": "👍", "value": 15, "duration": 240 },
-    { "id": "hard_day", "name": "Hard day at work", "icon": "😩", "value": -15, "duration": 240 },
-    { "id": "missed_work", "name": "Skipped work", "icon": "😟", "value": -10, "duration": 240 },
-    { "id": "good_workout", "name": "Good workout", "icon": "💪", "value": 15, "duration": 180 },
-    { "id": "caffeinated", "name": "Caffeinated", "icon": "☕", "value": 5, "duration": 120 },
-    { "id": "new_friend", "name": "Made a friend", "icon": "🤗", "value": 15, "duration": 240 },
-    { "id": "in_love", "name": "Head over heels", "icon": "💞", "value": 25, "duration": 360 },
-    { "id": "rejected", "name": "Rejected", "icon": "💔", "value": -20, "duration": 180 },
-    { "id": "harvest", "name": "Good harvest", "icon": "🥕", "value": 10, "duration": 120 },
-    { "id": "song_written", "name": "Wrote a song", "icon": "🎼", "value": 20, "duration": 240 },
-    { "id": "bills_late", "name": "Late bills", "icon": "🧾", "value": -15, "duration": 240 },
-    { "id": "fun_outing", "name": "Fun day out", "icon": "🎡", "value": 20, "duration": 240 },
-    { "id": "market_find", "name": "Market bargain", "icon": "🧺", "value": 15, "duration": 180 },
-    { "id": "slept_on_floor", "name": "Slept on the floor", "icon": "🥴", "value": -20, "duration": 240 },
-    { "id": "lovely_room", "name": "Lovely surroundings", "icon": "🌸", "value": 10, "duration": 60 },
-    { "id": "dirty_house", "name": "Messy house", "icon": "🪳", "value": -10, "duration": 60 },
-    { "id": "aspiration", "name": "Goal reached", "icon": "⭐", "value": 25, "duration": 360 },
-    { "id": "skill_up", "name": "Getting better", "icon": "📈", "value": 10, "duration": 120 },
-    { "id": "visited", "name": "Nice visit", "icon": "🏡", "value": 10, "duration": 180 },
-    { "id": "argument", "name": "Had a row", "icon": "😤", "value": -15, "duration": 180 }
-  ]
+ "moodlets": [
+  {
+   "id": "great_meal",
+   "name": "Great meal",
+   "icon": "😋",
+   "value": 20,
+   "duration": 240
+  },
+  {
+   "id": "tasty_snack",
+   "name": "Tasty snack",
+   "icon": "🍎",
+   "value": 5,
+   "duration": 60
+  },
+  {
+   "id": "well_rested",
+   "name": "Well rested",
+   "icon": "😌",
+   "value": 15,
+   "duration": 240
+  },
+  {
+   "id": "fresh",
+   "name": "Fresh and clean",
+   "icon": "✨",
+   "value": 10,
+   "duration": 180
+  },
+  {
+   "id": "relaxing_soak",
+   "name": "Relaxing soak",
+   "icon": "🛁",
+   "value": 18,
+   "duration": 240
+  },
+  {
+   "id": "embarrassed",
+   "name": "Embarrassed",
+   "icon": "😳",
+   "value": -25,
+   "duration": 180
+  },
+  {
+   "id": "inspired",
+   "name": "Inspired",
+   "icon": "💡",
+   "value": 15,
+   "duration": 180
+  },
+  {
+   "id": "good_chat",
+   "name": "Had a good chat",
+   "icon": "😊",
+   "value": 10,
+   "duration": 120
+  },
+  {
+   "id": "awkward",
+   "name": "Awkward",
+   "icon": "😬",
+   "value": -10,
+   "duration": 90
+  },
+  {
+   "id": "promoted",
+   "name": "Promoted!",
+   "icon": "🎉",
+   "value": 35,
+   "duration": 720
+  },
+  {
+   "id": "good_day",
+   "name": "Good day at work",
+   "icon": "👍",
+   "value": 15,
+   "duration": 240
+  },
+  {
+   "id": "hard_day",
+   "name": "Hard day at work",
+   "icon": "😩",
+   "value": -15,
+   "duration": 240
+  },
+  {
+   "id": "missed_work",
+   "name": "Skipped work",
+   "icon": "😟",
+   "value": -10,
+   "duration": 240
+  },
+  {
+   "id": "good_workout",
+   "name": "Good workout",
+   "icon": "💪",
+   "value": 15,
+   "duration": 180
+  },
+  {
+   "id": "caffeinated",
+   "name": "Caffeinated",
+   "icon": "☕",
+   "value": 5,
+   "duration": 120
+  },
+  {
+   "id": "new_friend",
+   "name": "Made a friend",
+   "icon": "🤗",
+   "value": 15,
+   "duration": 240
+  },
+  {
+   "id": "in_love",
+   "name": "Head over heels",
+   "icon": "💞",
+   "value": 25,
+   "duration": 360
+  },
+  {
+   "id": "rejected",
+   "name": "Rejected",
+   "icon": "💔",
+   "value": -20,
+   "duration": 180
+  },
+  {
+   "id": "harvest",
+   "name": "Good harvest",
+   "icon": "🥕",
+   "value": 10,
+   "duration": 120
+  },
+  {
+   "id": "song_written",
+   "name": "Wrote a song",
+   "icon": "🎼",
+   "value": 20,
+   "duration": 240
+  },
+  {
+   "id": "bills_late",
+   "name": "Late bills",
+   "icon": "🧾",
+   "value": -15,
+   "duration": 240
+  },
+  {
+   "id": "fun_outing",
+   "name": "Fun day out",
+   "icon": "🎡",
+   "value": 20,
+   "duration": 240
+  },
+  {
+   "id": "market_find",
+   "name": "Market bargain",
+   "icon": "🧺",
+   "value": 15,
+   "duration": 180
+  },
+  {
+   "id": "slept_on_floor",
+   "name": "Slept on the floor",
+   "icon": "🥴",
+   "value": -20,
+   "duration": 240
+  },
+  {
+   "id": "lovely_room",
+   "name": "Lovely surroundings",
+   "icon": "🌸",
+   "value": 10,
+   "duration": 60
+  },
+  {
+   "id": "dirty_house",
+   "name": "Messy house",
+   "icon": "🪳",
+   "value": -10,
+   "duration": 60
+  },
+  {
+   "id": "aspiration",
+   "name": "Goal reached",
+   "icon": "⭐",
+   "value": 25,
+   "duration": 360
+  },
+  {
+   "id": "skill_up",
+   "name": "Getting better",
+   "icon": "📈",
+   "value": 10,
+   "duration": 120
+  },
+  {
+   "id": "visited",
+   "name": "Nice visit",
+   "icon": "🏡",
+   "value": 10,
+   "duration": 180
+  },
+  {
+   "id": "argument",
+   "name": "Had a row",
+   "icon": "😤",
+   "value": -15,
+   "duration": 180
+  },
+  {
+   "id": "great_party",
+   "name": "Great party!",
+   "icon": "🥳",
+   "value": 30,
+   "duration": 600
+  },
+  {
+   "id": "flat_party",
+   "name": "A bit of a flat party",
+   "icon": "😕",
+   "value": -10,
+   "duration": 240
+  },
+  {
+   "id": "told_off",
+   "name": "Told off by the neighbours",
+   "icon": "😠",
+   "value": -20,
+   "duration": 360
+  },
+  {
+   "id": "amazing_holiday",
+   "name": "Amazing holiday",
+   "icon": "🏝️",
+   "value": 40,
+   "duration": 2880
+  },
+  {
+   "id": "passed_test",
+   "name": "Passed driving test!",
+   "icon": "🚗",
+   "value": 35,
+   "duration": 1440
+  },
+  {
+   "id": "failed_test",
+   "name": "Failed driving test",
+   "icon": "🚧",
+   "value": -15,
+   "duration": 360
+  },
+  {
+   "id": "egg_hunt",
+   "name": "Chocolate eggs!",
+   "icon": "🐣",
+   "value": 15,
+   "duration": 300
+  },
+  {
+   "id": "christmas",
+   "name": "Christmassy",
+   "icon": "🎄",
+   "value": 20,
+   "duration": 720
+  },
+  {
+   "id": "fireworks",
+   "name": "Ooh, fireworks!",
+   "icon": "🎆",
+   "value": 20,
+   "duration": 300
+  },
+  {
+   "id": "new_clothes",
+   "name": "New clothes",
+   "icon": "🛍️",
+   "value": 15,
+   "duration": 720
+  },
+  {
+   "id": "enjoyed_drive",
+   "name": "Enjoyed the drive",
+   "icon": "🚗",
+   "value": 10,
+   "duration": 240
+  },
+  {
+   "id": "empty_fridge",
+   "name": "Nothing in the fridge",
+   "icon": "🥡",
+   "value": -10,
+   "duration": 120
+  }
+ ]
 }

@@ -25,6 +25,7 @@ export class ModelBuilder {
     const arr = new Float32Array(count * 4);
     for (let i = 0; i < count; i++) { arr[i * 4] = c.r; arr[i * 4 + 1] = c.g; arr[i * 4 + 2] = c.b; arr[i * 4 + 3] = 1; }
     m.setVerticesData(VertexBuffer.ColorKind, arr);
+    m.metadata = { color };
     this.parts.push(m);
     return m;
   }
@@ -145,7 +146,77 @@ const toiletShape = (b: ModelBuilder, color: string) => {
   b.box(0.08, 0.03, 0.04, METAL, 0.12, 0.7, -0.2);
 };
 
+const carShape = (b: ModelBuilder, paint: string) => {
+  b.box(1.7, 0.55, 3.7, paint, 0, 0.3, 0);
+  b.box(1.5, 0.55, 2.0, paint, 0, 0.85, -0.25);
+  b.box(1.45, 0.45, 0.04, '#9fc9e0', 0, 0.9, 0.76);
+  b.box(1.45, 0.4, 0.04, '#9fc9e0', 0, 0.92, -1.26);
+  for (const sx of [-1, 1]) b.box(0.04, 0.4, 1.7, '#9fc9e0', sx * 0.76, 0.92, -0.25);
+  for (const sx of [-1, 1]) for (const sz of [-1.15, 1.15]) { const w = b.cyl(0.62, 0.62, 0.3, '#22252b', sx * 0.78, 0.31, sz, 12); w.rotation.z = Math.PI / 2; }
+  for (const sx of [-0.6, 0.6]) b.glow(b.box(0.3, 0.14, 0.04, '#fff6d8', sx, 0.62, 1.86), 'lamp');
+  for (const sx of [-0.65, 0.65]) b.box(0.28, 0.12, 0.04, '#d33', sx, 0.62, -1.86);
+  b.box(1.72, 0.1, 0.12, '#bbb', 0, 0.35, 1.86);
+  b.box(1.72, 0.1, 0.12, '#bbb', 0, 0.35, -1.86);
+};
+
 export const BUILDERS: Record<string, Builder> = {
+  car: (b) => carShape(b, '#3b6fd1'),
+  karaoke: (b) => {
+    b.box(0.6, 0.8, 0.45, '#2b2440', 0, 0, -0.05);
+    b.glow(b.box(0.45, 0.28, 0.01, '#ff8ac8', 0, 0.42, 0.18), 'screen');
+    for (const x of [-0.18, 0.18]) b.cyl(0.14, 0.14, 0.02, '#555', x, 0.15, 0.18, 10).rotation.x = Math.PI / 2;
+    b.cyl(0.03, 0.03, 1.2, '#333', 0.42, 0, 0.15, 6);
+    b.sphere(0.1, '#999', 0.42, 1.25, 0.15);
+  },
+  easter_eggs: (b) => {
+    b.cyl(0.45, 0.35, 0.25, '#c9a46a', 0, 0, 0, 10);
+    const eggCols = ['#f6a5c0', '#a5d8f6', '#f6e3a5', '#b8f6a5', '#d4a5f6'];
+    for (let i = 0; i < 9; i++) {
+      const a = i * 0.7, r = i < 3 ? 0.08 : 0.42 + (i % 2) * 0.12;
+      b.sphere(0.14, eggCols[i % eggCols.length], Math.cos(a) * r, i < 3 ? 0.3 : 0.07, Math.sin(a) * r, 0.8, 1.05, 0.8);
+    }
+  },
+  pumpkin: (b, _d, obj) => {
+    b.sphere(0.6, '#e8741c', 0, 0.26, 0, 1, 0.75, 1, 10);
+    b.cyl(0.05, 0.07, 0.15, '#4f7a2c', 0, 0.48, 0, 6);
+    if ((obj?.growth ?? 0) >= 100) {
+      b.glow(b.box(0.08, 0.08, 0.02, '#ffcc33', -0.1, 0.32, 0.29), 'lamp');
+      b.glow(b.box(0.08, 0.08, 0.02, '#ffcc33', 0.1, 0.32, 0.29), 'lamp');
+      b.glow(b.box(0.24, 0.05, 0.02, '#ffcc33', 0, 0.2, 0.29), 'lamp');
+    }
+  },
+  fireworks_box: (b) => {
+    b.box(0.5, 0.3, 0.4, '#b3261e', 0, 0, 0);
+    for (let i = 0; i < 6; i++) b.cyl(0.07, 0.07, 0.35 + (i % 3) * 0.1, ['#f2c14e', '#4a90d9', '#57b36a'][i % 3], -0.15 + (i % 3) * 0.15, 0.3, -0.08 + Math.floor(i / 3) * 0.16, 6);
+  },
+  christmas_tree: (b) => {
+    b.cyl(0.35, 0.35, 0.3, '#b3261e', 0, 0, 0, 10);
+    b.cyl(0.08, 0.1, 0.4, '#6b4529', 0, 0.3, 0, 6);
+    for (let i = 0; i < 3; i++) b.cyl(0.05, 0.95 - i * 0.25, 0.75, '#2f6b3a', 0, 0.55 + i * 0.45, 0, 8);
+    b.glow(b.sphere(0.14, '#ffe066', 0, 2.05, 0), 'lamp');
+    const cols = ['#ff5a5a', '#ffd23c', '#5ab0ff', '#ff8ad6'];
+    for (let i = 0; i < 14; i++) {
+      const lv = i % 3, a = i * 2.3, r = 0.38 - lv * 0.1;
+      b.glow(b.sphere(0.06, cols[i % 4], Math.cos(a) * r, 0.7 + lv * 0.45 + (i % 2) * 0.15, Math.sin(a) * r), 'lamp');
+    }
+  },
+  presents: (b) => {
+    const cols = [['#c0392b', '#f2c14e'], ['#2e86c1', '#f4f1ea'], ['#57b36a', '#c0392b']];
+    [[-0.2, 0, 0.35], [0.2, 0.1, 0.3], [0, -0.25, 0.25]].forEach(([x, z, s], i) => {
+      b.box(s, s, s, cols[i][0], x, 0, z);
+      b.box(s + 0.01, s + 0.01, 0.05, cols[i][1], x, 0, z);
+      b.box(0.05, s + 0.01, s + 0.01, cols[i][1], x, 0, z);
+    });
+  },
+  rock_jar: (b) => {
+    b.box(0.5, 0.75, 0.5, DARKWOOD, 0, 0, 0);
+    b.glassPart(b.cyl(0.35, 0.35, 0.4, '#ffffff', 0, 0.75, 0, 12));
+    for (let i = 0; i < 6; i++) b.cyl(0.05, 0.05, 0.35, i % 2 ? '#ff6fa8' : '#ffffff', -0.1 + (i % 3) * 0.1, 0.78, -0.05 + Math.floor(i / 3) * 0.1, 6);
+  },
+  flamenco_fan: (b) => {
+    b.box(0.5, 0.9, 0.3, DARKWOOD, 0, 0, 0);
+    for (let i = 0; i < 7; i++) { const s = b.box(0.06, 0.5, 0.02, i % 2 ? '#c0392b' : '#1d1d1d', 0, 1.05, 0); s.rotation.z = (i - 3) * 0.22; }
+  },
   fridge: (b) => {
     b.box(0.82, 1.85, 0.7, WHITE, 0, 0, -0.05);
     b.box(0.8, 0.02, 0.02, '#c9c6bf', 0, 1.15, 0.31);
@@ -485,8 +556,9 @@ export function buildModel(scene: Scene, mats: Materials, def: ObjectDef, obj: P
   root.material = mats.vertexColor;
   const glow: Mesh[] = [];
   for (const g of b.glows) {
-    const color = g.color === 'lamp' ? '#ffd9a0' : g.color === 'screen' ? '#5b8fd6' : g.color === 'water' ? '#5fc4ff' : g.color === 'flask' ? '#9cffb5' : '#fff3b0';
-    g.mesh.material = mats.color(color, { emissive: g.color === 'lamp' ? 0.25 : 0.6 });
+    const color: string = g.mesh.metadata?.color ?? '#fff3b0';
+    const switchable = g.color === 'lamp' && !!def.light && def.id !== 'christmas_tree';
+    g.mesh.material = mats.color(color, { emissive: switchable ? 0.25 : 0.85 });
     g.mesh.metadata = { glowKind: g.color };
     g.mesh.parent = root;
     glow.push(g.mesh);

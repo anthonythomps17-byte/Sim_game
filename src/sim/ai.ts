@@ -8,6 +8,7 @@ import { findRel } from './relationships';
 import { random } from './rng';
 import { activityKey, checkInteraction, totalEffects, socialGainMult } from './actions';
 import { socialCheck } from './social';
+import { partyActive } from './life';
 import type { NeedId, QueuedAction, Sim, SkillId } from './types';
 
 export interface Option { action: Omit<QueuedAction, 'uid'>; score: number; label: string }
@@ -18,9 +19,13 @@ function effectsUtility(sim: Sim, effects: Effects): number {
   return u;
 }
 
+let partyNow = false;
+
 function tagMult(sim: Sim, tags: string[] | undefined): number {
   if (!tags) return 1;
   let m = 1;
+  // Party time: everyone wants to sing, dance and chat.
+  if (partyNow && tags.some((t) => t === 'party' || t === 'dance' || t === 'karaoke' || t === 'social' || t === 'music')) m *= 2.5;
   for (const id of [...sim.traits, ...sim.perks]) {
     const t = ALL_TRAITS[id];
     if (!t?.tagWeight) continue;
@@ -54,6 +59,7 @@ export function scoreOptions(game: Game, sim: Sim): Option[] {
   const options: Option[] = [];
   const lowOnly = game.isHousehold(sim) && game.state.settings.freeWill === 'low';
   const now = game.state.time;
+  partyNow = partyActive(game);
 
   for (const obj of game.state.lot.objects) {
     const def = OBJECTS[obj.defId];
@@ -87,7 +93,10 @@ export function scoreOptions(game: Game, sim: Sim): Option[] {
   for (const self of Object.values(SELF_ACTIONS)) {
     if (self.auto === false || self.ui) continue;
     if (self.special === 'callFriend' && !game.isHousehold(sim)) continue;
-    let score = effectsUtility(sim, totalEffects(sim, self.effects, self.tags)) * 0.6;
+    if (self.condition === 'noFood' && (!game.isHousehold(sim) || game.state.household.groceries >= 2 || game.state.household.funds < (self.cost ?? 0))) continue;
+    // A takeaway's food arrives afterwards, so score it by the meal.
+    const selfFx = self.special === 'takeaway' ? { hunger: 75 } : self.effects;
+    let score = effectsUtility(sim, totalEffects(sim, selfFx, self.tags)) * (self.special === 'takeaway' ? 1 : 0.6);
     if (lowOnly && score < 8) continue;
     score += skillBonus(sim, self.skill, game) * 0.3;
     score *= tagMult(sim, self.tags);

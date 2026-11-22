@@ -92,6 +92,7 @@ export class Menus {
     modal(app.root, 'Settings', [
       h('div', { class: 'settings-row' }, 'Graphics', seg([['low', 'Low'], ['medium', 'Medium'], ['high', 'High']], s.quality, (v) => { s.quality = v; app.applySettings(); })),
       h('div', { class: 'settings-row' }, 'Walls', seg([['up', 'Up'], ['cutaway', 'Cutaway'], ['down', 'Down']], s.wallMode, (v) => { s.wallMode = v; app.applySettings(); })),
+      h('div', { class: 'settings-row' }, h('span', null, 'Skip the night', h('div', { class: 'muted' }, 'Speed up while everyone is asleep')), seg([['off', 'Off'], ['on', 'On']], s.skipSleep ? 'on' : 'off', (v) => { s.skipSleep = v === 'on'; app.applySettings(); })),
       h('div', { class: 'settings-row' }, 'Music', h('input', { type: 'range', min: 0, max: 1, step: 0.05, value: s.music, oninput: (e: Event) => { s.music = Number((e.target as HTMLInputElement).value); app.applySettings(); } })),
       h('div', { class: 'settings-row' }, 'Sound effects', h('input', { type: 'range', min: 0, max: 1, step: 0.05, value: s.sfx, oninput: (e: Event) => { s.sfx = Number((e.target as HTMLInputElement).value); app.applySettings(); } })),
       game ? h('div', { class: 'settings-row' }, h('span', null, 'Free will', h('div', { class: 'muted' }, 'How much Sims do on their own')), seg([['off', 'Off'], ['low', 'Low'], ['full', 'Full']], game.state.settings.freeWill, (v) => { game.state.settings.freeWill = v; })) : null,
