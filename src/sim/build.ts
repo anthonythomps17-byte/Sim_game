@@ -100,7 +100,7 @@ export function eraseWalls(game: Game, keys: string[]): BuildResult {
   return { ok: true, cost: -refund };
 }
 
-export function setWallKind(game: Game, key: string, kind: WallKind): BuildResult {
+export function setWallKind(game: Game, key: string, kind: WallKind, dryRun = false): BuildResult {
   const lot = game.state.lot;
   const wall = lot.walls[key];
   if (!wall) return { ok: false, cost: 0, reason: 'Place it on a wall' };
@@ -108,6 +108,7 @@ export function setWallKind(game: Game, key: string, kind: WallKind): BuildResul
   const price = (k: WallKind) => (k === 'door' ? BUILD_PRICES.door : k === 'window' ? BUILD_PRICES.window : BUILD_PRICES.wall);
   const cost = price(kind) - price(wall.kind);
   if (cost > game.state.household.funds) return { ok: false, cost, reason: 'Not enough money' };
+  if (dryRun) return { ok: true, cost };
   wall.kind = kind;
   game.addFunds(-cost);
   game.lotChanged();
@@ -115,7 +116,7 @@ export function setWallKind(game: Game, key: string, kind: WallKind): BuildResul
   return { ok: true, cost };
 }
 
-export function paintFloor(game: Game, x0: number, z0: number, x1: number, z1: number, floorId: string | null): BuildResult {
+export function paintFloor(game: Game, x0: number, z0: number, x1: number, z1: number, floorId: string | null, dryRun = false): BuildResult {
   const lot = game.state.lot;
   if (floorId && !FLOORS[floorId]) return { ok: false, cost: 0 };
   const [ax, bx] = x0 < x1 ? [x0, x1] : [x1, x0];
@@ -130,6 +131,7 @@ export function paintFloor(game: Game, x0: number, z0: number, x1: number, z1: n
   if (!tiles.length) return { ok: false, cost: 0, reason: 'Nothing to change' };
   const cost = floorId ? tiles.length * BUILD_PRICES.floor : -tiles.filter((i) => lot.floors[i]).length * BUILD_PRICES.floor;
   if (cost > game.state.household.funds) return { ok: false, cost, reason: 'Not enough money' };
+  if (dryRun) return { ok: true, cost };
   for (const i of tiles) lot.floors[i] = floorId;
   game.addFunds(-cost);
   game.lotChanged();
@@ -138,7 +140,7 @@ export function paintFloor(game: Game, x0: number, z0: number, x1: number, z1: n
 }
 
 /** Paint one side of a wall, or every wall side facing the same room. */
-export function paintWall(game: Game, key: string, side: 0 | 1, paintId: string, wholeRoom: boolean): BuildResult {
+export function paintWall(game: Game, key: string, side: 0 | 1, paintId: string, wholeRoom: boolean, dryRun = false): BuildResult {
   const lot = game.state.lot;
   if (!lot.walls[key] || !PAINTS[paintId]) return { ok: false, cost: 0 };
   let targets = [{ key, side }];
@@ -153,6 +155,7 @@ export function paintWall(game: Game, key: string, side: 0 | 1, paintId: string,
   if (!targets.length) return { ok: false, cost: 0, reason: 'Already that colour' };
   const cost = targets.length * BUILD_PRICES.paint;
   if (cost > game.state.household.funds) return { ok: false, cost, reason: 'Not enough money' };
+  if (dryRun) return { ok: true, cost };
   for (const w of targets) lot.walls[w.key].paint[w.side] = paintId;
   game.addFunds(-cost);
   game.lotChanged();

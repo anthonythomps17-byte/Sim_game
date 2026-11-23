@@ -172,18 +172,40 @@ export class BuyMode {
     const p = this.placing;
     if (!p) return;
     const game = this.app.game!;
-    const res = p.moving !== undefined ? moveObject(game, p.moving, p.x, p.z, p.rot) : buyObject(game, p.defId, p.x, p.z, p.rot);
-    if (!res.ok) { this.app.toast(res.reason ?? "Can't place that there.", '🚫'); this.app.sound('error'); return; }
-    if (p.moving !== undefined) this.app.world.lotView.objectMesh(p.moving)?.setEnabled(true);
-    this.placing = null;
-    this.app.world.lotView.setGhost(null);
-    this.renderToolbar();
-    this.renderItems();
+    const done = () => {
+      if (p.moving !== undefined) this.app.world.lotView.objectMesh(p.moving)?.setEnabled(true);
+      this.placing = null;
+      this.app.world.lotView.setGhost(null);
+      this.renderToolbar();
+      this.renderItems();
+    };
+    const fail = (reason?: string) => { this.app.toast(reason ?? "Can't place that there.", '🚫'); this.app.sound('error'); };
+    if (p.moving !== undefined) {
+      const res = moveObject(game, p.moving, p.x, p.z, p.rot);
+      if (!res.ok) { fail(res.reason); return; }
+      done();
+      return;
+    }
+    if (!canPlaceObject(game.state.lot, p.defId, p.x, p.z, p.rot)) { fail("Doesn't fit there"); return; }
+    const cost = Math.round(objectPrice(game, p.defId) * (1 - game.state.household.discount));
+    this.app.spend(cost, `${/^[aeiou]/i.test(OBJECTS[p.defId].name) ? 'an' : 'a'} ${OBJECTS[p.defId].name}`, () => {
+      const res = buyObject(game, p.defId, p.x, p.z, p.rot);
+      if (!res.ok) { fail(res.reason); return false; }
+      done();
+      return true;
+    });
   }
 
   private sell() {
     if (this.selected === null) return;
-    sellObject(this.app.game!, this.selected);
+    const id = this.selected;
+    const obj = this.app.game!.object(id);
+    if (!obj) return;
+    this.app.spend(0, `selling the ${OBJECTS[obj.defId].name}`, () => { this.doSell(id); return true; }, true);
+  }
+
+  private doSell(id: number) {
+    sellObject(this.app.game!, id);
     this.selected = null;
     this.app.world.lotView.setHighlight(null);
     this.renderToolbar();

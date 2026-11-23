@@ -74,6 +74,16 @@ Ashton flavour: red-brick terraces and slate roofs, a church spire and pit-head 
 - **More to do:** summer barbecues (too cold in winter), walks in the park or round the block, bargain hunting at B&M (25% off voucher), and washing the car after driving.
 - **Parties:** tap your Sim → Plan a party. Pick karaoke, dance or barbecue, a time and up to 6 friends. Noise after 10pm upsets the neighbours: first a bang on the wall, then a complaint, then an £80 fine.
 
+## Playing as a family
+
+Menu → **Family players** turns on family mode: several people share one household on one device, passing the tablet between them.
+
+- Each player has a name, a colour and (optionally) a 4-digit PIN, and looks after their own Sims. Others can watch them but not give them instructions.
+- **Money managers** can spend freely. **Family members** get a weekly allowance (reset every Monday). Anything bigger, and household decisions (bills, subscriptions, pets, holidays, selling furniture), needs a money manager to say yes on the spot, with their PIN if they set one.
+- Tap the 👤 player button at the top to switch players.
+
+Playing together on separate devices at the same time isn't supported: it would need an online server and accounts, which the offline, no-chat design avoids. Players can pass a save between devices with Export/Import.
+
 ## The neighbourhood
 
 The streets around the lot follow the layout of a real corner of Ashton: a side street of red-brick terraces, a crossing road just north, an avenue and a park to the west, a curving main road to the east, a wider road to the south and a primary school beyond it, plus a few corner shops. The street and school names are made up on purpose, and no house is marked as anyone's real home, because the game is on a public website. The plan is a list of points in `streets()` in `src/view/scenery.ts`.

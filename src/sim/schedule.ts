@@ -11,6 +11,7 @@ import type { RunningAction, Sim, SkillId } from './types';
 import { onHour, outingReturn, returnCar, takeCar, worksToday } from './life';
 import { billBreakdown } from './home';
 import { takeDog } from './pets';
+import { resetAllowances } from './family';
 
 export function careerLevel(sim: Sim): CareerLevel | null {
   if (!sim.career) return null;
@@ -252,6 +253,7 @@ function issueBills(game: Game): void {
   const b = billBreakdown(game);
   const amount = b.total;
   game.state.household.extraEnergy = 0;
+  resetAllowances(game.state);
   if (game.state.bills) game.state.bills.amount += amount;
   else game.state.bills = { amount, issued: game.state.time, dueBy: game.state.time + 3 * MINUTES_PER_DAY };
   const parts = [`home £${b.home}`, `energy £${b.energy}${b.energySaved ? ` (saved £${b.energySaved})` : ''}`, b.subscriptions ? `TV £${b.subscriptions}` : '', b.pets ? `pets £${b.pets}` : ''].filter(Boolean).join(', ');

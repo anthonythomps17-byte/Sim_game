@@ -9,6 +9,7 @@ import { NEED_IDS, SKILL_IDS, type GameNotification, type Sim } from '../sim/typ
 import type { App } from './app';
 import { calendarOf, eventsOn, PARTY_THEMES } from '../sim/life';
 import { neighbourFace } from './panels';
+import { activePlayer, ownerOf } from '../sim/family';
 import { bar, clear, h, initials, money } from './dom';
 
 type Tab = 'needs' | 'skills' | 'career' | 'people' | 'goals';
@@ -18,6 +19,7 @@ export class Hud {
   private fundsEl!: HTMLElement;
   private foodEl!: HTMLElement;
   private homeBadge!: HTMLElement;
+  private playerBtn!: HTMLElement;
   private partyEl!: HTMLElement;
   private timeEl!: HTMLElement;
   private speedBtns: HTMLButtonElement[] = [];
@@ -58,7 +60,7 @@ export class Hud {
     const top = h('div', { class: 'topbar' },
       h('div', { class: 'panel money' }, this.fundsEl, this.foodEl),
       h('div', { class: 'panel clock' }, this.timeEl, ...this.speedBtns, this.ffEl),
-      h('div', { class: 'top-right' }, home, bell, menu),
+      h('div', { class: 'top-right' }, this.playerBtn = h('button', { class: 'btn player-chip', 'aria-label': 'Switch player', onclick: () => app.panels.switchPlayer() }), home, bell, menu),
     );
     this.portraitsEl = h('div', { class: 'portraits' });
     this.panelEl = h('div', { class: 'panel simpanel' });
@@ -113,6 +115,9 @@ export class Hud {
     const cal = calendarOf(game.day);
     const ev = eventsOn(game.day).map((e) => e.icon).join('');
     this.timeEl.append(`${hour12}:${String(mm).padStart(2, '0')} ${hh < 12 ? 'am' : 'pm'}`, h('small', null, `${DAY_NAMES[game.weekday].slice(0, 3)} · ${cal.season.icon} ${cal.season.name} ${cal.dayOfSeason} ${ev}`));
+    const me = activePlayer(st);
+    this.playerBtn.style.display = me ? '' : 'none';
+    if (me) { this.playerBtn.textContent = `👤 ${me.name}`; this.playerBtn.style.boxShadow = `inset 0 0 0 3px ${me.color}`; }
     const house = st.household;
     const problems = st.lot.objects.filter((o) => o.broken).length + (house.dust >= 70 ? 1 : 0) + (house.weeds >= 70 ? 1 : 0) + (house.rubbish >= 100 ? 1 : 0);
     this.homeBadge.textContent = problems ? '!' : '';
@@ -151,7 +156,7 @@ export class Hud {
   private renderPortraits() {
     const game = this.app.game!;
     const sims = game.household();
-    const sig = sims.map((s) => `${s.id}:${s.location}:${moodLabel(moodScore(s)).label}:${s.current?.icon ?? ''}:${game.state.selectedSimId}`).join('|');
+    const sig = sims.map((s) => `${s.id}:${s.location}:${moodLabel(moodScore(s)).label}:${s.current?.icon ?? ''}:${game.state.selectedSimId}:${ownerOf(game.state, s.id)?.color ?? ''}`).join('|') + (activePlayer(game.state)?.id ?? '');
     if (!this.changed('portraits', sig)) return;
     clear(this.portraitsEl);
     for (const sim of sims) {
@@ -159,7 +164,7 @@ export class Hud {
       const away = sim.location !== 'lot';
       const p = h('button', {
         class: `portrait ${sim.id === game.state.selectedSimId ? 'sel' : ''} ${away ? 'away' : ''}`,
-        style: `background:${sim.appearance.topColor}`,
+        style: `background:${sim.appearance.topColor};${ownerOf(game.state, sim.id) ? `border-color:${ownerOf(game.state, sim.id)!.color}` : ''}`,
         'aria-label': `Select ${sim.name}`,
         onclick: () => this.app.selectSim(sim.id, true),
       },

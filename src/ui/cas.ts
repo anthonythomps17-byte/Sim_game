@@ -14,6 +14,7 @@ export class CasScreen {
   private idx = 0;
   private household = '';
   private tab: Tab = 'who';
+  private expanded = false;
   private panel!: HTMLElement;
   private rng = { rng: Math.floor(Math.random() * 1e9) } as GameState;
 
@@ -37,7 +38,12 @@ export class CasScreen {
     this.render();
   }
 
+  private lastTab: Tab | null = null;
+
   private render() {
+    const prevScroll = (this.el.querySelector('.cas-scroll') as HTMLElement | null)?.scrollTop ?? 0;
+    const keepScroll = this.lastTab === this.tab;
+    this.lastTab = this.tab;
     clear(this.el);
     this.app.casView.show(this.d.appearance);
     const members = h('div', { class: 'cas-members' },
@@ -50,19 +56,26 @@ export class CasScreen {
     );
     const tabs = h('div', { class: 'tabs' }, ...([['who', 'Personality'], ['look', 'Body'], ['face', 'Face'], ['hair', 'Hair'], ['clothes', 'Clothes']] as [Tab, string][])
       .map(([t, l]) => h('button', { class: `tab ${t === this.tab ? 'on' : ''}`, onclick: () => { this.tab = t; this.app.casView.zoomFace(t === 'hair' || t === 'face'); this.render(); } }, l)));
-    const scroll = h('div', { class: 'cas-scroll' });
-    this.renderTab(scroll);
-    this.panel = h('div', { class: 'panel cas-panel' },
-      h('div', { class: 'opt-label', style: 'margin-top:0' }, 'Household name'),
-      h('input', { type: 'text', value: this.household, maxlength: 24, 'aria-label': 'Household name', oninput: (e: Event) => { this.household = (e.target as HTMLInputElement).value; } }),
-      h('div', { class: 'opt-label' }, `Your household (${this.drafts.length}/4)`),
-      members, tabs, scroll,
+    const content = h('div', { class: 'cas-content' });
+    this.renderTab(content);
+    // The whole panel scrolls; the tabs stay pinned at the top so every section has room.
+    const scroll = h('div', { class: 'cas-scroll' },
+      h('div', { class: 'cas-head' },
+        h('input', { type: 'text', value: this.household, maxlength: 24, 'aria-label': 'Household name', placeholder: 'Household name', oninput: (e: Event) => { this.household = (e.target as HTMLInputElement).value; } }),
+        h('button', { class: 'btn icon-btn ghost', 'aria-label': this.expanded ? 'Show my Sim' : 'Make this panel bigger', title: this.expanded ? 'Show my Sim' : 'Bigger panel', onclick: () => { this.expanded = !this.expanded; this.render(); } }, this.expanded ? '⤡' : '⤢'),
+      ),
+      members,
+      h('div', { class: 'cas-tabs' }, tabs),
+      content);
+    this.panel = h('div', { class: `panel cas-panel ${this.expanded ? 'expanded' : ''}` },
+      scroll,
       h('div', { class: 'cas-foot' },
-        h('button', { class: 'btn ghost', onclick: () => this.app.showTitle() }, '← Back'),
+        h('button', { class: 'btn ghost', onclick: () => this.app.showTitle() }, '←'),
         h('button', { class: 'btn', onclick: () => { const keep = this.d.name; this.drafts[this.idx] = randomDraft(this.rng, keep.split(' ')[1]); this.update(); } }, '🎲 Random'),
         h('button', { class: 'btn primary', style: 'margin-left:auto', onclick: () => this.done() }, 'Done ✓'),
       ),
     );
+    if (keepScroll) requestAnimationFrame(() => { scroll.scrollTop = prevScroll; });
     this.el.append(this.panel,
       h('div', { class: 'cas-tools' },
         h('button', { class: 'btn', onclick: () => { this.app.casView.anim = this.app.casView.anim === 'wave' ? 'dance' : this.app.casView.anim === 'dance' ? 'idle' : 'wave'; } }, '💃 Pose'),

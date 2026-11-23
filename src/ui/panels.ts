@@ -5,6 +5,7 @@ import { ACCESSORIES, BOTTOMS, CLOTH_COLORS, normalizeAppearance, SHOES, TOPS } 
 import { addMoodlet } from '../sim/mood';
 import { PET_SPECIES } from '../sim/defs';
 import { adoptPet, adoptQuote, MAX_PETS, petHappiness, rehomePet, speciesOf } from '../sim/pets';
+import { activePlayer, familyOn, managers, newPlayer, ownerOf, PLAYER_COLORS } from '../sim/family';
 import { billBreakdown, BIN_DAY, binsOverflowing, boiler, ENGINEER_COST, hasHeatPump, noHotWater, PLUMBER_COST, SUBSCRIPTIONS, wheelieBin, type SubscriptionId } from '../sim/home';
 import { DAY_NAMES } from '../sim/game';
 import { joinCareer, quitCareer } from '../sim/schedule';
@@ -172,10 +173,13 @@ export class Panels {
       h('button', { class: 'btn ghost', onclick: () => close() }, 'Cancel'),
       h('button', { class: 'btn primary', onclick: () => {
         const day = Math.floor(st.time / 1440);
-        const res = planParty(game, host, theme, day * 1440 + startHour * 60, [...guests]);
-        if (!res.ok) { this.app.toast(res.why ?? 'Could not plan the party.', '🎉'); return; }
-        this.app.flushEvents();
         close();
+        this.app.spend(guests.size * PARTY_COST_PER_GUEST, 'a party', () => {
+          const res = planParty(game, host, theme, day * 1440 + startHour * 60, [...guests]);
+          if (!res.ok) { this.app.toast(res.why ?? 'Could not plan the party.', '🎉'); return false; }
+          this.app.flushEvents();
+          return true;
+        });
       } }, '🎉 Send invitations'),
     ]);
   }
@@ -224,9 +228,14 @@ export class Panels {
       h('button', { class: 'btn primary', onclick: () => {
         const t = total();
         if (t > game.state.household.funds) { this.app.toast("You can't afford all that.", '💸'); return; }
-        if (t > 0) { game.addFunds(-t); addMoodlet(sim, 'new_clothes', game.state.time); this.app.toast(`New outfit for ${money(t)}!`, '🛍️'); this.app.sound('cash'); }
+        const chosen = { ...sim.appearance };
         bought = true;
+        sim.appearance = original;
         close();
+        this.app.spend(t, 'new clothes', () => {
+          sim.appearance = chosen;
+          if (t > 0) { game.addFunds(-t); addMoodlet(sim, 'new_clothes', game.state.time); this.app.toast(`New outfit for ${money(t)}!`, '🛍️'); this.app.sound('cash'); }
+        });
       } }, '🛍️ Buy'),
     ], () => { if (!bought) sim.appearance = original; });
   }
@@ -283,7 +292,7 @@ export class Panels {
     for (const n of st.notifications) n.read = true;
     const billCard = bills ? h('div', { class: 'card on' }, h('div', { class: 'row' }, h('span', { style: 'font-size:26px' }, '🧾'),
       h('div', { class: 'grow' }, h('div', { class: 't' }, `Bills due: ${money(bills.amount)}`), h('div', { class: 's' }, `Pay before ${DAY_NAMES[Math.floor(bills.dueBy / 1440) % 7]} to avoid a late fee.`)),
-      h('button', { class: 'btn small primary', onclick: () => { payBills(game); this.app.flushEvents(); close(); } }, 'Pay'))) : null;
+      h('button', { class: 'btn small primary', onclick: () => { close(); this.app.spend(bills.amount, 'the bills', () => { payBills(game); this.app.flushEvents(); }, true); } }, 'Pay'))) : null;
     close = modal(this.root, 'Messages', [billCard, ...(list.length ? list : [h('p', { class: 'muted' }, 'Nothing yet.')])]);
   }
 
@@ -388,10 +397,13 @@ export class Panels {
     ], [
       h_('button', { class: 'btn ghost', onclick: () => close() }, 'Back'),
       h_('button', { class: 'btn primary', onclick: () => {
-        const res = adoptPet(game, speciesId, name, color);
-        if (!res.ok) { this.app.toast(res.why ?? "Couldn't adopt", sp.icon); return; }
-        this.app.flushEvents();
         close();
+        this.app.spend(adoptQuote(game, speciesId).total, `adopting a ${sp.name.toLowerCase()}`, () => {
+          const res = adoptPet(game, speciesId, name, color);
+          if (!res.ok) { this.app.toast(res.why ?? "Couldn't adopt", sp.icon); return false; }
+          this.app.flushEvents();
+          return true;
+        }, true);
       } }, `Adopt ${sp.icon}`),
     ]);
   }
@@ -412,7 +424,7 @@ export class Panels {
       const on = h.subscriptions[id];
       return h_('div', { class: 'card' }, h_('div', { class: 'row' }, h_('span', { style: 'font-size:26px' }, sub.icon),
         h_('div', { class: 'grow' }, h_('div', { class: 't' }, `${sub.name} · £${sub.weekly}/week`), h_('div', { class: 's' }, sub.desc)),
-        h_('button', { class: `btn small ${on ? '' : 'primary'}`, onclick: () => { h.subscriptions[id] = !on; this.app.toast(on ? `${sub.name} cancelled.` : `Subscribed to ${sub.name}! Added to your weekly bills.`, sub.icon); close(); this.home(); } }, on ? 'Cancel' : 'Subscribe')));
+        h_('button', { class: `btn small ${on ? '' : 'primary'}`, onclick: () => { close(); this.app.spend(on ? 0 : sub.weekly, `a ${sub.name} subscription`, () => { h.subscriptions[id] = !on; this.app.toast(on ? `${sub.name} cancelled.` : `Subscribed to ${sub.name}! Added to your weekly bills.`, sub.icon); this.home(); }, true); } }, on ? 'Cancel' : 'Subscribe')));
     };
     const fixButtons = broken.map((o) => {
       const def = OBJECTS[o.defId];
@@ -420,16 +432,15 @@ export class Panels {
       const cost = isBoiler ? ENGINEER_COST : PLUMBER_COST;
       return h_('div', { class: 'card on' }, h_('div', { class: 'row' }, h_('span', { style: 'font-size:26px' }, isBoiler ? '🔥' : '🪠'),
         h_('div', { class: 'grow' }, h_('div', { class: 't' }, isBoiler ? 'Boiler broken: no hot water' : `${def.name} is blocked`), h_('div', { class: 's' }, 'Tap it in the house to try fixing it yourself, or pay to fix it now.')),
-        h_('button', { class: 'btn small primary', disabled: h.funds < cost, onclick: () => {
+        h_('button', { class: 'btn small primary', disabled: h.funds < cost, onclick: () => { close(); this.app.spend(cost, isBoiler ? 'a heating engineer' : 'a plumber', () => {
           o.broken = false;
           if (isBoiler) o.growth = game.day;
           game.addFunds(-cost);
           game.lotChanged();
           this.app.toast(isBoiler ? `Engineer fixed the boiler (£${cost}).` : `Plumber fixed the ${def.name.toLowerCase()} (£${cost}).`, '🔧');
           this.app.sound('cash');
-          close();
           this.home();
-        } }, `Pay £${cost}`)));
+        }); } }, `Pay £${cost}`)));
     });
     const nextBin = (BIN_DAY - game.weekday + 7) % 7;
     close = modal(this.root, 'Home', [
@@ -461,6 +472,108 @@ export class Panels {
       subRow('sky'),
       h.discount ? h_('p', { class: 'chip good' }, `🏷️ You have a ${Math.round(h.discount * 100)}% off voucher for your next Buy mode purchase.`) : null,
     ]);
+  }
+
+  /** Ask a money manager (on the same device) to approve spending. */
+  approval(what: string, amount: number, reason: 'needsApproval' | 'managerOnly', left: number, onApproved: () => void) {
+    const st = this.app.game!.state;
+    const me = activePlayer(st);
+    const mgrs = managers(st);
+    let close = () => {};
+    const pinInput = h_('input', { type: 'password', inputmode: 'numeric', maxlength: 4, placeholder: 'Money manager PIN', 'aria-label': 'Money manager PIN', style: 'margin-top:8px' }) as HTMLInputElement;
+    const needsPin = mgrs.some((m) => m.pin);
+    close = modal(this.root, 'Ask a money manager', [
+      h_('p', null, reason === 'managerOnly'
+        ? `${me?.name}, ${what} is a household decision${amount ? ` (${money(amount)})` : ''}.`
+        : `${me?.name}, ${what} costs ${money(amount)}, but you have ${money(left)} left of your allowance this week.`),
+      h_('p', { class: 'muted' }, `Hand the tablet to ${mgrs.map((m) => m.name).join(' or ')} to say yes or no.`),
+      needsPin ? pinInput : null,
+    ], [
+      h_('button', { class: 'btn ghost', onclick: () => { close(); this.app.toast(`${mgrs[0]?.name ?? 'The money manager'} said no this time.`, '🙅'); } }, '🙅 No'),
+      h_('button', { class: 'btn primary', onclick: () => {
+        if (needsPin && !mgrs.some((m) => m.pin && m.pin === pinInput.value)) { this.app.toast("That PIN isn't right.", '🔒'); return; }
+        close();
+        this.app.toast('Approved!', '👍');
+        onApproved();
+      } }, '👍 Yes'),
+    ]);
+  }
+
+  /** Pick who is playing now. */
+  switchPlayer() {
+    const st = this.app.game!.state;
+    if (!familyOn(st)) { this.family(); return; }
+    let close = () => {};
+    const rows = st.family!.players.map((p) => {
+      const sims = this.app.game!.household().filter((s) => ownerOf(st, s.id)?.id === p.id).map((s) => s.name.split(' ')[0]);
+      const pin = h_('input', { type: 'password', inputmode: 'numeric', maxlength: 4, placeholder: 'PIN', 'aria-label': `${p.name}'s PIN`, style: 'width:90px' }) as HTMLInputElement;
+      return h_('div', { class: `card ${p.id === st.family!.activeId ? 'on' : ''}` }, h_('div', { class: 'row' },
+        h_('span', { class: 'portrait', style: `width:42px;height:42px;font-size:14px;border-width:3px;background:${p.color}` }, initials(p.name)),
+        h_('div', { class: 'grow' }, h_('div', { class: 't' }, p.name), h_('div', { class: 's' }, `${p.role === 'manager' ? '💷 Money manager' : `Allowance ${money(Math.max(0, p.allowance - p.spent))} left`}${sims.length ? ` · plays ${sims.join(', ')}` : ''}`)),
+        p.pin ? pin : null,
+        h_('button', { class: 'btn small primary', onclick: () => {
+          if (p.pin && pin.value !== p.pin) { this.app.toast("That PIN isn't right.", '🔒'); return; }
+          close();
+          this.app.switchPlayer(p.id);
+        } }, 'Play')));
+    });
+    close = modal(this.root, "Who's playing?", [h_('p', { class: 'muted' }, 'Pass the tablet to the next player.'), ...rows], [h_('button', { class: 'btn', onclick: () => { close(); this.family(); } }, '⚙️ Set up players')]);
+  }
+
+  /** Set up family players: names, roles, allowances, PINs and which Sims they look after. */
+  family() {
+    const game = this.app.game!;
+    const st = game.state;
+    let close = () => {};
+    const redraw = () => { close(); this.family(); };
+    const on = familyOn(st);
+    const body: (HTMLElement | null)[] = [
+      h_('p', { class: 'muted' }, 'Share one household with family or friends on this device. Each player looks after their own Sims. Money managers decide on big spending; other players get a weekly allowance.'),
+      h_('div', { class: 'settings-row' }, 'Family mode', h_('div', { class: 'seg' },
+        h_('button', { class: on ? 'on' : '', onclick: () => {
+          if (!st.family || !st.family.players.length) {
+            newPlayer(st, 'Mum', 'manager');
+            const kid = newPlayer(st, 'Me', 'member');
+            game.household().forEach((s, i) => { st.family!.owners[s.id] = i === 0 ? kid.id : st.family!.players[0].id; });
+          }
+          st.family!.enabled = true;
+          redraw();
+        } }, 'On'),
+        h_('button', { class: on ? '' : 'on', onclick: () => { if (st.family) st.family.enabled = false; redraw(); } }, 'Off'))),
+    ];
+    if (on) {
+      const sims = game.household();
+      for (const p of st.family!.players) {
+        const mine = sims.filter((s) => st.family!.owners[s.id] === p.id);
+        body.push(h_('div', { class: 'card', style: `border-left:6px solid ${p.color}` },
+          h_('div', { class: 'row' },
+            h_('input', { type: 'text', value: p.name, maxlength: 14, 'aria-label': 'Player name', style: 'flex:1', oninput: (e: Event) => { p.name = (e.target as HTMLInputElement).value || 'Player'; } }),
+            h_('button', { class: 'btn small ghost', 'aria-label': 'Remove player', disabled: st.family!.players.length <= 1, onclick: () => {
+              st.family!.players = st.family!.players.filter((x) => x !== p);
+              for (const k of Object.keys(st.family!.owners)) if (st.family!.owners[Number(k)] === p.id) delete st.family!.owners[Number(k)];
+              if (st.family!.activeId === p.id) st.family!.activeId = st.family!.players[0].id;
+              redraw();
+            } }, '✕')),
+          h_('div', { class: 'opts', style: 'margin-top:8px' },
+            ...(['manager', 'member'] as const).map((r) => h_('button', { class: `opt ${p.role === r ? 'on' : ''}`, onclick: () => { p.role = r; redraw(); } }, r === 'manager' ? '💷 Money manager' : '🙂 Family member'))),
+          p.role === 'member' ? h_('div', { class: 'settings-row' }, `Weekly allowance: ${money(p.allowance)}`,
+            h_('input', { type: 'range', min: 0, max: 2000, step: 50, value: p.allowance, 'aria-label': 'Weekly allowance', oninput: (e: Event) => { p.allowance = Number((e.target as HTMLInputElement).value); ((e.target as HTMLElement).parentElement!.firstChild as Text).textContent = `Weekly allowance: ${money(p.allowance)}`; } })) : null,
+          h_('div', { class: 'settings-row' }, 'PIN (optional)',
+            h_('input', { type: 'password', inputmode: 'numeric', maxlength: 4, value: p.pin, placeholder: '4 digits', 'aria-label': 'PIN', style: 'width:110px', oninput: (e: Event) => { p.pin = (e.target as HTMLInputElement).value.replace(/\D/g, '').slice(0, 4); } })),
+          h_('div', { class: 'opt-label' }, 'Looks after'),
+          h_('div', { class: 'opts' }, ...sims.map((s) => h_('button', { class: `opt ${mine.includes(s) ? 'on' : ''}`, onclick: () => {
+            if (st.family!.owners[s.id] === p.id) delete st.family!.owners[s.id]; else st.family!.owners[s.id] = p.id;
+            redraw();
+          } }, s.name.split(' ')[0]))),
+        ));
+      }
+      if (st.family!.players.length < 6) body.push(h_('button', { class: 'btn', onclick: () => { newPlayer(st, `Player ${st.family!.players.length + 1}`, 'member'); redraw(); } }, '＋ Add a player'));
+      const unowned = game.household().filter((s) => st.family!.owners[s.id] === undefined);
+      if (unowned.length) body.push(h_('p', { class: 'muted' }, `${unowned.map((s) => s.name.split(' ')[0]).join(', ')} can be played by anyone.`));
+      if (!managers(st).length) body.push(h_('p', { class: 'muted', style: 'color:var(--bad)' }, 'Tip: make someone a money manager, otherwise everyone can spend freely.'));
+    }
+    close = modal(this.root, '👨‍👩‍👧 Family players', body, [h_('button', { class: 'btn primary', onclick: () => { close(); this.app.hud.refresh(); } }, 'Done')]);
+    void PLAYER_COLORS;
   }
 
   confirm(title: string, text: string, yes: string, onYes: () => void) {

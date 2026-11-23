@@ -235,8 +235,32 @@ export interface GameState {
   flags: { lastHour: number; nextVisitAt: number; lowFoodWarned?: boolean };
   party: Party | null;
   pets: Pet[];
+  /** Family mode: several people sharing one household on one device. */
+  family?: FamilyState;
   noise: { tonight: number; stage: number };
   fireworksUntil: number;
+}
+
+export type PlayerRole = 'manager' | 'member';
+
+export interface Player {
+  id: number;
+  name: string;
+  color: string;
+  role: PlayerRole;
+  /** Weekly spending allowance for members (managers can spend freely). */
+  allowance: number;
+  spent: number;
+  /** Optional 4-digit PIN so players can't switch to each other (or approve their own spending). */
+  pin: string;
+}
+
+export interface FamilyState {
+  enabled: boolean;
+  players: Player[];
+  activeId: number;
+  /** Which player looks after each Sim. Sims not listed can be played by anyone. */
+  owners: Record<number, number>;
 }
 
 export type PetAnim = 'idle' | 'walk' | 'run' | 'sleep' | 'sit' | 'eat' | 'happy' | 'pounce' | 'hop';

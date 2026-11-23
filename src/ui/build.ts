@@ -115,6 +115,12 @@ export class BuildMode {
     this.app.world?.lotView.setFloorPreview(null);
   }
 
+  /** Check the cost first (family mode may need a money manager), then build. */
+  private paid(quote: { ok: boolean; cost: number; reason?: string }, what: string, run: () => { ok: boolean; reason?: string }) {
+    if (!quote.ok) { this.result(quote); return; }
+    this.app.spend(quote.cost, what, () => { const r = run(); this.result(r); return r.ok; });
+  }
+
   private result(res: { ok: boolean; reason?: string }) {
     if (!res.ok && res.reason) { this.app.toast(res.reason, '🚫'); this.app.sound('error'); }
     this.render();
@@ -130,19 +136,21 @@ export class BuildMode {
         const w = this.app.world.pickWall(x, y);
         if (!w) { this.app.toast('Tap on a wall.', '🧱'); return; }
         const cur = game.state.lot.walls[w.key];
-        this.result(setWallKind(game, w.key, cur?.kind === this.tool ? 'wall' : this.tool));
+        const kind = cur?.kind === this.tool ? 'wall' : this.tool;
+        this.paid(setWallKind(game, w.key, kind, true), `a ${this.tool}`, () => setWallKind(game, w.key, kind));
         return;
       }
       case 'paint': {
         const w = this.app.world.pickWall(x, y);
         if (!w) { this.app.toast('Tap on a wall.', '🧱'); return; }
-        this.result(paintWall(game, w.key, w.side, this.paint, this.wholeRoom));
+        this.paid(paintWall(game, w.key, w.side, this.paint, this.wholeRoom, true), 'some paint', () => paintWall(game, w.key, w.side, this.paint, this.wholeRoom));
         return;
       }
       case 'floor':
       case 'erasefloor': {
         const t = this.tile(x, y);
-        if (t) this.result(paintFloor(game, t.x, t.z, t.x, t.z, this.tool === 'floor' ? this.floor : null));
+        const f = this.tool === 'floor' ? this.floor : null;
+        if (t) this.paid(paintFloor(game, t.x, t.z, t.x, t.z, f, true), 'new flooring', () => paintFloor(game, t.x, t.z, t.x, t.z, f));
         return;
       }
     }
@@ -175,13 +183,15 @@ export class BuildMode {
     if (!d || cancelled) { this.render(); return; }
     const game = this.app.game!;
     if (this.tool === 'floor' || this.tool === 'erasefloor') {
-      this.result(paintFloor(game, d.x0, d.z0, d.x1, d.z1, this.tool === 'floor' ? this.floor : null));
+      const f = this.tool === 'floor' ? this.floor : null;
+      this.paid(paintFloor(game, d.x0, d.z0, d.x1, d.z1, f, true), 'new flooring', () => paintFloor(game, d.x0, d.z0, d.x1, d.z1, f));
       return;
     }
     this.drag = d;
     const keys = this.keysForDrag();
     this.drag = null;
-    this.result(this.tool === 'erase' ? eraseWalls(game, keys) : placeWalls(game, keys));
+    if (this.tool === 'erase') { this.result(eraseWalls(game, keys)); return; }
+    this.paid(placeWalls(game, keys, true), 'new walls', () => placeWalls(game, keys));
   }
 }
 

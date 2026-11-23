@@ -9,6 +9,7 @@ import { OBJECTS, OUTINGS, SELF_ACTIONS } from '../sim/defs';
 import { scheduleNextVisit } from '../sim/schedule';
 import { gameMinutesPerSecond, householdOuting } from '../sim/life';
 import { label as petLabel, occupant, petActionsFor } from '../sim/pets';
+import { activePlayer, canControl, checkSpend, ownerOf, recordSpend } from '../sim/family';
 import type { GameEvent, GameState, Sim } from '../sim/types';
 import { WorldView } from '../view/world';
 import { CasView } from '../view/casView';
@@ -235,6 +236,23 @@ export class App {
     this.applySettings();
   }
 
+  // ---------- Family mode ----------
+
+  /**
+   * Spend money for the active player. In family mode, members use their weekly allowance and a
+   * money manager approves anything bigger (or household decisions like bills and pets).
+   * `action` returns false if it didn't go ahead.
+   */
+  spend(amount: number, what: string, action: () => boolean | void, householdDecision = false) {
+    const st = this.game!.state;
+    const chk = checkSpend(st, amount, householdDecision);
+    if (chk.ok) {
+      if (action() !== false) recordSpend(st, amount);
+      return;
+    }
+    this.panels.approval(what, amount, chk.reason, chk.left, () => { action(); });
+  }
+
   // ---------- Commands from the HUD ----------
 
   setSpeed(s: 0 | 1 | 2 | 3) {
@@ -266,6 +284,8 @@ export class App {
     if (game.state.selectedSimId === id && focus && sim.location === 'lot') this.world.cam.focus(sim.pos.x, sim.pos.z);
     game.state.selectedSimId = id;
     if (focus && sim.location === 'lot') this.world.cam.focus(sim.pos.x, sim.pos.z);
+    const owner = ownerOf(game.state, sim.id);
+    if (owner && !canControl(game.state, sim)) this.toast(`${sim.name.split(' ')[0]} belongs to ${owner.name}. You can watch, but only ${owner.name} can give instructions.`, '👤');
     if (sim.location === 'work') this.toast(`${sim.name} is at work.`, '💼');
     else if (sim.location === 'away') this.toast(`${sim.name} is out and about.`, '🚶');
     this.sound('tap');
@@ -282,6 +302,11 @@ export class App {
 
   private queue(sim: Sim, action: Parameters<typeof enqueue>[2]) {
     if (!this.game) return;
+    if (!canControl(this.game.state, sim)) {
+      const owner = ownerOf(this.game.state, sim.id);
+      this.toast(`${sim.name.split(' ')[0]} is ${owner?.name}'s Sim. Switch to ${owner?.name} to play them.`, '👤');
+      return;
+    }
     if (sim.location !== 'lot') { this.toast(`${sim.name} isn't home right now.`, '🚶'); return; }
     const uid = enqueue(this.game, sim, { ...action, userQueued: true });
     if (uid < 0) { this.toast('The action queue is full.', '✋'); return; }
@@ -293,10 +318,26 @@ export class App {
     const o = OUTINGS[id];
     if (o.household) {
       const n = this.game!.household().filter((s) => s.location === 'lot').length;
-      this.panels.confirm(o.name.replace(/ \(.*\)$/, ''), `Everyone at home goes together. It costs £${(o.cost ?? 0) * n} in total. Jobs give you the time off.`, 'Book it! ✈️', () => { householdOuting(this.game!, id); this.hud.refresh(); });
+      const total = (o.cost ?? 0) * n;
+      this.panels.confirm(o.name.replace(/ \(.*\)$/, ''), `Everyone at home goes together. It costs £${total} in total. Jobs give you the time off.`, 'Book it! ✈️', () => {
+        this.spend(total, 'a family holiday', () => { householdOuting(this.game!, id); this.hud.refresh(); }, true);
+      });
       return;
     }
-    this.queue(sim, { kind: 'outing', selfId: id, label: o.name, icon: o.icon, userQueued: true });
+    if (!canControl(this.game!.state, sim)) { this.queue(sim, { kind: 'outing', selfId: id, label: o.name, icon: o.icon, userQueued: true }); return; }
+    this.spend(o.cost ?? 0, o.name.replace(/ \(.*\)$/, ''), () => { this.queue(sim, { kind: 'outing', selfId: id, label: o.name, icon: o.icon, userQueued: true }); });
+  }
+
+  /** Hand the tablet to another player. */
+  switchPlayer(id: number) {
+    const st = this.game?.state;
+    if (!st?.family) return;
+    st.family.activeId = id;
+    const me = activePlayer(st);
+    const mine = this.game!.household().find((s) => ownerOf(st, s.id)?.id === id);
+    if (mine) this.selectSim(mine.id, true);
+    this.toast(`${me?.name} is playing now.`, '👤');
+    this.hud.refresh();
   }
 
   invite(townieId: number) {
@@ -404,9 +445,13 @@ export class App {
       if (avail.hidden) continue;
       const resident = occupant(game, obj);
       const name = resident ? petLabel(inter.name, resident) : inter.name;
+      const fee = inter.special === 'plumber' ? 120 : inter.special === 'engineer' ? 250 : inter.special === 'service' ? 60 : 0;
       options.push({
         icon: inter.icon, label: name, disabled: !avail.ok, why: avail.reason,
-        onPick: () => this.queue(sim, { kind: 'object', objectId: obj.id, interactionId: inter.id, label: name, icon: inter.icon, userQueued: true }),
+        onPick: () => {
+          const go = () => this.queue(sim, { kind: 'object', objectId: obj.id, interactionId: inter.id, label: name, icon: inter.icon, userQueued: true });
+          if (fee) this.spend(fee, name.replace(/ \(.*\)$/, '').toLowerCase(), go); else go();
+        },
       });
     }
     options.push({ icon: 'ℹ️', label: 'About', onPick: () => this.panels.objectInfo(obj) });
