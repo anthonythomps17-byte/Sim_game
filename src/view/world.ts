@@ -17,6 +17,7 @@ import '@babylonjs/core/Lights/Clustered';
 import '@babylonjs/core/Rendering/outlineRenderer';
 import '@babylonjs/core/Culling/ray';
 import type { Game } from '../sim/game';
+import type { Appearance } from '../sim/types';
 import { OBJECTS } from '../sim/defs';
 import { moodLabel, moodScore } from '../sim/mood';
 import type { Sim } from '../sim/types';
@@ -174,6 +175,12 @@ export class WorldView {
 
   setSelected(id: number) { this.selectedSim = id; }
 
+  /** Show a Sim in different clothes without changing the world (trying things on). */
+  private previews = new Map<number, Appearance>();
+  previewAppearance(simId: number, a: Appearance | null) {
+    if (a) this.previews.set(simId, a); else this.previews.delete(simId);
+  }
+
   // ---------- Per-frame ----------
 
   frame(dt: number, speed: number) {
@@ -264,7 +271,7 @@ export class WorldView {
         av = new SimAvatar(this.scene, sim.id, sim.appearance, (m) => this.shadows?.addShadowCaster(m));
         this.avatars.set(sim.id, av);
       }
-      av.setAppearance(sim.appearance);
+      av.setAppearance(this.previews.get(sim.id) ?? sim.appearance);
       av.setVisible(true);
       this.poseSim(av, sim, game, dt, speed);
     }
@@ -276,7 +283,10 @@ export class WorldView {
     for (const pet of game.state.pets) {
       seen.add(pet.id);
       let av = this.petAvatars.get(pet.id);
-      if (av && av.pet !== pet) { av.dispose(); this.petAvatars.delete(pet.id); av = undefined; }
+      // Rebuild only if the pet looks different (on guest devices the pet object is replaced
+      // with a fresh copy every second).
+      if (av && (av.pet.species !== pet.species || av.pet.color !== pet.color || av.pet.homeId !== pet.homeId)) { av.dispose(); this.petAvatars.delete(pet.id); av = undefined; }
+      if (av) av.pet = pet;
       if (!av) {
         const meta = pet.homeId !== null ? { kind: 'object', id: pet.homeId } : { kind: 'pet', id: pet.id };
         av = new PetAvatar(this.scene, pet, meta, (m) => this.shadows?.addShadowCaster(m));

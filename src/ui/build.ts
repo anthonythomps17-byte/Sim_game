@@ -1,6 +1,7 @@
 // Build mode: draw walls and rooms, add doors and windows, lay floors, paint walls.
 import { BUILD_PRICES, FLOORS, PAINTS } from '../sim/defs';
-import { eraseWalls, paintFloor, paintWall, placeWalls, roomOutlineKeys, setWallKind, wallKeyInLot, wallKeysOnLine } from '../sim/build';
+import { paintFloor, paintWall, placeWalls, roomOutlineKeys, setWallKind, wallKeyInLot, wallKeysOnLine } from '../sim/build';
+import type { Cmd } from '../sim/commands';
 import type { App } from './app';
 import { clear, h, money } from './dom';
 
@@ -116,9 +117,9 @@ export class BuildMode {
   }
 
   /** Check the cost first (family mode may need a money manager), then build. */
-  private paid(quote: { ok: boolean; cost: number; reason?: string }, what: string, run: () => { ok: boolean; reason?: string }) {
+  private paid(quote: { ok: boolean; cost: number; reason?: string }, what: string, cmd: Cmd) {
     if (!quote.ok) { this.result(quote); return; }
-    this.app.spend(quote.cost, what, () => { const r = run(); this.result(r); return r.ok; });
+    void this.app.act(cmd, { amount: quote.cost, what }).then(() => this.render());
   }
 
   private result(res: { ok: boolean; reason?: string }) {
@@ -137,20 +138,20 @@ export class BuildMode {
         if (!w) { this.app.toast('Tap on a wall.', '🧱'); return; }
         const cur = game.state.lot.walls[w.key];
         const kind = cur?.kind === this.tool ? 'wall' : this.tool;
-        this.paid(setWallKind(game, w.key, kind, true), `a ${this.tool}`, () => setWallKind(game, w.key, kind));
+        this.paid(setWallKind(game, w.key, kind, true), `a ${this.tool}`, { t: 'wallKind', key: w.key, kind });
         return;
       }
       case 'paint': {
         const w = this.app.world.pickWall(x, y);
         if (!w) { this.app.toast('Tap on a wall.', '🧱'); return; }
-        this.paid(paintWall(game, w.key, w.side, this.paint, this.wholeRoom, true), 'some paint', () => paintWall(game, w.key, w.side, this.paint, this.wholeRoom));
+        this.paid(paintWall(game, w.key, w.side, this.paint, this.wholeRoom, true), 'some paint', { t: 'paintWall', key: w.key, side: w.side, paint: this.paint, wholeRoom: this.wholeRoom });
         return;
       }
       case 'floor':
       case 'erasefloor': {
         const t = this.tile(x, y);
         const f = this.tool === 'floor' ? this.floor : null;
-        if (t) this.paid(paintFloor(game, t.x, t.z, t.x, t.z, f, true), 'new flooring', () => paintFloor(game, t.x, t.z, t.x, t.z, f));
+        if (t) this.paid(paintFloor(game, t.x, t.z, t.x, t.z, f, true), 'new flooring', { t: 'paintFloor', x0: t.x, z0: t.z, x1: t.x, z1: t.z, floor: f });
         return;
       }
     }
@@ -184,14 +185,14 @@ export class BuildMode {
     const game = this.app.game!;
     if (this.tool === 'floor' || this.tool === 'erasefloor') {
       const f = this.tool === 'floor' ? this.floor : null;
-      this.paid(paintFloor(game, d.x0, d.z0, d.x1, d.z1, f, true), 'new flooring', () => paintFloor(game, d.x0, d.z0, d.x1, d.z1, f));
+      this.paid(paintFloor(game, d.x0, d.z0, d.x1, d.z1, f, true), 'new flooring', { t: 'paintFloor', x0: d.x0, z0: d.z0, x1: d.x1, z1: d.z1, floor: f });
       return;
     }
     this.drag = d;
     const keys = this.keysForDrag();
     this.drag = null;
-    if (this.tool === 'erase') { this.result(eraseWalls(game, keys)); return; }
-    this.paid(placeWalls(game, keys, true), 'new walls', () => placeWalls(game, keys));
+    if (this.tool === 'erase') { void this.app.act({ t: 'eraseWalls', keys }).then(() => this.render()); return; }
+    this.paid(placeWalls(game, keys, true), 'new walls', { t: 'walls', keys });
   }
 }
 

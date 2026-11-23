@@ -27,6 +27,8 @@ export class Game {
   private roomTimer = 0;
   /** Objects a Sim recently failed to reach: `${simId}:${objId}` → retry time. */
   unreachable = new Map<string, number>();
+  /** The lot changed since the last replaceState (a guest device predicting ahead). */
+  private lotTouched = false;
 
   constructor(state: GameState) {
     this.state = state;
@@ -66,9 +68,27 @@ export class Game {
     this.occ = null;
     this.rooms = null;
     this.state.lot.version++;
+    this.lotTouched = true;
     this.unreachable.clear();
     this.recomputeRooms();
     this.events.push({ type: 'lotChanged' });
+  }
+
+  /**
+   * Swap in a new copy of the world (another device sent it). Caches are kept when the lot
+   * hasn't changed, so this is cheap enough to do every second.
+   */
+  replaceState(next: GameState): boolean {
+    const lotChanged = next.lot.version !== this.state.lot.version || this.lotTouched;
+    this.state = next;
+    this.lotTouched = false;
+    if (lotChanged) {
+      this.occ = null;
+      this.rooms = null;
+      this.unreachable.clear();
+      this.recomputeRooms();
+    }
+    return lotChanged;
   }
 
   homeValue(): number { return homeValue(this.state.lot, BUILD_PRICES); }

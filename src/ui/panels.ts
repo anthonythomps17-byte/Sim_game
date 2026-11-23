@@ -1,17 +1,13 @@
 // Modal panels: jobs, outings, rewards, invitations, messages, object info and the neighbourhood map.
 import { ALL_TRAITS, ASPIRATIONS, CAREERS, NEEDS, OBJECTS, OUTINGS, REWARD_OBJECTS, REWARD_TRAITS, NAMES } from '../sim/defs';
-import { calendarOf, DAYS_PER_SEASON, endParty, EVENTS, eventsOn, familyCar, outingCheck, PARTY_COST_PER_GUEST, PARTY_THEMES, planParty, SEASONS, YEAR_DAYS } from '../sim/life';
+import { calendarOf, DAYS_PER_SEASON, EVENTS, eventsOn, familyCar, outingCheck, PARTY_COST_PER_GUEST, PARTY_THEMES, SEASONS, YEAR_DAYS } from '../sim/life';
 import { ACCESSORIES, BOTTOMS, CLOTH_COLORS, normalizeAppearance, SHOES, TOPS } from '../sim/newgame';
-import { addMoodlet } from '../sim/mood';
 import { PET_SPECIES } from '../sim/defs';
-import { adoptPet, adoptQuote, MAX_PETS, petHappiness, rehomePet, speciesOf } from '../sim/pets';
+import { adoptQuote, MAX_PETS, petHappiness, speciesOf } from '../sim/pets';
 import { activePlayer, familyOn, managers, newPlayer, ownerOf, PLAYER_COLORS } from '../sim/family';
 import { billBreakdown, BIN_DAY, binsOverflowing, boiler, ENGINEER_COST, hasHeatPump, noHotWater, PLUMBER_COST, SUBSCRIPTIONS, wheelieBin, type SubscriptionId } from '../sim/home';
 import { DAY_NAMES } from '../sim/game';
-import { joinCareer, quitCareer } from '../sim/schedule';
 import { SKILL_NAMES, levelOf } from '../sim/skills';
-import { unlockRewardObject } from '../sim/build';
-import { payBills } from '../sim/actions';
 import { friendshipLabel, findRel } from '../sim/relationships';
 import type { NeedId, Party, PlacedObject, Sim, SkillId } from '../sim/types';
 import type { App } from './app';
@@ -46,7 +42,6 @@ export class Panels {
   private get root() { return this.app.root; }
 
   careers(sim: Sim) {
-    const game = this.app.game!;
     let close = () => {};
     const cards = Object.values(CAREERS).map((c) => {
       const l = c.levels[0];
@@ -57,8 +52,8 @@ export class Panels {
           h('div', { class: 'grow' }, h('div', { class: 't' }, c.name), h('div', { class: 's' }, c.desc),
             h('div', { class: 's' }, `Starts as ${l.title}: £${l.pay}/h, ${l.start}:00–${l.end}:00, ${days}`),
             h('div', { class: 's' }, `Key skills: ${c.skills.map((s) => SKILL_NAMES[s].name).join(', ')} · ${c.levels.length} levels`)),
-          mine ? h('button', { class: 'btn small', onclick: () => { quitCareer(game, sim); close(); this.app.hud.openTab('career'); } }, 'Quit')
-            : h('button', { class: 'btn small primary', onclick: () => { joinCareer(game, sim, c.id); this.app.flushEvents(); close(); this.app.hud.openTab('career'); } }, 'Join')));
+          mine ? h('button', { class: 'btn small', onclick: () => { close(); void this.app.act({ t: 'quitCareer', simId: sim.id }).then(() => this.app.hud.openTab('career')); } }, 'Quit')
+            : h('button', { class: 'btn small primary', onclick: () => { close(); void this.app.act({ t: 'joinCareer', simId: sim.id, careerId: c.id }).then(() => this.app.hud.openTab('career')); } }, 'Join')));
     });
     close = modal(this.root, `Jobs for ${sim.name.split(' ')[0]}`, [h('p', { class: 'muted' }, 'Sims go to work automatically. Good moods and skills earn promotions.'), ...cards]);
   }
@@ -132,7 +127,7 @@ export class Panels {
       close = modal(this.root, `${PARTY_THEMES[p.theme].icon} ${PARTY_THEMES[p.theme].name}`, [
         h('p', null, p.started ? 'The party is in full swing!' : `Starts at ${Math.floor((p.start % 1440) / 60)}:00.`),
         h('p', { class: 'muted' }, `Guests: ${p.guests.map((id) => game.sim(id)?.name).join(', ')}`),
-      ], [h('button', { class: 'btn', onclick: () => { endParty(game, false); this.app.flushEvents(); close(); } }, p.started ? 'End the party' : 'Cancel the party')]);
+      ], [h('button', { class: 'btn', onclick: () => { close(); void this.app.act({ t: 'endParty' }); } }, p.started ? 'End the party' : 'Cancel the party')]);
       return;
     }
     let theme: Party['theme'] = 'karaoke';
@@ -174,26 +169,22 @@ export class Panels {
       h('button', { class: 'btn primary', onclick: () => {
         const day = Math.floor(st.time / 1440);
         close();
-        this.app.spend(guests.size * PARTY_COST_PER_GUEST, 'a party', () => {
-          const res = planParty(game, host, theme, day * 1440 + startHour * 60, [...guests]);
-          if (!res.ok) { this.app.toast(res.why ?? 'Could not plan the party.', '🎉'); return false; }
-          this.app.flushEvents();
-          return true;
-        });
+        void this.app.act({ t: 'planParty', simId: host.id, theme, start: day * 1440 + startHour * 60, guests: [...guests] }, { amount: guests.size * PARTY_COST_PER_GUEST, what: 'a party' });
       } }, '🎉 Send invitations'),
     ]);
   }
 
   clothes(sim: Sim) {
     const game = this.app.game!;
-    sim.appearance = normalizeAppearance(sim.appearance);
-    const original = { ...sim.appearance };
+    const original = normalizeAppearance(sim.appearance);
+    const draft = { ...original };
+    this.app.world.previewAppearance(sim.id, draft);
     const prices = { top: 25, bottom: 20, shoes: 15, accessory: 10 };
     let close = () => {};
     const totalEl = h('div', { class: 't' });
     const body = h('div');
     const total = () => {
-      const a = sim.appearance;
+      const a = draft;
       let t = 0;
       if (a.top !== original.top || a.topColor !== original.topColor) t += prices.top;
       if (a.bottom !== original.bottom || a.bottomColor !== original.bottomColor) t += prices.bottom;
@@ -203,7 +194,7 @@ export class Panels {
     };
     const render = () => {
       clear(body);
-      const a = sim.appearance;
+      const a = draft;
       const opts = <T extends string>(label: string, list: { id: T; name: string }[], cur: T, set: (v: T) => void) => [h('div', { class: 'opt-label' }, label),
         h('div', { class: 'opts' }, ...list.map((o) => h('button', { class: `opt ${o.id === cur ? 'on' : ''}`, onclick: () => { set(o.id); render(); } }, o.name)))];
       const cols = (label: string, list: string[], cur: string, set: (v: string) => void) => [h('div', { class: 'opt-label' }, label),
@@ -221,23 +212,16 @@ export class Panels {
     };
     render();
     this.app.world.cam.focus(sim.pos.x, sim.pos.z);
-    let bought = false;
     close = modal(this.root, `Clothes shopping: ${sim.name.split(' ')[0]}`, [h('p', { class: 'muted' }, 'Try things on. You can see them on your Sim.'), body], [
       totalEl,
       h('button', { class: 'btn ghost', onclick: () => close() }, 'Leave it'),
       h('button', { class: 'btn primary', onclick: () => {
         const t = total();
         if (t > game.state.household.funds) { this.app.toast("You can't afford all that.", '💸'); return; }
-        const chosen = { ...sim.appearance };
-        bought = true;
-        sim.appearance = original;
         close();
-        this.app.spend(t, 'new clothes', () => {
-          sim.appearance = chosen;
-          if (t > 0) { game.addFunds(-t); addMoodlet(sim, 'new_clothes', game.state.time); this.app.toast(`New outfit for ${money(t)}!`, '🛍️'); this.app.sound('cash'); }
-        });
+        void this.app.act({ t: 'clothes', simId: sim.id, appearance: { ...draft }, cost: t }, t ? { amount: t, what: 'new clothes' } : undefined);
       } }, '🛍️ Buy'),
-    ], () => { if (!bought) sim.appearance = original; });
+    ], () => this.app.world.previewAppearance(sim.id, null));
   }
 
   rewards(sim: Sim) {
@@ -249,7 +233,7 @@ export class Panels {
       ...Object.values(REWARD_TRAITS).map((t) => {
         const owned = sim.perks.includes(t.id);
         return h('div', { class: 'card' }, h('div', { class: 'row' }, h('span', { style: 'font-size:26px' }, t.icon), h('div', { class: 'grow' }, h('div', { class: 't' }, t.name), h('div', { class: 's' }, t.desc)),
-          owned ? chip('Owned', 'good') : h('button', { class: 'btn small teal', disabled: sim.rewardPoints < (t.cost ?? 0), onclick: () => { sim.rewardPoints -= t.cost ?? 0; sim.perks.push(t.id); this.app.sound('levelup'); close(); this.rewards(sim); } }, `🏆 ${t.cost}`)));
+          owned ? chip('Owned', 'good') : h('button', { class: 'btn small teal', disabled: sim.rewardPoints < (t.cost ?? 0), onclick: () => { close(); void this.app.act({ t: 'rewardTrait', simId: sim.id, traitId: t.id }).then(() => { const s = this.app.game?.sim(sim.id); if (s) this.rewards(s); }); } }, `🏆 ${t.cost}`)));
       }),
       h('div', { class: 'opt-label' }, 'Reward objects (placed from Buy mode → Rewards)'),
       ...REWARD_OBJECTS.map((r) => {
@@ -257,7 +241,7 @@ export class Panels {
         const unlocked = game.state.household.rewardsUnlocked.filter((x) => x === r.id).length;
         return h('div', { class: 'card' }, h('div', { class: 'row' }, h('span', { style: 'font-size:26px' }, '🎁'), h('div', { class: 'grow' }, h('div', { class: 't' }, def.name), h('div', { class: 's' }, def.description)),
           unlocked ? chip(`${unlocked} ready`, 'good') : null,
-          h('button', { class: 'btn small teal', disabled: sim.rewardPoints < r.cost, onclick: () => { unlockRewardObject(game, sim.id, r.id); this.app.flushEvents(); close(); this.rewards(sim); } }, `🏆 ${r.cost}`)));
+          h('button', { class: 'btn small teal', disabled: sim.rewardPoints < r.cost, onclick: () => { close(); void this.app.act({ t: 'rewardObject', simId: sim.id, defId: r.id }).then(() => { const s = this.app.game?.sim(sim.id); if (s) this.rewards(s); }); } }, `🏆 ${r.cost}`)));
       }),
     ];
     close = modal(this.root, 'Rewards', render());
@@ -290,10 +274,11 @@ export class Panels {
         h('div', { class: 'grow' }, h('div', null, n.text), h('div', { class: 's' }, `${DAY_NAMES[d % 7]} ${String(Math.floor(m / 60)).padStart(2, '0')}:${String(Math.floor(m % 60)).padStart(2, '0')}`)));
     });
     for (const n of st.notifications) n.read = true;
+    this.app.markRead();
     const billCard = bills ? h('div', { class: 'card on' }, h('div', { class: 'row' }, h('span', { style: 'font-size:26px' }, '🧾'),
       h('div', { class: 'grow' }, h('div', { class: 't' }, `Bills due: ${money(bills.amount)}`), h('div', { class: 's' }, `Pay before ${DAY_NAMES[Math.floor(bills.dueBy / 1440) % 7]} to avoid a late fee.`)),
-      h('button', { class: 'btn small primary', onclick: () => { close(); this.app.spend(bills.amount, 'the bills', () => { payBills(game); this.app.flushEvents(); }, true); } }, 'Pay'))) : null;
-    close = modal(this.root, 'Messages', [billCard, ...(list.length ? list : [h('p', { class: 'muted' }, 'Nothing yet.')])]);
+      h('button', { class: 'btn small primary', onclick: () => { close(); void this.app.act({ t: 'payBills' }, { amount: bills.amount, what: 'the bills', household: true }); } }, 'Pay'))) : null;
+    close = modal(this.root, 'Messages', [...this.app.onlineUi.approvalCards(() => close()), billCard, ...(list.length ? list : [h('p', { class: 'muted' }, 'Nothing yet.')])]);
   }
 
   objectInfo(obj: PlacedObject) {
@@ -359,7 +344,7 @@ export class Panels {
       return h_('div', { class: 'card' },
         h_('div', { class: 'row' }, h_('span', { style: 'font-size:30px' }, sp.icon),
           h_('div', { class: 'grow' }, h_('div', { class: 't' }, `${pet.name} the ${sp.name.toLowerCase()}`), h_('div', { class: 's' }, `${happy >= 70 ? '😊 Happy' : happy >= 40 ? '😐 OK' : '😿 Needs you'}${where}${extra}`)),
-          h_('button', { class: 'btn small ghost', onclick: () => this.confirm(`Rehome ${pet.name}?`, `${pet.name} will go to live with another family. This can't be undone.`, 'Rehome', () => { rehomePet(game, pet.id); this.app.flushEvents(); close(); this.pets(); }) }, 'Rehome')),
+          h_('button', { class: 'btn small ghost', onclick: () => this.confirm(`Rehome ${pet.name}?`, `${pet.name} will go to live with another family. This can't be undone.`, 'Rehome', () => { close(); void this.app.act({ t: 'rehome', petId: pet.id }).then(() => this.pets()); }) }, 'Rehome')),
         h_('div', { class: 'needs', style: 'margin-top:6px' },
           ...([['🍖', 'Food', pet.hunger], ['🎾', 'Fun', pet.fun], ['🫧', 'Clean', pet.clean], ...(sp.roams ? [['💤', 'Energy', pet.energy]] : []), ['💗', 'Bond', pet.bond]] as [string, string, number][])
             .map(([ic, lbl, v]) => h_('div', { class: 'need' }, h_('span', { class: 'ic' }, ic), h_('span', { class: 'lbl' }, lbl), bar(v)))));
@@ -398,12 +383,7 @@ export class Panels {
       h_('button', { class: 'btn ghost', onclick: () => close() }, 'Back'),
       h_('button', { class: 'btn primary', onclick: () => {
         close();
-        this.app.spend(adoptQuote(game, speciesId).total, `adopting a ${sp.name.toLowerCase()}`, () => {
-          const res = adoptPet(game, speciesId, name, color);
-          if (!res.ok) { this.app.toast(res.why ?? "Couldn't adopt", sp.icon); return false; }
-          this.app.flushEvents();
-          return true;
-        }, true);
+        void this.app.act({ t: 'adopt', species: speciesId, name, color }, { amount: adoptQuote(game, speciesId).total, what: `adopting a ${sp.name.toLowerCase()}`, household: true });
       } }, `Adopt ${sp.icon}`),
     ]);
   }
@@ -424,7 +404,7 @@ export class Panels {
       const on = h.subscriptions[id];
       return h_('div', { class: 'card' }, h_('div', { class: 'row' }, h_('span', { style: 'font-size:26px' }, sub.icon),
         h_('div', { class: 'grow' }, h_('div', { class: 't' }, `${sub.name} · £${sub.weekly}/week`), h_('div', { class: 's' }, sub.desc)),
-        h_('button', { class: `btn small ${on ? '' : 'primary'}`, onclick: () => { close(); this.app.spend(on ? 0 : sub.weekly, `a ${sub.name} subscription`, () => { h.subscriptions[id] = !on; this.app.toast(on ? `${sub.name} cancelled.` : `Subscribed to ${sub.name}! Added to your weekly bills.`, sub.icon); this.home(); }, true); } }, on ? 'Cancel' : 'Subscribe')));
+        h_('button', { class: `btn small ${on ? '' : 'primary'}`, onclick: () => { close(); void this.app.act({ t: 'subscribe', id, on: !on }, { amount: on ? 0 : sub.weekly, what: on ? `cancelling ${sub.name}` : `a ${sub.name} subscription`, household: true }).then((r) => { if (r.ok) this.home(); }); } }, on ? 'Cancel' : 'Subscribe')));
     };
     const fixButtons = broken.map((o) => {
       const def = OBJECTS[o.defId];
@@ -432,15 +412,7 @@ export class Panels {
       const cost = isBoiler ? ENGINEER_COST : PLUMBER_COST;
       return h_('div', { class: 'card on' }, h_('div', { class: 'row' }, h_('span', { style: 'font-size:26px' }, isBoiler ? '🔥' : '🪠'),
         h_('div', { class: 'grow' }, h_('div', { class: 't' }, isBoiler ? 'Boiler broken: no hot water' : `${def.name} is blocked`), h_('div', { class: 's' }, 'Tap it in the house to try fixing it yourself, or pay to fix it now.')),
-        h_('button', { class: 'btn small primary', disabled: h.funds < cost, onclick: () => { close(); this.app.spend(cost, isBoiler ? 'a heating engineer' : 'a plumber', () => {
-          o.broken = false;
-          if (isBoiler) o.growth = game.day;
-          game.addFunds(-cost);
-          game.lotChanged();
-          this.app.toast(isBoiler ? `Engineer fixed the boiler (£${cost}).` : `Plumber fixed the ${def.name.toLowerCase()} (£${cost}).`, '🔧');
-          this.app.sound('cash');
-          this.home();
-        }); } }, `Pay £${cost}`)));
+        h_('button', { class: 'btn small primary', disabled: h.funds < cost, onclick: () => { close(); void this.app.act({ t: 'fix', objectId: o.id }, { amount: cost, what: isBoiler ? 'a heating engineer' : 'a plumber' }).then((r) => { if (r.ok) this.home(); }); } }, `Pay £${cost}`)));
     });
     const nextBin = (BIN_DAY - game.weekday + 7) % 7;
     close = modal(this.root, 'Home', [
@@ -475,13 +447,19 @@ export class Panels {
   }
 
   /** Ask a money manager (on the same device) to approve spending. */
-  approval(what: string, amount: number, reason: 'needsApproval' | 'managerOnly', left: number, onApproved: () => void) {
+  approval(what: string, amount: number, reason: 'needsApproval' | 'managerOnly', left: number): Promise<boolean> {
+    return new Promise((resolve) => this.approvalModal(what, amount, reason, left, resolve));
+  }
+
+  private approvalModal(what: string, amount: number, reason: 'needsApproval' | 'managerOnly', left: number, answer: (yes: boolean) => void) {
     const st = this.app.game!.state;
     const me = activePlayer(st);
     const mgrs = managers(st);
     let close = () => {};
     const pinInput = h_('input', { type: 'password', inputmode: 'numeric', maxlength: 4, placeholder: 'Money manager PIN', 'aria-label': 'Money manager PIN', style: 'margin-top:8px' }) as HTMLInputElement;
     const needsPin = mgrs.some((m) => m.pin);
+    let answered = false;
+    const done = (yes: boolean) => { if (answered) return; answered = true; close(); answer(yes); };
     close = modal(this.root, 'Ask a money manager', [
       h_('p', null, reason === 'managerOnly'
         ? `${me?.name}, ${what} is a household decision${amount ? ` (${money(amount)})` : ''}.`
@@ -489,20 +467,20 @@ export class Panels {
       h_('p', { class: 'muted' }, `Hand the tablet to ${mgrs.map((m) => m.name).join(' or ')} to say yes or no.`),
       needsPin ? pinInput : null,
     ], [
-      h_('button', { class: 'btn ghost', onclick: () => { close(); this.app.toast(`${mgrs[0]?.name ?? 'The money manager'} said no this time.`, '🙅'); } }, '🙅 No'),
+      h_('button', { class: 'btn ghost', onclick: () => { done(false); this.app.toast(`${mgrs[0]?.name ?? 'The money manager'} said no this time.`, '🙅'); } }, '🙅 No'),
       h_('button', { class: 'btn primary', onclick: () => {
         if (needsPin && !mgrs.some((m) => m.pin && m.pin === pinInput.value)) { this.app.toast("That PIN isn't right.", '🔒'); return; }
-        close();
+        done(true);
         this.app.toast('Approved!', '👍');
-        onApproved();
       } }, '👍 Yes'),
-    ]);
+    ], () => { if (!answered) { answered = true; answer(false); } });
   }
 
   /** Pick who is playing now. */
   switchPlayer() {
     const st = this.app.game!.state;
     if (!familyOn(st)) { this.family(); return; }
+    const guest = this.app.online?.role === 'guest';
     let close = () => {};
     const rows = st.family!.players.map((p) => {
       const sims = this.app.game!.household().filter((s) => ownerOf(st, s.id)?.id === p.id).map((s) => s.name.split(' ')[0]);
@@ -517,7 +495,7 @@ export class Panels {
           this.app.switchPlayer(p.id);
         } }, 'Play')));
     });
-    close = modal(this.root, "Who's playing?", [h_('p', { class: 'muted' }, 'Pass the tablet to the next player.'), ...rows], [h_('button', { class: 'btn', onclick: () => { close(); this.family(); } }, '⚙️ Set up players')]);
+    close = modal(this.root, guest ? 'Who are you?' : "Who's playing?", [h_('p', { class: 'muted' }, guest ? 'Pick who plays on this device.' : 'Pass the tablet to the next player.'), ...rows], guest ? [] : [h_('button', { class: 'btn', onclick: () => { close(); this.family(); } }, '⚙️ Set up players')]);
   }
 
   /** Set up family players: names, roles, allowances, PINs and which Sims they look after. */
@@ -525,6 +503,10 @@ export class Panels {
     const game = this.app.game!;
     const st = game.state;
     let close = () => {};
+    if (this.app.online?.role === 'guest') {
+      this.message('Family players', 'Players, roles and allowances are set up on the host device.');
+      return;
+    }
     const redraw = () => { close(); this.family(); };
     const on = familyOn(st);
     const body: (HTMLElement | null)[] = [

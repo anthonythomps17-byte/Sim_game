@@ -82,7 +82,20 @@ Menu → **Family players** turns on family mode: several people share one house
 - **Money managers** can spend freely. **Family members** get a weekly allowance (reset every Monday). Anything bigger, and household decisions (bills, subscriptions, pets, holidays, selling furniture), needs a money manager to say yes on the spot, with their PIN if they set one.
 - Tap the 👤 player button at the top to switch players.
 
-Playing together on separate devices at the same time isn't supported: it would need an online server and accounts, which the offline, no-chat design avoids. Players can pass a save between devices with Export/Import.
+## Playing on several devices
+
+The family can play the same household at the same time, each on their own phone or tablet.
+
+1. On the device that has the game: Menu → **📡 Play on other devices** → **Start sharing**. It shows a 6-character code.
+2. On another device: open My Life, tap **📡 Join a family game**, type the code and a name for the device.
+3. The first device asks whether to let it in. Devices let in once join straight away next time (Forget them from the same screen).
+4. With Family players set up, each device picks who it is. Players can only instruct their own Sims, and spending over an allowance pops up on the money managers' devices to say yes or no (or they type their PIN in 🔔 Messages on the asking device).
+
+How it works: the sharing device (the host) runs the world and keeps the save, so keep the game open there; if it goes to sleep, everything pauses until it wakes. Other devices get the world once, then small updates every second (about 1 KB), and run it forward themselves in between so Sims move smoothly. Everything they do is sent to the host as a command (`src/sim/commands.ts`), which checks it and runs it.
+
+The devices talk through a tiny relay at `/relay` (`netlify/server/index.mjs` and `server/relay.mjs`) on Netlify Server. The relay only passes messages between devices in the same game. It has no accounts, stores nothing, and forgets a game as soon as its devices leave. Codes are random, the host lets each device in, and an address that tries too many wrong codes is made to wait. There is still no chat.
+
+To try it locally: `npm run relay` in one terminal and `npm run dev` in another (Vite forwards `/relay`).
 
 ## The neighbourhood
 
@@ -98,7 +111,8 @@ The streets around the lot follow the layout of a real corner of Ashton: a side 
 | UI | Plain HTML/CSS over the canvas, no framework |
 | Saves | IndexedDB (3 slots + autosave), JSON export/import |
 | Offline | Generated service worker + web app manifest |
-| Tests | Vitest, against the simulation core only |
+| Playing together | WebSocket relay on Netlify Server (`ws`), JSON diffs of the game state |
+| Tests | Vitest: simulation core, sync, commands, relay |
 
 ```
 src/
@@ -110,17 +124,21 @@ src/
     schedule.ts Work, bills, visitors, lamps, aspirations
     build.ts  Build/buy commands (all money checks happen here)
     lot.ts, path.ts  Grid, walls, rooms, A* pathfinding
+    commands.ts  Everything a player can do, as data (run here, or sent to the host device)
   view/       Babylon.js: reads the game state and draws it
     world.ts  Engine, lights, sky, picking
     lotView.ts  Walls (cutaway), floors, furniture, previews
     models.ts Procedural low-poly furniture
     simAvatar.ts  Procedural, animated Sims
-  ui/         HUD, menus, create-a-Sim, buy/build modes
+  net/        Playing on several devices: relay connection, world updates (sync.ts), host and guest sessions
+  ui/         HUD, menus, create-a-Sim, buy/build modes, sharing and joining
   platform/   Storage and audio
-tests/        Simulation tests
+server/       The family relay (plain Node, also run by tests/relay.test.ts)
+netlify/server/  Netlify Server entry for the relay
+tests/        Simulation, sync, command and relay tests
 ```
 
-The simulation never talks to the 3D view. Taps become commands (`enqueue`, `buyObject`, `placeWalls`…) that change the plain-JSON game state, and the view redraws from it. The same core runs in the tests at thousands of game minutes per second.
+The simulation never talks to the 3D view. Taps become commands (`{ t: 'queue' }`, `{ t: 'buy' }`, `{ t: 'walls' }`… in `commands.ts`) that change the plain-JSON game state, and the view redraws from it. The same core runs in the tests at thousands of game minutes per second.
 
 **Adding content** usually means editing JSON in `src/sim/data/`. A new object also needs a model builder in `src/view/models.ts` (a few primitives) and an icon in `src/ui/buy.ts`.
 
@@ -130,7 +148,7 @@ The spec suggests Kenney/Quaternius glTF packs and Mixamo animations. This versi
 
 ## Not in this version
 
-- Multiplayer. Two people can share a household on one device by taking turns with the portraits. Playing on two devices at once would need a server and accounts, which goes against the spec's offline, no-chat design.
+- Playing together needs the internet (the rest of the game still works offline). Only one household is shared at a time, and the host device has to stay awake.
 - Visiting community lots in 3D (the places exist as off-lot outings for now).
 - Ageing and generations, multiple lots, online play (out of scope for v1 in the spec).
 - Hand-made art: everything is procedural for now.

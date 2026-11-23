@@ -8,14 +8,22 @@
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview --host",
     "test": "vitest run",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "relay": "node server/dev.mjs"
   },
   "dependencies": {
-    "@babylonjs/core": "^9.37.1"
+    "@babylonjs/core": "^9.37.1",
+    "@netlify/server": "0.1.6",
+    "ws": "^8.23.0"
   },
   "devDependencies": {
+    "@types/node": "^24.19.2",
+    "@types/ws": "^8.18.2",
     "typescript": "^7.0.2",
     "vite": "^8.3.8",
     "vitest": "^5.1.1"
+  },
+  "engines": {
+    "node": ">=22.12"
   }
 }

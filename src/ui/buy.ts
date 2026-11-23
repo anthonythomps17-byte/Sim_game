@@ -1,6 +1,6 @@
 // Buy mode: catalogue grouped by room; place, move, rotate and sell furniture.
 import { NEEDS, OBJECTS, OBJECT_CATEGORIES, type ObjectDef } from '../sim/defs';
-import { buyObject, moveObject, objectPrice, sellObject } from '../sim/build';
+import { objectPrice } from '../sim/build';
 import { canPlaceObject, footprintSize } from '../sim/lot';
 import { SKILL_NAMES } from '../sim/skills';
 import type { NeedId } from '../sim/types';
@@ -161,11 +161,7 @@ export class BuyMode {
     const game = this.app.game!;
     const obj = this.selected !== null ? game.object(this.selected) : undefined;
     if (!obj) return;
-    for (let i = 1; i <= 3; i++) {
-      const rot = ((obj.rot + i) % 4) as 0 | 1 | 2 | 3;
-      if (moveObject(game, obj.id, obj.x, obj.z, rot).ok) return;
-    }
-    this.app.toast("There's no room to turn it.", '↻');
+    void this.app.act({ t: 'rotate', id: obj.id });
   }
 
   private place() {
@@ -181,19 +177,15 @@ export class BuyMode {
     };
     const fail = (reason?: string) => { this.app.toast(reason ?? "Can't place that there.", '🚫'); this.app.sound('error'); };
     if (p.moving !== undefined) {
-      const res = moveObject(game, p.moving, p.x, p.z, p.rot);
-      if (!res.ok) { fail(res.reason); return; }
-      done();
+      if (!canPlaceObject(game.state.lot, p.defId, p.x, p.z, p.rot, p.moving)) { fail("Doesn't fit there"); return; }
+      void this.app.act({ t: 'move', id: p.moving, x: p.x, z: p.z, rot: p.rot }).then((r) => { if (r.ok) done(); });
       return;
     }
     if (!canPlaceObject(game.state.lot, p.defId, p.x, p.z, p.rot)) { fail("Doesn't fit there"); return; }
     const cost = Math.round(objectPrice(game, p.defId) * (1 - game.state.household.discount));
-    this.app.spend(cost, `${/^[aeiou]/i.test(OBJECTS[p.defId].name) ? 'an' : 'a'} ${OBJECTS[p.defId].name}`, () => {
-      const res = buyObject(game, p.defId, p.x, p.z, p.rot);
-      if (!res.ok) { fail(res.reason); return false; }
-      done();
-      return true;
-    });
+    if (cost > game.state.household.funds) { fail("You can't afford that."); return; }
+    void this.app.act({ t: 'buy', defId: p.defId, x: p.x, z: p.z, rot: p.rot }, { amount: cost, what: `${/^[aeiou]/i.test(OBJECTS[p.defId].name) ? 'an' : 'a'} ${OBJECTS[p.defId].name}` })
+      .then((r) => { if (r.ok || r.pending) done(); else this.renderItems(); });
   }
 
   private sell() {
@@ -201,12 +193,12 @@ export class BuyMode {
     const id = this.selected;
     const obj = this.app.game!.object(id);
     if (!obj) return;
-    this.app.spend(0, `selling the ${OBJECTS[obj.defId].name}`, () => { this.doSell(id); return true; }, true);
+    this.selected = null;
+    void this.app.act({ t: 'sell', id }, { amount: 0, what: `selling the ${OBJECTS[obj.defId].name}`, household: true }).then(() => this.renderItems());
+    this.afterSell();
   }
 
-  private doSell(id: number) {
-    sellObject(this.app.game!, id);
-    this.selected = null;
+  private afterSell() {
     this.app.world.lotView.setHighlight(null);
     this.renderToolbar();
     this.renderItems();

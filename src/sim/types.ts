@@ -237,6 +237,8 @@ export interface GameState {
   pets: Pet[];
   /** Family mode: several people sharing one household on one device. */
   family?: FamilyState;
+  /** Spending requests waiting for a money manager (when playing on several devices). */
+  approvals?: Approval[];
   noise: { tonight: number; stage: number };
   fireworksUntil: number;
 }
@@ -253,6 +255,17 @@ export interface Player {
   spent: number;
   /** Optional 4-digit PIN so players can't switch to each other (or approve their own spending). */
   pin: string;
+}
+
+export interface Approval {
+  id: number;
+  playerId: number;
+  what: string;
+  amount: number;
+  household: boolean;
+  reason: 'needsApproval' | 'managerOnly';
+  cmd: import('./commands').Cmd;
+  time: number;
 }
 
 export interface FamilyState {

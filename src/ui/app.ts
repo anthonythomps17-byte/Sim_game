@@ -3,14 +3,18 @@
 import { Game } from '../sim/game';
 import { createGame, randomAppearance, type NewGameOptions } from '../sim/newgame';
 import { serialize, deserialize, SaveError } from '../sim/save';
-import { enqueue, cancelAction, checkInteraction } from '../sim/actions';
+import { checkInteraction } from '../sim/actions';
+import { runCommand, type Cmd, type CmdResult, type Spend } from '../sim/commands';
 import { availableSocials } from '../sim/social';
 import { OBJECTS, OUTINGS, SELF_ACTIONS } from '../sim/defs';
 import { scheduleNextVisit } from '../sim/schedule';
-import { gameMinutesPerSecond, householdOuting } from '../sim/life';
+import { gameMinutesPerSecond } from '../sim/life';
 import { label as petLabel, occupant, petActionsFor } from '../sim/pets';
-import { activePlayer, canControl, checkSpend, ownerOf, recordSpend } from '../sim/family';
-import type { GameEvent, GameState, Sim } from '../sim/types';
+import { activePlayer, canControl, familyOn, ownerOf } from '../sim/family';
+import { GuestSession, HostSession, type Device, type OnlineSession } from '../net/online';
+import { OnlineUi } from './online';
+import { randomCode } from '../net/relay';
+import type { GameEvent, GameState, QueuedAction, Sim } from '../sim/types';
 import { WorldView } from '../view/world';
 import { CasView } from '../view/casView';
 import type { PointerHandlers } from '../view/camera';
@@ -41,6 +45,10 @@ export class App {
   mode: Mode = 'live';
   fastForward = false;
   private pausedByMenu = false;
+  /** Playing on several devices (null when playing alone). */
+  online: OnlineSession | null = null;
+  /** Guest devices: messages already read here. */
+  private readUpTo = 0;
 
   readonly hud: Hud;
   readonly panels: Panels;
@@ -49,6 +57,7 @@ export class App {
   readonly build: BuildMode;
   readonly cas: CasScreen;
   readonly tutorial: Tutorial;
+  readonly onlineUi: OnlineUi;
   private playLayer: HTMLElement;
   private hudTimer = 0;
   private lastSave = 0;
@@ -73,6 +82,7 @@ export class App {
     this.build = new BuildMode(this);
     this.cas = new CasScreen(this);
     this.tutorial = new Tutorial(this);
+    this.onlineUi = new OnlineUi(this);
     this.playLayer = h('div', { class: 'passthrough', style: 'position:absolute;inset:0' }, this.hud.el, this.buy.el, this.build.el, this.tutorial.el);
     document.title = GAME_TITLE;
     this.applySettings();
@@ -80,6 +90,7 @@ export class App {
     // Audio can only start after a user gesture.
     window.addEventListener('pointerdown', () => this.audio.unlock(), { once: false, passive: true });
     document.addEventListener('visibilitychange', () => { if (document.hidden) void this.autosave(); });
+    window.addEventListener('beforeunload', () => { if (this.online?.role === 'host') this.online.stop(); });
   }
 
   start() {
@@ -100,26 +111,38 @@ export class App {
     }
     const game = this.game;
     const st = game.state;
-    let speed = this.mode === 'live' && !this.pausedByMenu ? st.speed : 0;
-    const members = game.household();
-    // Skip ahead while everyone is out (and, if chosen in Settings, while everyone sleeps).
-    const allAway = members.length > 0 && members.every((s) => s.location !== 'lot');
-    const allAsleep = members.length > 0 && members.every((s) => s.location !== 'lot' || (s.current?.anim === 'sleep' && s.current.phase === 'perform'));
-    this.fastForward = speed > 0 && (allAway || (this.settings.skipSleep && allAsleep));
-    if (this.fastForward) speed *= 8;
-    if (speed > 0) game.tick(dt * speed * gameMinutesPerSecond(game.minuteOfDay));
-    this.flushEvents();
+    const online = this.online;
+    let speed: number;
+    if (online?.role === 'guest') {
+      // The host device runs the world; this device runs it forward between updates.
+      speed = online.quiet ? 0 : online.rate;
+      this.fastForward = speed > st.speed && speed > 0;
+      if (speed > 0) game.tick(dt * speed * gameMinutesPerSecond(game.minuteOfDay));
+      game.drainEvents();
+    } else {
+      speed = this.mode === 'live' && !this.pausedByMenu ? st.speed : 0;
+      const members = game.household();
+      // Skip ahead while everyone is out (and, if chosen in Settings, while everyone sleeps).
+      const allAway = members.length > 0 && members.every((s) => s.location !== 'lot');
+      const allAsleep = members.length > 0 && members.every((s) => s.location !== 'lot' || (s.current?.anim === 'sleep' && s.current.phase === 'perform'));
+      this.fastForward = speed > 0 && (allAway || (this.settings.skipSleep && allAsleep));
+      if (this.fastForward) speed *= 8;
+      if (speed > 0) game.tick(dt * speed * gameMinutesPerSecond(game.minuteOfDay));
+      this.flushEvents();
+      online?.frame(dt, speed);
+    }
     this.world.setSelected(st.selectedSimId);
     this.world.frame(dt, speed);
     this.hud.frame();
     this.hudTimer -= dt;
-    if (this.hudTimer <= 0) { this.hudTimer = 0.2; this.hud.refresh(); }
+    if (this.hudTimer <= 0) { this.hudTimer = 0.2; this.hud.refresh(); if (online) this.onlineUi.checkApprovals(); }
   }
 
   // ---------- Screens ----------
 
   async showTitle() {
     if (this.game) await this.autosave();
+    this.stopOnline();
     this.screen = 'title';
     this.game = null;
     this.root.replaceChildren(this.menus.title);
@@ -174,7 +197,7 @@ export class App {
   }
 
   async autosave() {
-    if (!this.game || this.screen !== 'play') return;
+    if (!this.game || this.screen !== 'play' || this.online?.role === 'guest') return;
     try {
       await saveSlot('auto', this.meta(), serialize(this.game.state));
       this.lastSave = performance.now();
@@ -236,30 +259,143 @@ export class App {
     this.applySettings();
   }
 
-  // ---------- Family mode ----------
+  // ---------- Playing on several devices ----------
+
+  /** Share this game with the family's other devices. */
+  startHosting(newCode = false): HostSession | null {
+    if (!this.game || this.online?.role === 'guest') return null;
+    if (this.online?.role === 'host') return this.online;
+    if (newCode || !this.settings.hostCode) { this.settings.hostCode = randomCode(); this.applySettings(); }
+    const host = new HostSession(this, this.settings.hostCode);
+    host.onChange = () => { this.hud.refresh(); this.onlineUi.changed(); };
+    this.online = host;
+    return host;
+  }
+
+  stopOnline() {
+    const o = this.online;
+    if (!o) return;
+    this.online = null;
+    o.stop();
+    this.onlineUi.changed();
+  }
+
+  /** Join the game running on another device. */
+  joinGame(code: string, name: string): GuestSession {
+    this.stopOnline();
+    this.settings.joinCode = code;
+    this.settings.deviceName = name;
+    this.applySettings();
+    const guest = new GuestSession(this, code, name, this.settings.lastPlayerId);
+    guest.onChange = () => { if (this.screen === 'play') this.hud.refresh(); this.onlineUi.changed(); };
+    this.online = guest;
+    return guest;
+  }
+
+  /** The host let this device in: show its world. */
+  enterGuestGame(state: GameState) {
+    this.prepareRemote(state, null);
+    this.enterPlay(new Game(state));
+    this.onlineUi.closeJoin();
+    const st = state;
+    if (familyOn(st) && !st.family!.players.some((p) => p.id === this.settings.lastPlayerId)) this.panels.switchPlayer();
+    else this.toast(`Joined the ${st.household.name} household.`, '📡');
+  }
+
+  /** Keep this device's own view of things (who's selected, who's playing, what's been read). */
+  private prepareRemote(next: GameState, prev: GameState | null) {
+    const me = this.online?.role === 'guest' ? this.online.playerId : null;
+    if (next.family && me !== null && next.family.players.some((p) => p.id === me)) next.family.activeId = me;
+    if (prev && next.sims.some((s) => s.id === prev.selectedSimId)) next.selectedSimId = prev.selectedSimId;
+    else if (!prev) {
+      const mine = next.household.memberIds.find((id) => next.family?.owners[id] === me);
+      if (mine !== undefined) next.selectedSimId = mine;
+    }
+    for (const n of next.notifications) if (n.id <= this.readUpTo) n.read = true;
+  }
+
+  /** A world update from the host device. */
+  applyRemoteState(state: GameState) {
+    const game = this.game;
+    if (!game || this.online?.role !== 'guest') return;
+    this.prepareRemote(state, game.state);
+    if (game.replaceState(state)) this.world.lotView.invalidate();
+  }
+
+  /** Messages and sounds from the host device. */
+  remoteEvents(events: GameEvent[]) {
+    if (!this.game) return;
+    for (const e of events) {
+      if (e.type === 'notify') { this.hud.toast(e.notification); if (e.notification.kind === 'bills') this.sound('notify'); }
+      else if (e.type === 'sound') this.sound(e.sound);
+      else if (e.type === 'openPanel') this.handleEvent(e);
+    }
+  }
+
+  markRead() {
+    for (const n of this.game?.state.notifications ?? []) this.readUpTo = Math.max(this.readUpTo, n.id);
+  }
+
+  joinRequest(dev: Device) { this.onlineUi.joinRequest(dev); }
+
+  /** The connection to the other devices ended for good. */
+  onlineEnded(why: string) {
+    const o = this.online;
+    if (!o) return;
+    this.online = null;
+    this.onlineUi.changed();
+    if (o.role === 'guest') {
+      this.onlineUi.closeJoin();
+      if (this.screen === 'play') { this.game = null; void this.showTitle(); }
+      this.panels.message('Family game', why);
+    } else {
+      this.panels.message('Playing on other devices stopped', `${why} Your game carries on here.`);
+    }
+  }
+
+  // ---------- Commands ----------
 
   /**
-   * Spend money for the active player. In family mode, members use their weekly allowance and a
-   * money manager approves anything bigger (or household decisions like bills and pets).
-   * `action` returns false if it didn't go ahead.
+   * Do something in the world. On a guest device it goes to the host device; otherwise it runs
+   * here. In family mode, members spend from a weekly allowance and a money manager approves
+   * anything bigger (or household decisions like bills and pets).
    */
-  spend(amount: number, what: string, action: () => boolean | void, householdDecision = false) {
-    const st = this.game!.state;
-    const chk = checkSpend(st, amount, householdDecision);
-    if (chk.ok) {
-      if (action() !== false) recordSpend(st, amount);
-      return;
+  async act(cmd: Cmd, spend?: Spend): Promise<CmdResult> {
+    const game = this.game;
+    if (!game) return { ok: false };
+    let res: CmdResult;
+    const online = this.online;
+    if (online?.role === 'guest') {
+      res = await online.run(cmd, spend);
+    } else if (online?.role === 'host') {
+      res = online.run(cmd, spend, null, 'host');
+    } else {
+      res = runCommand(game, cmd, { spend });
+      if (res.approval && spend) {
+        const yes = await this.panels.approval(spend.what, spend.amount, res.approval.reason, res.approval.left);
+        res = yes ? runCommand(game, cmd, { spend, approved: true }) : { ok: false };
+      }
+      this.flushEvents();
     }
-    this.panels.approval(what, amount, chk.reason, chk.left, () => { action(); });
+    this.showResult(res);
+    this.hud.refresh();
+    return res;
+  }
+
+  private showResult(res: CmdResult) {
+    if (res.toast) this.toast(res.toast.text, res.toast.icon);
+    if (res.sound) this.sound(res.sound);
+    if (res.pending) { this.toast('Asked a money manager. They can say yes on their device, or with their PIN from 🔔 Messages.', '📨'); this.sound('notify'); }
+    else if (!res.ok && res.why) { this.toast(res.why, '🚫'); this.sound('error'); }
   }
 
   // ---------- Commands from the HUD ----------
 
   setSpeed(s: 0 | 1 | 2 | 3) {
     if (!this.game) return;
-    this.game.state.speed = s;
     this.sound('tap');
-    this.hud.refresh();
+    if (this.online?.role === 'guest') this.game.state.speed = s; // show it straight away
+    void this.act({ t: 'speed', speed: s });
   }
 
   setMode(m: Mode) {
@@ -293,25 +429,19 @@ export class App {
   }
 
   cancel(simId: number, uid: number) {
-    const sim = this.game?.sim(simId);
-    if (!sim || !this.game) return;
-    cancelAction(this.game, sim, uid);
-    this.flushEvents();
-    this.hud.refresh();
+    if (!this.game?.sim(simId)) return;
+    void this.act({ t: 'cancel', simId, uid });
   }
 
-  private queue(sim: Sim, action: Parameters<typeof enqueue>[2]) {
+  private queue(sim: Sim, action: Omit<QueuedAction, 'uid'>, spend?: Spend) {
     if (!this.game) return;
     if (!canControl(this.game.state, sim)) {
       const owner = ownerOf(this.game.state, sim.id);
-      this.toast(`${sim.name.split(' ')[0]} is ${owner?.name}'s Sim. Switch to ${owner?.name} to play them.`, '👤');
+      this.toast(`${sim.name.split(' ')[0]} is ${owner?.name}'s Sim. ${this.online?.role === 'guest' ? `Only ${owner?.name} can play them.` : `Switch to ${owner?.name} to play them.`}`, '👤');
       return;
     }
     if (sim.location !== 'lot') { this.toast(`${sim.name} isn't home right now.`, '🚶'); return; }
-    const uid = enqueue(this.game, sim, { ...action, userQueued: true });
-    if (uid < 0) { this.toast('The action queue is full.', '✋'); return; }
-    this.sound('tap');
-    this.hud.refresh();
+    void this.act({ t: 'queue', simId: sim.id, action: { ...action, userQueued: true } }, spend);
   }
 
   queueOuting(sim: Sim, id: string) {
@@ -320,19 +450,21 @@ export class App {
       const n = this.game!.household().filter((s) => s.location === 'lot').length;
       const total = (o.cost ?? 0) * n;
       this.panels.confirm(o.name.replace(/ \(.*\)$/, ''), `Everyone at home goes together. It costs £${total} in total. Jobs give you the time off.`, 'Book it! ✈️', () => {
-        this.spend(total, 'a family holiday', () => { householdOuting(this.game!, id); this.hud.refresh(); }, true);
+        void this.act({ t: 'householdOuting', id }, { amount: total, what: 'a family holiday', household: true });
       });
       return;
     }
-    if (!canControl(this.game!.state, sim)) { this.queue(sim, { kind: 'outing', selfId: id, label: o.name, icon: o.icon, userQueued: true }); return; }
-    this.spend(o.cost ?? 0, o.name.replace(/ \(.*\)$/, ''), () => { this.queue(sim, { kind: 'outing', selfId: id, label: o.name, icon: o.icon, userQueued: true }); });
+    this.queue(sim, { kind: 'outing', selfId: id, label: o.name, icon: o.icon, userQueued: true }, o.cost ? { amount: o.cost, what: o.name.replace(/ \(.*\)$/, '') } : undefined);
   }
 
-  /** Hand the tablet to another player. */
+  /** Hand the tablet to another player (or, on a guest device, choose who this device plays). */
   switchPlayer(id: number) {
     const st = this.game?.state;
     if (!st?.family) return;
     st.family.activeId = id;
+    this.settings.lastPlayerId = id;
+    this.applySettings();
+    if (this.online?.role === 'guest') this.online.setPlayer(id);
     const me = activePlayer(st);
     const mine = this.game!.household().find((s) => ownerOf(st, s.id)?.id === id);
     if (mine) this.selectSim(mine.id, true);
@@ -341,18 +473,15 @@ export class App {
   }
 
   invite(townieId: number) {
-    const game = this.game;
-    const t = game?.sim(townieId);
-    if (!game || !t) return;
-    if (t.location === 'lot' || game.state.pendingVisits.some((v) => v.simId === townieId)) return;
-    game.state.pendingVisits.push({ simId: townieId, at: game.state.time + 20 + Math.random() * 30 });
-    this.toast(`${t.name} is on their way over.`, '📱');
-    this.hud.refresh();
+    void this.act({ t: 'invite', simId: townieId });
   }
 
   flushEvents() {
     if (!this.game) return;
-    for (const e of this.game.drainEvents()) this.handleEvent(e);
+    const events = this.game.drainEvents();
+    if (this.online?.role === 'guest') return;
+    for (const e of events) this.handleEvent(e);
+    if (this.online?.role === 'host') this.online.events(events);
   }
 
   private handleEvent(e: GameEvent) {
@@ -366,6 +495,7 @@ export class App {
         if (performance.now() - this.lastSave > 5000) void this.autosave();
         break;
       case 'openPanel': {
+        if (this.online?.role === 'host' && this.online.routePanel(e)) break;
         const sim = this.game!.sim(e.simId);
         if (!sim) break;
         if (e.panel === 'careers') this.panels.careers(sim);
@@ -449,8 +579,7 @@ export class App {
       options.push({
         icon: inter.icon, label: name, disabled: !avail.ok, why: avail.reason,
         onPick: () => {
-          const go = () => this.queue(sim, { kind: 'object', objectId: obj.id, interactionId: inter.id, label: name, icon: inter.icon, userQueued: true });
-          if (fee) this.spend(fee, name.replace(/ \(.*\)$/, '').toLowerCase(), go); else go();
+          this.queue(sim, { kind: 'object', objectId: obj.id, interactionId: inter.id, label: name, icon: inter.icon, userQueued: true }, fee ? { amount: fee, what: name.replace(/ \(.*\)$/, '').toLowerCase() } : undefined);
         },
       });
     }
@@ -490,7 +619,7 @@ export class App {
         });
       }
     }
-    if (target.isTownie) options.push({ icon: '👋', label: 'Say goodbye', onPick: () => { target.visitUntil = game.state.time; } });
+    if (target.isTownie) options.push({ icon: '👋', label: 'Say goodbye', onPick: () => { void this.act({ t: 'goodbye', simId: target.id }); } });
     options.push({ icon: 'ℹ️', label: 'About', onPick: () => this.panels.simInfo(target) });
     showRadial(this.root, x, y, target.name, options);
   }

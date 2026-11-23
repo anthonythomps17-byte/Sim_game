@@ -136,6 +136,9 @@ export class LotView {
     this.version = -1;
   }
 
+  /** Rebuild walls, floors and objects on the next frame. */
+  invalidate() { this.version = -1; }
+
   showGrid(on: boolean) { this.grid.setEnabled(on); }
 
   // ---------- Sync ----------

@@ -51,16 +51,24 @@ export async function listSlots(): Promise<SlotMeta[]> {
   }
 }
 
-export interface DeviceSettings { quality: 'low' | 'medium' | 'high'; music: number; sfx: number; wallMode: 'up' | 'cutaway' | 'down'; seenTutorial: boolean; skipSleep: boolean }
+export interface DeviceSettings {
+  quality: 'low' | 'medium' | 'high'; music: number; sfx: number; wallMode: 'up' | 'cutaway' | 'down'; seenTutorial: boolean; skipSleep: boolean;
+  /** Playing on several devices: this device's name, the last codes used, and devices let in before. */
+  deviceName: string; hostCode: string; joinCode: string; lastPlayerId: number | null;
+  trustedDevices: Record<string, string>;
+}
 
-const DEFAULTS: DeviceSettings = { quality: 'medium', music: 0.4, sfx: 0.7, wallMode: 'cutaway', seenTutorial: false, skipSleep: false };
+const DEFAULTS: DeviceSettings = {
+  quality: 'medium', music: 0.4, sfx: 0.7, wallMode: 'cutaway', seenTutorial: false, skipSleep: false,
+  deviceName: '', hostCode: '', joinCode: '', lastPlayerId: null, trustedDevices: {},
+};
 
 export function loadSettings(): DeviceSettings {
   try {
     const raw = localStorage.getItem('ashton-life-settings');
-    return raw ? { ...DEFAULTS, ...JSON.parse(raw) } : { ...DEFAULTS };
+    return raw ? { ...DEFAULTS, trustedDevices: {}, ...JSON.parse(raw) } : { ...DEFAULTS, trustedDevices: {} };
   } catch {
-    return { ...DEFAULTS };
+    return { ...DEFAULTS, trustedDevices: {} };
   }
 }
 

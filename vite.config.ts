@@ -37,6 +37,9 @@ self.addEventListener('fetch', (e) => {
 export default defineConfig({
   base: './',
   plugins: [serviceWorker()],
+  // `npm run relay` runs the family relay locally; the dev server forwards /relay to it.
+  server: { proxy: { '/relay': { target: 'ws://localhost:8788', ws: true } } },
+  preview: { proxy: { '/relay': { target: 'ws://localhost:8788', ws: true } } },
   build: {
     target: 'es2022',
     chunkSizeWarningLimit: 4000,

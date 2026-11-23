@@ -33,7 +33,7 @@ export class PetAvatar {
   private phase = 0;
   private baseY = 0;
 
-  constructor(private scene: Scene, readonly pet: Pet, private meta: Record<string, unknown>, private shadowCaster?: (m: Mesh) => void) {
+  constructor(private scene: Scene, public pet: Pet, private meta: Record<string, unknown>, private shadowCaster?: (m: Mesh) => void) {
     this.root = new TransformNode(`pet${pet.id}`, scene);
     this.body = new TransformNode('pbody', scene);
     this.body.parent = this.root;

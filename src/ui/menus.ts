@@ -23,6 +23,7 @@ export class Menus {
         auto ? h('button', { class: 'btn primary', onclick: () => this.app.loadFromSlot('auto') }, `▶  Continue · ${auto.household}`) : null,
         h('button', { class: `btn ${auto ? '' : 'primary'}`, onclick: () => this.app.showCas() }, '✨  New household'),
         slots.length ? h('button', { class: 'btn', onclick: () => this.loadMenu() }, '📂  Load game') : null,
+        h('button', { class: 'btn', onclick: () => this.app.onlineUi.joinPanel() }, '📡  Join a family game'),
         h('button', { class: 'btn', onclick: () => this.app.importSave() }, '📥  Import save file'),
         h('button', { class: 'btn', onclick: () => this.settings() }, '⚙️  Settings'),
       ),
@@ -62,11 +63,24 @@ export class Menus {
   pauseMenu() {
     let close = () => {};
     const btn = (label: string, fn: () => void, cls = '') => h('button', { class: `btn ${cls}`, style: 'width:100%;justify-content:flex-start;margin-bottom:8px', onclick: () => { close(); fn(); } }, label);
-    close = modal(this.app.root, 'Menu', [
+    const guest = this.app.online?.role === 'guest';
+    const hosting = this.app.online?.role === 'host';
+    close = modal(this.app.root, 'Menu', guest ? [
+      btn('📡  Family game', () => this.app.onlineUi.guestPanel(), 'primary'),
+      btn('🏠  Home, bills and subscriptions', () => this.app.panels.home()),
+      btn('🐾  Pets', () => this.app.panels.pets()),
+      btn('👤  Change player', () => this.app.panels.switchPlayer()),
+      btn('🗺️  Ashton map', () => this.app.panels.map()),
+      btn('🏡  Invite someone over', () => this.app.panels.invite(this.app.selectedSim())),
+      btn('⚙️  Settings', () => this.settings()),
+      btn('❓  How to play', () => this.app.tutorial.start()),
+      btn('🚪  Leave the family game', () => this.app.onlineUi.leave()),
+    ] : [
       btn('💾  Save game', () => this.saveMenu(), 'primary'),
       btn('📂  Load game', () => this.loadMenu()),
       btn('📤  Export save (backup file)', () => this.app.exportSave()),
       btn('📥  Import save file', () => this.app.importSave()),
+      btn(hosting ? '📡  Playing on other devices' : '📡  Play on other devices', () => this.app.onlineUi.hostPanel()),
       btn('🏠  Home, bills and subscriptions', () => this.app.panels.home()),
       btn('🐾  Pets', () => this.app.panels.pets()),
       btn('👨‍👩‍👧  Family players', () => this.app.panels.family()),
@@ -74,9 +88,10 @@ export class Menus {
       btn('🏡  Invite someone over', () => this.app.panels.invite(this.app.selectedSim())),
       btn('⚙️  Settings', () => this.settings()),
       btn('❓  How to play', () => this.app.tutorial.start()),
-      btn('🚪  Quit to title', () => this.app.panels.confirm('Quit to title?', 'Unsaved progress since the last autosave will be lost.', 'Quit', () => this.app.showTitle())),
+      btn('🚪  Quit to title', () => this.app.panels.confirm('Quit to title?', hosting ? 'The other devices will leave the game too. Unsaved progress since the last autosave will be lost.' : 'Unsaved progress since the last autosave will be lost.', 'Quit', () => this.app.showTitle())),
     ], [], () => this.app.menuClosed());
-    this.app.menuOpened();
+    // On a guest device the world keeps going; only the host can pause it.
+    if (!guest) this.app.menuOpened();
   }
 
   settings() {

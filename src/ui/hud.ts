@@ -20,6 +20,10 @@ export class Hud {
   private foodEl!: HTMLElement;
   private homeBadge!: HTMLElement;
   private playerBtn!: HTMLElement;
+  private onlineBtn!: HTMLElement;
+  private onlineBanner!: HTMLElement;
+  private topEl!: HTMLElement;
+  private topBottom = 0;
   private partyEl!: HTMLElement;
   private timeEl!: HTMLElement;
   private speedBtns: HTMLButtonElement[] = [];
@@ -57,10 +61,10 @@ export class Hud {
     const menu = h('button', { class: 'btn icon-btn round', 'aria-label': 'Menu', onclick: () => app.menus.pauseMenu() }, '☰');
     this.homeBadge = h('span', { class: 'badge' });
     const home = h('button', { class: 'btn icon-btn round rel', 'aria-label': 'Home and bills', onclick: () => app.panels.home() }, '🏠', this.homeBadge);
-    const top = h('div', { class: 'topbar' },
+    const top = this.topEl = h('div', { class: 'topbar' },
       h('div', { class: 'panel money' }, this.fundsEl, this.foodEl),
       h('div', { class: 'panel clock' }, this.timeEl, ...this.speedBtns, this.ffEl),
-      h('div', { class: 'top-right' }, this.playerBtn = h('button', { class: 'btn player-chip', 'aria-label': 'Switch player', onclick: () => app.panels.switchPlayer() }), home, bell, menu),
+      h('div', { class: 'top-right' }, this.onlineBtn = h('button', { class: 'btn icon-btn round rel online-chip', 'aria-label': 'Playing on other devices', onclick: () => app.onlineUi.hostPanel() }), this.playerBtn = h('button', { class: 'btn player-chip', 'aria-label': 'Switch player', onclick: () => app.panels.switchPlayer() }), home, bell, menu),
     );
     this.portraitsEl = h('div', { class: 'portraits' });
     this.panelEl = h('div', { class: 'panel simpanel' });
@@ -81,7 +85,8 @@ export class Hud {
     );
     const modebar = h('div', { class: 'modebar' }, camtools, modes);
     this.toastsEl = h('div', { class: 'toasts' });
-    this.el.append(this.bubblesEl, top, this.partyEl, this.portraitsEl, this.panelEl, this.queueEl, modebar, this.toastsEl);
+    this.onlineBanner = h('div', { class: 'panel online-banner', style: 'display:none' });
+    this.el.append(this.bubblesEl, top, this.onlineBanner, this.partyEl, this.portraitsEl, this.panelEl, this.queueEl, modebar, this.toastsEl);
   }
 
   setMode(mode: string) {
@@ -115,6 +120,27 @@ export class Hud {
     const cal = calendarOf(game.day);
     const ev = eventsOn(game.day).map((e) => e.icon).join('');
     this.timeEl.append(`${hour12}:${String(mm).padStart(2, '0')} ${hh < 12 ? 'am' : 'pm'}`, h('small', null, `${DAY_NAMES[game.weekday].slice(0, 3)} · ${cal.season.icon} ${cal.season.name} ${cal.dayOfSeason} ${ev}`));
+    const online = this.app.online;
+    this.onlineBtn.style.display = online ? '' : 'none';
+    let banner = '';
+    if (online?.role === 'host') {
+      const n = online.guests.length;
+      this.onlineBtn.replaceChildren('📡', ...(n || online.asking.length ? [h('span', { class: 'badge', style: online.asking.length ? '' : 'background:var(--good)' }, String(online.asking.length || n))] : []));
+      this.onlineBtn.classList.toggle('ok', online.linkState === 'open');
+      this.onlineBtn.title = `Sharing as ${online.code} · ${n} other device${n === 1 ? '' : 's'}`;
+      if (online.asking.length) banner = `📱 ${online.asking[0].name} wants to join. Tap 📡 to let them in.`;
+    } else if (online?.role === 'guest') {
+      this.onlineBtn.replaceChildren('📡');
+      this.onlineBtn.classList.toggle('ok', online.linkState === 'open' && !online.quiet);
+      if (online.phase === 'hostAway') banner = '⏳ The host device dropped out. Waiting for it to come back…';
+      else if (online.linkState !== 'open') banner = '🟡 Reconnecting…';
+      else if (online.quiet) banner = '😴 The host device seems to be asleep. Open the game on it to carry on.';
+      else if (online.rate === 0 && st.speed > 0) banner = '⏸ Paused on the host device';
+    }
+    const bottom = Math.round(this.topEl.getBoundingClientRect().bottom);
+    if (bottom > 0 && bottom !== this.topBottom) { this.topBottom = bottom; document.documentElement.style.setProperty('--hud-top', `${bottom}px`); }
+    this.onlineBanner.textContent = banner;
+    this.onlineBanner.style.display = banner ? '' : 'none';
     const me = activePlayer(st);
     this.playerBtn.style.display = me ? '' : 'none';
     if (me) { this.playerBtn.textContent = `👤 ${me.name}`; this.playerBtn.style.boxShadow = `inset 0 0 0 3px ${me.color}`; }
@@ -139,7 +165,7 @@ export class Hud {
     } else this.partyEl.style.display = 'none';
     this.speedBtns.forEach((b, i) => b.classList.toggle('on', st.speed === i));
     this.ffEl.textContent = this.app.fastForward ? '⏩ Skipping ahead' : '';
-    const unread = st.notifications.filter((n) => !n.read).length;
+    const unread = st.notifications.filter((n) => !n.read).length + (st.approvals?.length ?? 0);
     this.bellBadge.textContent = String(unread);
     this.bellBadge.style.display = unread ? '' : 'none';
     this.renderPortraits();
