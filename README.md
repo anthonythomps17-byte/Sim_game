@@ -67,6 +67,10 @@ Ashton flavour: red-brick terraces and slate roofs, a church spire and pit-head 
   - Things break: drains get blocked (unblock them yourself or pay a plumber £120) and the boiler can fail, more often in winter (cold showers and no heating until it's fixed, by you with Logic or by an engineer for £250). Servicing the boiler makes a breakdown less likely.
 - **Laundry:** dirty clothes and bedding pile up. Do the washing, then hang it on the rotary line (dries fast in summer, slowly in winter) or tumble dry it (adds to the electricity bill). Leave a wash in the machine overnight and it goes smelly. Beds get grubby: change the bedding for fresh sheets.
 - **Petrol:** driving uses fuel. Fill up at the petrol station (tap the car, or Go out). With an empty tank, Sims take the bus.
+- **Pets:** adopt a dog, cat, parrot, rabbit or hamster from the Ashton Animal Rescue (menu → Pets, or tap your Sim → Adopt a pet). Choose a name and colour; the cage, hutch or food bowl is set up for you.
+  - Dogs and cats roam the house and garden, eat from the bowl, nap and (dogs) follow you about. Tap them to fuss, play fetch or with a feather toy, brush, bath, teach tricks, or walk the dog.
+  - The parrot learns words when you talk to it and says them in a speech bubble. The rabbit hops round its hutch, and the hamster runs on its wheel at night.
+  - Pets get hungry, bored and grubby, and say so with a bubble. Neglect makes your Sims worried, but pets never come to harm. Pet food comes from the pet shop (and a bit with the big food shop). Pet care adds a little to the weekly bills, and there's an Animal Lover trait.
 - **More to do:** summer barbecues (too cold in winter), walks in the park or round the block, bargain hunting at B&M (25% off voucher), and washing the car after driving.
 - **Parties:** tap your Sim → Plan a party. Pick karaoke, dance or barbecue, a time and up to 6 friends. Noise after 10pm upsets the neighbours: first a bang on the wall, then a complaint, then an £80 fine.
 

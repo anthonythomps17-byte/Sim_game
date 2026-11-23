@@ -2,6 +2,7 @@
 import { OBJECTS } from './defs';
 import type { Game } from './game';
 import { calendarOf } from './life';
+import { weeklyPetCost } from './pets';
 import { addMoodlet, clamp } from './mood';
 import { canPlaceObject } from './lot';
 import { chance, pick } from './rng';
@@ -33,7 +34,7 @@ export function noHotWater(game: Game): boolean {
   return !!b?.broken && !hasHeatPump(game);
 }
 
-export interface BillBreakdown { home: number; energy: number; energySaved: number; subscriptions: number; total: number }
+export interface BillBreakdown { home: number; energy: number; energySaved: number; subscriptions: number; pets: number; total: number }
 
 export function billBreakdown(game: Game): BillBreakdown {
   const kit = game.state.lot.objects.filter((o) => ENERGY_KIT.includes(o.defId)).reduce((s, o) => s + OBJECTS[o.defId].price, 0);
@@ -45,7 +46,8 @@ export function billBreakdown(game: Game): BillBreakdown {
   energy = Math.round(energy);
   const subs = game.state.household.subscriptions;
   const subscriptions = (subs.netflix ? SUBSCRIPTIONS.netflix.weekly : 0) + (subs.sky ? SUBSCRIPTIONS.sky.weekly : 0);
-  return { home, energy, energySaved: Math.round(full - energy), subscriptions, total: home + energy + subscriptions };
+  const pets = weeklyPetCost(game);
+  return { home, energy, energySaved: Math.round(full - energy), subscriptions, pets, total: home + energy + subscriptions + pets };
 }
 
 /** Room score penalties from dust (indoors) and weeds / spilled rubbish (outdoors). */

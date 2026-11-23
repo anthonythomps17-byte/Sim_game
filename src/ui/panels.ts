@@ -3,6 +3,8 @@ import { ALL_TRAITS, ASPIRATIONS, CAREERS, NEEDS, OBJECTS, OUTINGS, REWARD_OBJEC
 import { calendarOf, DAYS_PER_SEASON, endParty, EVENTS, eventsOn, familyCar, outingCheck, PARTY_COST_PER_GUEST, PARTY_THEMES, planParty, SEASONS, YEAR_DAYS } from '../sim/life';
 import { ACCESSORIES, BOTTOMS, CLOTH_COLORS, normalizeAppearance, SHOES, TOPS } from '../sim/newgame';
 import { addMoodlet } from '../sim/mood';
+import { PET_SPECIES } from '../sim/defs';
+import { adoptPet, adoptQuote, MAX_PETS, petHappiness, rehomePet, speciesOf } from '../sim/pets';
 import { billBreakdown, BIN_DAY, binsOverflowing, boiler, ENGINEER_COST, hasHeatPump, noHotWater, PLUMBER_COST, SUBSCRIPTIONS, wheelieBin, type SubscriptionId } from '../sim/home';
 import { DAY_NAMES } from '../sim/game';
 import { joinCareer, quitCareer } from '../sim/schedule';
@@ -288,7 +290,7 @@ export class Panels {
   objectInfo(obj: PlacedObject) {
     const def = OBJECTS[obj.defId];
     const rows = def.interactions.filter((i) => !i.condition || i.condition === 'night').map((i) =>
-      h('div', { class: 'row' }, h('span', { style: 'font-size:20px' }, i.icon), h('div', { class: 'grow' }, h('div', { class: 't' }, i.name),
+      h('div', { class: 'row' }, h('span', { style: 'font-size:20px' }, i.icon), h('div', { class: 'grow' }, h('div', { class: 't' }, i.name.replace('{name}', 'your pet')),
         h('div', { class: 's' }, [effectsText(i.effects ?? i.then?.effects), i.skill ? `${SKILL_NAMES[i.skill].icon} ${SKILL_NAMES[i.skill].name}` : '', i.minSkill ? `(needs ${SKILL_NAMES[i.minSkill.skill].name} ${i.minSkill.level})` : '', `${i.duration} min`].filter(Boolean).join(' · ')))));
     modal(this.root, def.name, [
       h('p', null, def.description),
@@ -336,6 +338,64 @@ export class Panels {
     ]);
   }
 
+  pets() {
+    const game = this.app.game!;
+    const st = game.state;
+    let close = () => {};
+    const mine = st.pets.map((pet) => {
+      const sp = speciesOf(pet);
+      const happy = petHappiness(pet);
+      const where = pet.location === 'away' ? ' · out on a walk' : '';
+      const extra = pet.species === 'parrot' ? ` · knows ${pet.words} word${pet.words === 1 ? '' : 's'}` : pet.species === 'dog' ? ` · ${Math.floor(pet.tricks / 2)} trick${Math.floor(pet.tricks / 2) === 1 ? '' : 's'}` : '';
+      return h_('div', { class: 'card' },
+        h_('div', { class: 'row' }, h_('span', { style: 'font-size:30px' }, sp.icon),
+          h_('div', { class: 'grow' }, h_('div', { class: 't' }, `${pet.name} the ${sp.name.toLowerCase()}`), h_('div', { class: 's' }, `${happy >= 70 ? '😊 Happy' : happy >= 40 ? '😐 OK' : '😿 Needs you'}${where}${extra}`)),
+          h_('button', { class: 'btn small ghost', onclick: () => this.confirm(`Rehome ${pet.name}?`, `${pet.name} will go to live with another family. This can't be undone.`, 'Rehome', () => { rehomePet(game, pet.id); this.app.flushEvents(); close(); this.pets(); }) }, 'Rehome')),
+        h_('div', { class: 'needs', style: 'margin-top:6px' },
+          ...([['🍖', 'Food', pet.hunger], ['🎾', 'Fun', pet.fun], ['🫧', 'Clean', pet.clean], ...(sp.roams ? [['💤', 'Energy', pet.energy]] : []), ['💗', 'Bond', pet.bond]] as [string, string, number][])
+            .map(([ic, lbl, v]) => h_('div', { class: 'need' }, h_('span', { class: 'ic' }, ic), h_('span', { class: 'lbl' }, lbl), bar(v)))));
+    });
+    const adopt = Object.values(PET_SPECIES).map((sp) => {
+      const q = adoptQuote(game, sp.id);
+      return h_('div', { class: 'card' }, h_('div', { class: 'row' }, h_('span', { style: 'font-size:34px' }, sp.icon),
+        h_('div', { class: 'grow' }, h_('div', { class: 't' }, `${sp.name} · ${money(q.total || sp.price)}`), h_('div', { class: 's' }, sp.desc),
+          h_('div', { class: 's' }, `${q.extras.length ? `Includes ${q.extras.join(' and ').toLowerCase()}. ` : ''}Care costs £${sp.weekly}/week.`), q.ok ? null : h_('div', { class: 's', style: 'color:var(--bad)' }, q.why ?? '')),
+        h_('button', { class: 'btn small primary', disabled: !q.ok, onclick: () => { close(); this.adoptForm(sp.id); } }, 'Adopt')));
+    });
+    close = modal(this.root, 'Pets', [
+      ...(mine.length ? [h_('div', { class: 'opt-label', style: 'margin-top:0' }, 'Your pets'), ...mine] : [h_('p', { class: 'muted' }, 'No pets yet. Give an animal from the rescue centre a loving home!')]),
+      h_('p', { class: 'muted' }, `🦴 Pet food: ${st.household.petFood}. Buy more at the pet shop (Go out), and a little comes with the big food shop.`),
+      h_('div', { class: 'opt-label' }, `Ashton Animal Rescue (up to ${MAX_PETS} pets)`),
+      ...adopt,
+    ]);
+  }
+
+  adoptForm(speciesId: string) {
+    const game = this.app.game!;
+    const sp = PET_SPECIES[speciesId];
+    let close = () => {};
+    let color = sp.colors[0];
+    let name = sp.names[Math.floor(Math.random() * sp.names.length)];
+    const colorsEl = h_('div', { class: 'colors' });
+    const drawColors = () => { clear(colorsEl); for (const c of sp.colors) colorsEl.append(h_('button', { class: `color ${c === color ? 'on' : ''}`, style: `background:${c}`, 'aria-label': c, onclick: () => { color = c; drawColors(); } })); };
+    drawColors();
+    close = modal(this.root, `Adopt a ${sp.name.toLowerCase()} ${sp.icon}`, [
+      h_('div', { class: 'opt-label', style: 'margin-top:0' }, 'Name'),
+      h_('input', { type: 'text', value: name, maxlength: 18, 'aria-label': 'Pet name', oninput: (e: Event) => { name = (e.target as HTMLInputElement).value; } }),
+      h_('div', { class: 'opts', style: 'margin-top:6px' }, ...sp.names.slice(0, 6).map((n) => h_('button', { class: 'opt', onclick: (e: Event) => { name = n; ((e.target as HTMLElement).closest('.body')!.querySelector('input') as HTMLInputElement).value = n; } }, n))),
+      h_('div', { class: 'opt-label' }, sp.id === 'parrot' ? 'Feathers' : 'Fur colour'),
+      colorsEl,
+    ], [
+      h_('button', { class: 'btn ghost', onclick: () => close() }, 'Back'),
+      h_('button', { class: 'btn primary', onclick: () => {
+        const res = adoptPet(game, speciesId, name, color);
+        if (!res.ok) { this.app.toast(res.why ?? "Couldn't adopt", sp.icon); return; }
+        this.app.flushEvents();
+        close();
+      } }, `Adopt ${sp.icon}`),
+    ]);
+  }
+
   home() {
     const game = this.app.game!;
     const st = game.state;
@@ -379,6 +439,7 @@ export class Panels {
         h_('div', { class: 'row' }, h_('span', null, '🏠'), h_('div', { class: 'grow' }, 'Rent, council tax and water'), h_('b', null, money(b.home))),
         h_('div', { class: 'row' }, h_('span', null, '⚡'), h_('div', { class: 'grow' }, 'Gas and electricity', b.energySaved ? h_('div', { class: 's', style: 'color:var(--good)' }, `Saving £${b.energySaved}/week with ${[solar ? `${solar} solar array${solar > 1 ? 's' : ''}` : '', hasHeatPump(game) ? 'a heat pump' : ''].filter(Boolean).join(' and ')}`) : null), h_('b', null, money(b.energy))),
         h_('div', { class: 'row' }, h_('span', null, '📺'), h_('div', { class: 'grow' }, 'TV subscriptions'), h_('b', null, money(b.subscriptions))),
+        b.pets ? h_('div', { class: 'row' }, h_('span', null, '🐾'), h_('div', { class: 'grow' }, 'Pet care and insurance'), h_('b', null, money(b.pets))) : null,
         h_('div', { class: 'row', style: 'border-top:1px solid var(--line)' }, h_('span', null, '🧾'), h_('div', { class: 'grow t' }, 'Total per week'), h_('b', null, money(b.total))),
       ),
       h_('p', { class: 'muted' }, `Make the house greener in Buy mode → Home & energy: solar panels (−25% energy each, up to 2) and a heat pump (−35%, and no more boiler breakdowns).${noHotWater(game) ? ' The boiler is broken right now!' : boiler(game) || hasHeatPump(game) ? '' : ' This house has no boiler or heat pump.'}`),
@@ -393,6 +454,8 @@ export class Panels {
         meter('Petrol', '⛽', 100 - (familyCar(game)!.fuel ?? 100), (familyCar(game)!.fuel ?? 100) < 30 ? 'Running low: tap the car → Fill up with petrol' : `${Math.round(familyCar(game)!.fuel ?? 100)}% full`),
         meter('Dirt', '🚗', familyCar(game)!.dirt, familyCar(game)!.dirt >= 40 ? 'Tap the car → Wash the car' : 'Clean and shiny'),
       ] : []),
+      h_('div', { class: 'opt-label' }, 'Pets'),
+      h_('button', { class: 'btn', style: 'width:100%;justify-content:flex-start', onclick: () => { close(); this.pets(); } }, `🐾  ${st.pets.length ? `Your pets (${st.pets.length}) · pet food ${h.petFood}` : 'Adopt a pet'}`),
       h_('div', { class: 'opt-label' }, 'TV subscriptions'),
       subRow('netflix'),
       subRow('sky'),

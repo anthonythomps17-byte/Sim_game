@@ -10,6 +10,7 @@ import { enqueue, gainSkill, interrupt, payBills } from './actions';
 import type { RunningAction, Sim, SkillId } from './types';
 import { onHour, outingReturn, returnCar, takeCar, worksToday } from './life';
 import { billBreakdown } from './home';
+import { takeDog } from './pets';
 
 export function careerLevel(sim: Sim): CareerLevel | null {
   if (!sim.career) return null;
@@ -141,6 +142,7 @@ export function arriveAtWork(game: Game, sim: Sim, action: RunningAction): void 
     if (o.cost) game.addFunds(-o.cost);
     sim.location = 'away';
     sim.awayReason = action.selfId;
+    if (o.special === 'dogWalk') takeDog(game, sim);
     // Drivers get there and back quicker (lessons and tests use the instructor's car).
     const usesCar = o.special !== 'lesson' && o.special !== 'drivingTest' && takeCar(game, sim, o.special === 'refuel');
     sim.awayUntil = now + (usesCar && o.duration > 60 && !o.household ? o.duration - 20 : o.duration);
@@ -252,7 +254,7 @@ function issueBills(game: Game): void {
   game.state.household.extraEnergy = 0;
   if (game.state.bills) game.state.bills.amount += amount;
   else game.state.bills = { amount, issued: game.state.time, dueBy: game.state.time + 3 * MINUTES_PER_DAY };
-  const parts = [`home £${b.home}`, `energy £${b.energy}${b.energySaved ? ` (saved £${b.energySaved})` : ''}`, b.subscriptions ? `TV £${b.subscriptions}` : ''].filter(Boolean).join(', ');
+  const parts = [`home £${b.home}`, `energy £${b.energy}${b.energySaved ? ` (saved £${b.energySaved})` : ''}`, b.subscriptions ? `TV £${b.subscriptions}` : '', b.pets ? `pets £${b.pets}` : ''].filter(Boolean).join(', ');
   game.notify(`Weekly bills have arrived: £${game.state.bills.amount} (${parts}). Pay within 3 days.`, '🧾', 'bills');
   game.sound('notify');
 }

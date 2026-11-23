@@ -37,6 +37,11 @@
    "icon": "🔌"
   },
   {
+   "id": "pets",
+   "name": "Pets",
+   "icon": "🐾"
+  },
+  {
    "id": "outdoor",
    "name": "Garden",
    "icon": "🌱"
@@ -3675,6 +3680,282 @@
      "tags": [
       "cleaning",
       "outdoors"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "pet_bowl",
+   "name": "Pet Food Bowl",
+   "category": "pets",
+   "price": 15,
+   "footprint": [
+    1,
+    1
+   ],
+   "decor": 0,
+   "walkable": false,
+   "description": "Dogs and cats eat from here. Keep it topped up!",
+   "spots": [
+    {
+     "at": [
+      0,
+      1
+     ],
+     "alt": [
+      [
+       1,
+       0
+      ],
+      [
+       -1,
+       0
+      ],
+      [
+       0,
+       -1
+      ]
+     ]
+    }
+   ],
+   "interactions": [
+    {
+     "id": "fill",
+     "name": "Fill the food bowl",
+     "icon": "🥣",
+     "duration": 5,
+     "anim": "garden",
+     "condition": "bowlLow",
+     "special": "fillBowl"
+    }
+   ]
+  },
+  {
+   "id": "pet_bed",
+   "name": "Pet Bed",
+   "category": "pets",
+   "price": 45,
+   "footprint": [
+    1,
+    1
+   ],
+   "decor": 1,
+   "walkable": true,
+   "description": "A comfy bed for a dog or cat.",
+   "spots": [],
+   "interactions": []
+  },
+  {
+   "id": "parrot_cage",
+   "name": "Parrot Cage",
+   "category": "pets",
+   "price": 120,
+   "footprint": [
+    1,
+    1
+   ],
+   "decor": 1,
+   "description": "Home for a parrot.",
+   "spots": [
+    {
+     "at": [
+      0,
+      1
+     ],
+     "alt": [
+      [
+       1,
+       0
+      ],
+      [
+       -1,
+       0
+      ]
+     ]
+    }
+   ],
+   "interactions": [
+    {
+     "id": "feed",
+     "name": "Feed {name}",
+     "icon": "🥕",
+     "duration": 8,
+     "anim": "use",
+     "condition": "petHungry",
+     "special": "feedCaged",
+     "effects": {
+      "fun": 5
+     }
+    },
+    {
+     "id": "play",
+     "name": "Talk to {name}",
+     "icon": "💬",
+     "duration": 20,
+     "anim": "talk",
+     "condition": "hasPet",
+     "special": "playCaged",
+     "effects": {
+      "fun": 20,
+      "social": 10
+     },
+     "moodlet": "pet_love"
+    },
+    {
+     "id": "clean",
+     "name": "Clean the cage",
+     "icon": "🧽",
+     "duration": 25,
+     "anim": "use",
+     "condition": "cageDirty",
+     "special": "cleanCage",
+     "effects": {
+      "hygiene": -10
+     },
+     "tags": [
+      "cleaning"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "rabbit_hutch",
+   "name": "Rabbit Hutch",
+   "category": "pets",
+   "price": 90,
+   "footprint": [
+    2,
+    1
+   ],
+   "decor": 1,
+   "description": "A cosy hutch for the garden.",
+   "spots": [
+    {
+     "at": [
+      0,
+      1
+     ],
+     "alt": [
+      [
+       1,
+       1
+      ]
+     ]
+    }
+   ],
+   "interactions": [
+    {
+     "id": "feed",
+     "name": "Feed {name} a carrot",
+     "icon": "🥕",
+     "duration": 8,
+     "anim": "use",
+     "condition": "petHungry",
+     "special": "feedCaged",
+     "effects": {
+      "fun": 5
+     }
+    },
+    {
+     "id": "play",
+     "name": "Cuddle {name}",
+     "icon": "💬",
+     "duration": 20,
+     "anim": "talk",
+     "condition": "hasPet",
+     "special": "playCaged",
+     "effects": {
+      "fun": 20,
+      "social": 10
+     },
+     "moodlet": "pet_love"
+    },
+    {
+     "id": "clean",
+     "name": "Clean the hutch",
+     "icon": "🧽",
+     "duration": 25,
+     "anim": "use",
+     "condition": "cageDirty",
+     "special": "cleanCage",
+     "effects": {
+      "hygiene": -10
+     },
+     "tags": [
+      "cleaning"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "hamster_cage",
+   "name": "Hamster Cage",
+   "category": "pets",
+   "price": 45,
+   "footprint": [
+    1,
+    1
+   ],
+   "decor": 1,
+   "description": "With a wheel, of course.",
+   "spots": [
+    {
+     "at": [
+      0,
+      1
+     ],
+     "alt": [
+      [
+       1,
+       0
+      ],
+      [
+       -1,
+       0
+      ]
+     ]
+    }
+   ],
+   "interactions": [
+    {
+     "id": "feed",
+     "name": "Feed {name}",
+     "icon": "🥕",
+     "duration": 8,
+     "anim": "use",
+     "condition": "petHungry",
+     "special": "feedCaged",
+     "effects": {
+      "fun": 5
+     }
+    },
+    {
+     "id": "play",
+     "name": "Play with {name}",
+     "icon": "💬",
+     "duration": 20,
+     "anim": "talk",
+     "condition": "hasPet",
+     "special": "playCaged",
+     "effects": {
+      "fun": 20,
+      "social": 10
+     },
+     "moodlet": "pet_love"
+    },
+    {
+     "id": "clean",
+     "name": "Clean the cage",
+     "icon": "🧽",
+     "duration": 25,
+     "anim": "use",
+     "condition": "cageDirty",
+     "special": "cleanCage",
+     "effects": {
+      "hygiene": -10
+     },
+     "tags": [
+      "cleaning"
      ]
     }
    ]

@@ -25,12 +25,14 @@ import { CameraController, type PointerHandlers } from './camera';
 import { buildScenery, type Scenery } from './scenery';
 import { LotView, type WallMode } from './lotView';
 import { SimAvatar } from './simAvatar';
+import { PetAvatar } from './petAvatar';
 import { SkyEffects } from './effects';
 import { calendarOf, fireworksActive, isEventToday } from '../sim/life';
 
 export type Quality = 'low' | 'medium' | 'high';
 export type PickResult =
   | { kind: 'sim'; id: number }
+  | { kind: 'pet'; id: number }
   | { kind: 'object'; id: number }
   | { kind: 'wall'; key: string; side: 0 | 1 }
   | { kind: 'ground'; x: number; z: number };
@@ -56,6 +58,7 @@ export class WorldView {
   private streetLights: PointLight[] = [];
   private streetGlow: Mesh | null = null;
   private avatars = new Map<number, SimAvatar>();
+  private petAvatars = new Map<number, PetAvatar>();
   private game: Game | null = null;
   private time = 0;
   quality: Quality = 'medium';
@@ -152,6 +155,8 @@ export class WorldView {
     this.game = game;
     for (const a of this.avatars.values()) a.dispose();
     this.avatars.clear();
+    for (const a of this.petAvatars.values()) a.dispose();
+    this.petAvatars.clear();
     this.lotView.init(game.state.lot);
     const lot = game.state.lot;
     this.cam.bounds = { minX: -40, maxX: lot.width + 40, minZ: -45, maxZ: lot.depth + 40 };
@@ -195,6 +200,7 @@ export class WorldView {
     const fwd = this.camera.target.subtract(this.camera.position).normalize();
     this.sky.update(dt, fireworksActive(game), snowing, this.camera.target, this.camera.position, fwd);
     this.syncSims(game, dt, speed);
+    this.syncPets(game, dt, speed);
     this.scene.render();
   }
 
@@ -265,6 +271,50 @@ export class WorldView {
     for (const [id, av] of this.avatars) if (!seen.has(id)) av.setVisible(false);
   }
 
+  private syncPets(game: Game, dt: number, speed: number) {
+    const seen = new Set<number>();
+    for (const pet of game.state.pets) {
+      seen.add(pet.id);
+      let av = this.petAvatars.get(pet.id);
+      if (av && av.pet !== pet) { av.dispose(); this.petAvatars.delete(pet.id); av = undefined; }
+      if (!av) {
+        const meta = pet.homeId !== null ? { kind: 'object', id: pet.homeId } : { kind: 'pet', id: pet.id };
+        av = new PetAvatar(this.scene, pet, meta, (m) => this.shadows?.addShadowCaster(m));
+        this.petAvatars.set(pet.id, av);
+      }
+      const home = pet.homeId !== null ? game.object(pet.homeId) : undefined;
+      const visible = pet.location === 'lot' && (pet.homeId === null || !!home);
+      av.setVisible(visible);
+      if (!visible) continue;
+      const r = av.root;
+      if (home) {
+        // Caged pets sit inside their cage or hutch.
+        const off = pet.species === 'parrot' ? [0, 1.13, 0] : pet.species === 'rabbit' ? [-0.2, 0.31, 0.05] : pet.anim === 'run' ? [0.14, 0.62, 0] : [-0.12, 0.66, 0];
+        const ang = (home.rot * Math.PI) / 2;
+        const c = pet.pos;
+        r.position.set(c.x + Math.cos(ang) * off[0], off[1], c.z - Math.sin(ang) * off[0] + off[2]);
+        r.rotation.y = ang + (pet.species === 'hamster' && pet.anim === 'run' ? Math.PI / 2 : 0);
+      } else {
+        const target = new Vector3(pet.pos.x, 0, pet.pos.z);
+        if (Vector3.Distance(r.position, target) > 2) r.position.copyFrom(target);
+        else Vector3.LerpToRef(r.position, target, Math.min(1, dt * 12), r.position);
+        let diff = pet.facing - r.rotation.y;
+        while (diff > Math.PI) diff -= Math.PI * 2;
+        while (diff < -Math.PI) diff += Math.PI * 2;
+        r.rotation.y += diff * Math.min(1, dt * 10);
+      }
+      av.pose(pet.anim, this.time, dt * Math.max(1, speed), Math.max(1, speed));
+    }
+    for (const [id, av] of this.petAvatars) if (!seen.has(id)) { av.dispose(); this.petAvatars.delete(id); }
+  }
+
+  petScreenPos(petId: number): { x: number; y: number; visible: boolean } | null {
+    const av = this.petAvatars.get(petId);
+    if (!av || !av.root.isEnabled()) return null;
+    const p = av.root.position;
+    return this.project(p.x, p.y + (av.pet.species === 'dog' ? 0.85 : av.pet.species === 'cat' ? 0.65 : 0.45), p.z);
+  }
+
   private poseSim(av: SimAvatar, sim: Sim, game: Game, dt: number, speed: number) {
     const target = new Vector3(sim.pos.x, 0, sim.pos.z);
     const r = av.root;
@@ -312,6 +362,7 @@ export class WorldView {
     if (hit?.hit && hit.pickedMesh) {
       const meta = hit.pickedMesh.metadata;
       if (meta.kind === 'sim') return { kind: 'sim', id: meta.id };
+      if (meta.kind === 'pet') return { kind: 'pet', id: meta.id };
       if (meta.kind === 'object') return { kind: 'object', id: meta.id };
       if (meta.kind === 'wall' && hit.thinInstanceIndex !== undefined && hit.thinInstanceIndex >= 0 && hit.pickedPoint) {
         const w = this.lotView.wallFromPick(hit.pickedMesh.name, hit.thinInstanceIndex, hit.pickedPoint);

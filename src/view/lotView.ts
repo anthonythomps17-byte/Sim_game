@@ -270,7 +270,7 @@ export class LotView {
   // ---------- Objects ----------
 
   private objectKey(o: PlacedObject): string {
-    const stage = o.defId === 'veg_patch' ? (o.growth >= 100 ? 3 : o.growth >= 50 ? 2 : o.growth > 0 ? 1 : 0) : o.defId === 'pumpkin' ? (o.growth >= 100 ? 1 : 0) : o.defId === 'washing_line' ? (o.load ? 1 : 0) : 0;
+    const stage = o.defId === 'veg_patch' ? (o.growth >= 100 ? 3 : o.growth >= 50 ? 2 : o.growth > 0 ? 1 : 0) : o.defId === 'pumpkin' ? (o.growth >= 100 ? 1 : 0) : o.defId === 'washing_line' ? (o.load ? 1 : 0) : o.defId === 'pet_bowl' ? ((o.load ?? 0) > 0 ? 1 : 0) : 0;
     return `${o.defId}:${stage}`;
   }
 

@@ -8,6 +8,7 @@ import { availableSocials } from '../sim/social';
 import { OBJECTS, OUTINGS, SELF_ACTIONS } from '../sim/defs';
 import { scheduleNextVisit } from '../sim/schedule';
 import { gameMinutesPerSecond, householdOuting } from '../sim/life';
+import { label as petLabel, occupant, petActionsFor } from '../sim/pets';
 import type { GameEvent, GameState, Sim } from '../sim/types';
 import { WorldView } from '../view/world';
 import { CasView } from '../view/casView';
@@ -331,6 +332,7 @@ export class App {
         if (e.panel === 'clothes') this.panels.clothes(sim);
         if (e.panel === 'party') this.panels.party(sim);
         if (e.panel === 'home') this.panels.home();
+        if (e.panel === 'pets') this.panels.pets();
         break;
       }
     }
@@ -350,6 +352,7 @@ export class App {
     const sel = this.selectedSim();
     if (!hit) return;
     if (hit.kind === 'sim') { this.simMenu(x, y, hit.id); return; }
+    if (hit.kind === 'pet') { this.petMenu(x, y, hit.id); return; }
     if (!sel) return;
     if (hit.kind === 'object') { this.objectMenu(x, y, hit.id); return; }
     if (hit.kind === 'ground' || hit.kind === 'wall') {
@@ -373,6 +376,22 @@ export class App {
     if (hit?.kind === 'sim') { const s = this.game.sim(hit.id); if (s) this.panels.simInfo(s); }
   }
 
+  private petMenu(x: number, y: number, petId: number) {
+    const game = this.game!;
+    const pet = game.state.pets.find((p) => p.id === petId);
+    const sel = this.selectedSim();
+    if (!pet) return;
+    const options: RadialOption[] = [];
+    if (sel) {
+      for (const { def, ok, why } of petActionsFor(game, sel, pet)) {
+        options.push({ icon: def.icon, label: petLabel(def.name, pet), disabled: !ok, why, onPick: () => this.queue(sel, { kind: 'pet', petId: pet.id, petAction: def.id, label: petLabel(def.name, pet), icon: def.icon, userQueued: true }) });
+      }
+      if (pet.species === 'dog') options.push({ icon: '🦮', label: `Walk ${pet.name}`, onPick: () => this.queueOuting(sel, 'dogwalk') });
+    }
+    options.push({ icon: '🐾', label: 'Pets', onPick: () => this.panels.pets() });
+    showRadial(this.root, x, y, pet.name, options);
+  }
+
   private objectMenu(x: number, y: number, objId: number) {
     const game = this.game!;
     const obj = game.object(objId);
@@ -383,9 +402,11 @@ export class App {
     for (const inter of def.interactions) {
       const avail = checkInteraction(game, sim, obj, inter);
       if (avail.hidden) continue;
+      const resident = occupant(game, obj);
+      const name = resident ? petLabel(inter.name, resident) : inter.name;
       options.push({
-        icon: inter.icon, label: inter.name, disabled: !avail.ok, why: avail.reason,
-        onPick: () => this.queue(sim, { kind: 'object', objectId: obj.id, interactionId: inter.id, label: inter.name, icon: inter.icon, userQueued: true }),
+        icon: inter.icon, label: name, disabled: !avail.ok, why: avail.reason,
+        onPick: () => this.queue(sim, { kind: 'object', objectId: obj.id, interactionId: inter.id, label: name, icon: inter.icon, userQueued: true }),
       });
     }
     options.push({ icon: 'ℹ️', label: 'About', onPick: () => this.panels.objectInfo(obj) });
@@ -406,7 +427,7 @@ export class App {
         if (s.condition === 'weedy' && hh.weeds < 15) continue;
         options.push({
           icon: s.icon, label: s.name,
-          onPick: () => s.ui === 'relationships' ? this.panels.invite(sel) : s.ui === 'party' ? this.panels.party(sel) : this.queue(sel, { kind: 'self', selfId: s.id, label: s.name, icon: s.icon, userQueued: true }),
+          onPick: () => s.ui === 'relationships' ? this.panels.invite(sel) : s.ui === 'party' ? this.panels.party(sel) : s.ui === 'pets' ? this.panels.pets() : this.queue(sel, { kind: 'self', selfId: s.id, label: s.name, icon: s.icon, userQueued: true }),
         });
       }
       options.push({ icon: '🌳', label: 'Go for a walk', onPick: () => this.queueOuting(sel, 'walk') });

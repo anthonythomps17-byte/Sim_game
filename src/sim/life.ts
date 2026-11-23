@@ -11,6 +11,7 @@ import { chance, pick } from './rng';
 import { enqueue, interrupt } from './actions';
 import type { Party, PlacedObject, Sim } from './types';
 import { homeHour } from './home';
+import { dogBack, petsHour } from './pets';
 
 // ---------- Clock speed ----------
 
@@ -121,7 +122,7 @@ function exitReachable(game: Game, obj: PlacedObject): boolean {
 }
 
 /** Find a free, reachable spot for a decoration, inside if asked (and possible). */
-export function placeTemp(game: Game, defId: string, indoors: boolean, expiresDay: number): PlacedObject | null {
+export function placeTemp(game: Game, defId: string, indoors: boolean, expiresDay?: number): PlacedObject | null {
   const lot = game.state.lot;
   const def = OBJECTS[defId];
   const cx = lot.width / 2, cz = lot.depth / 2;
@@ -170,6 +171,7 @@ function removeExpiredTemps(game: Game): void {
 export function onHour(game: Game, hour: number): void {
   const st = game.state;
   homeHour(game, hour);
+  petsHour(game, hour);
   const cal = calendarOf(game.day);
   if (hour === 0) {
     removeExpiredTemps(game);
@@ -334,6 +336,10 @@ export function outingCheck(game: Game, sim: Sim, o: OutingDef): OutingCheck {
       if (sim.driving.licence) return { ok: false, hidden: true };
       if (sim.driving.lessons < 5) return { ok: false, why: `Needs 5 driving lessons (${sim.driving.lessons}/5)` };
       break;
+    case 'hasDog':
+      if (!game.state.pets.some((p) => p.species === 'dog')) return { ok: false, hidden: true };
+      if (!game.state.pets.some((p) => p.species === 'dog' && p.location === 'lot')) return { ok: false, why: 'The dog is already out' };
+      break;
     case 'canDrive': {
       if (!sim.driving.licence) return { ok: false, hidden: true };
       const car = familyCar(game);
@@ -378,6 +384,12 @@ export function outingReturn(game: Game, sim: Sim, id: string): void {
       game.notify(`${sim.name} filled up the car with petrol (£${cost}).`, '⛽', 'info');
     }
   }
+  if (o.special === 'petFood') {
+    game.state.household.petFood += 30;
+    game.notify(`${sim.name} bought pet food and treats (+30).`, '🦴', 'good');
+  }
+  if (o.special === 'dogWalk') dogBack(game, sim);
+  if (o.groceries && game.state.pets.length) game.state.household.petFood += 10;
   if (o.special === 'bargain') {
     game.state.household.discount = 0.25;
     addMoodlet(sim, 'bargain', game.state.time);

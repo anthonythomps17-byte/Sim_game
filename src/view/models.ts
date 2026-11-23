@@ -161,6 +161,47 @@ const carShape = (b: ModelBuilder, paint: string) => {
 
 export const BUILDERS: Record<string, Builder> = {
   car: (b) => carShape(b, '#3b6fd1'),
+  pet_bowl: (b, _d, obj) => {
+    b.cyl(0.34, 0.26, 0.09, '#c0392b', 0, 0, 0, 14);
+    b.cyl(0.26, 0.26, 0.01, '#7a2b2b', 0, 0.085, 0, 14);
+    if ((obj?.load ?? 0) > 0) for (let i = 0; i < 7; i++) b.sphere(0.05, '#8b5e3c', Math.cos(i) * 0.07, 0.1, Math.sin(i) * 0.07);
+  },
+  pet_bed: (b) => {
+    b.cyl(0.75, 0.75, 0.06, '#7b8794', 0, 0, 0, 18);
+    b.torus(0.62, 0.16, '#4a90d9', 0, 0.1, 0, 18);
+    b.cyl(0.5, 0.5, 0.05, '#f4f1ea', 0, 0.06, 0, 16);
+  },
+  parrot_cage: (b) => {
+    b.cyl(0.45, 0.5, 0.05, '#2d3037', 0, 0, 0, 14);
+    b.cyl(0.04, 0.04, 0.95, '#2d3037', 0, 0.05, 0, 6);
+    b.cyl(0.55, 0.55, 0.04, '#d9b25a', 0, 0.95, 0, 16);
+    for (let i = 0; i < 14; i++) { const a = (i / 14) * Math.PI * 2; b.cyl(0.012, 0.012, 0.62, '#d9b25a', Math.cos(a) * 0.26, 0.98, Math.sin(a) * 0.26, 4); }
+    const dome = b.sphere(0.54, '#d9b25a', 0, 1.6, 0, 1, 0.55, 1, 10); dome.scaling.y = 0.4;
+    b.cyl(0.03, 0.03, 0.46, '#8b5e3c', 0, 1.12, 0, 6).rotation.z = Math.PI / 2;
+    b.cyl(0.08, 0.06, 0.05, '#c0392b', 0.15, 1.0, 0.1, 8);
+  },
+  rabbit_hutch: (b) => {
+    b.legs(1.8, 0.8, 0.25, DARKWOOD, 0.06, 0.07);
+    b.box(1.85, 0.05, 0.85, WOOD, 0, 0.25, 0);
+    b.box(1.8, 0.02, 0.78, '#e6c96e', 0, 0.3, 0);
+    b.box(1.85, 0.7, 0.05, WOOD, 0, 0.3, -0.41);
+    for (const x of [-0.92, 0.92]) b.box(0.05, 0.7, 0.85, WOOD, x, 0.3, 0);
+    b.box(0.6, 0.7, 0.05, WOOD, 0.62, 0.3, 0.41);
+    for (let i = 0; i < 12; i++) b.box(0.012, 0.66, 0.012, '#9aa3ad', -0.88 + i * 0.1, 0.32, 0.42);
+    const roof = b.box(2.0, 0.05, 1.0, '#4a515c', 0, 1.02, -0.02); roof.rotation.x = 0.15;
+    b.sphere(0.12, '#e7833a', 0.6, 0.36, 0.1, 1, 0.5, 2.2);
+  },
+  hamster_cage: (b) => {
+    b.box(0.7, 0.04, 0.5, LIGHTWOOD, 0, 0.56, 0);
+    b.legs(0.66, 0.46, 0.56, DARKWOOD, 0.04, 0.04);
+    b.box(0.58, 0.06, 0.4, '#3d8fd6', 0, 0.6, 0);
+    b.box(0.56, 0.02, 0.38, '#e6c96e', 0, 0.65, 0);
+    for (let i = 0; i < 10; i++) b.box(0.006, 0.32, 0.006, '#c9ccd1', -0.27 + i * 0.06, 0.66, 0.19);
+    for (let i = 0; i < 10; i++) b.box(0.006, 0.32, 0.006, '#c9ccd1', -0.27 + i * 0.06, 0.66, -0.19);
+    b.box(0.58, 0.02, 0.4, '#c9ccd1', 0, 0.98, 0);
+    const wheel = b.torus(0.2, 0.015, '#f2c14e', 0.14, 0.77, 0, 16); wheel.rotation.x = Math.PI / 2; wheel.rotation.y = Math.PI / 2;
+    b.box(0.05, 0.12, 0.05, '#f2c14e', 0.14, 0.66, 0);
+  },
   washer: (b) => {
     b.box(0.6, 0.85, 0.6, WHITE, 0, 0, -0.1);
     b.cyl(0.42, 0.42, 0.04, '#9aa3ad', 0, 0.42, 0.2, 18).rotation.x = Math.PI / 2;

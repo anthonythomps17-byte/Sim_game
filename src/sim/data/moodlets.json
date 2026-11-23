@@ -398,6 +398,34 @@
    "icon": "🧦",
    "value": -15,
    "duration": 720
+  },
+  {
+   "id": "pet_love",
+   "name": "Pet love",
+   "icon": "🐾",
+   "value": 12,
+   "duration": 300
+  },
+  {
+   "id": "dog_walk",
+   "name": "Lovely dog walk",
+   "icon": "🦮",
+   "value": 15,
+   "duration": 300
+  },
+  {
+   "id": "worried_pet",
+   "name": "Worried about a pet",
+   "icon": "😿",
+   "value": -12,
+   "duration": 240
+  },
+  {
+   "id": "new_pet",
+   "name": "New family member!",
+   "icon": "🐶",
+   "value": 30,
+   "duration": 1440
   }
  ]
 }

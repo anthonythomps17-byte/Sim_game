@@ -10,6 +10,7 @@ import careersData from './data/careers.json';
 import aspirationsData from './data/aspirations.json';
 import buildData from './data/build.json';
 import namesData from './data/names.json';
+import petsData from './data/pets.json';
 
 export type Effects = Partial<Record<NeedId, number>>;
 
@@ -30,7 +31,8 @@ export interface InteractionDef {
   condition?: 'dirty' | 'grown' | 'growing' | 'empty' | 'bills' | 'lightOn' | 'lightOff' | 'night'
     | 'once' | 'uncarved' | 'carved' | 'nightOnce' | 'canDrive'
     | 'notWinter' | 'broken' | 'working' | 'netflix' | 'sky' | 'binsIn' | 'binsBack' | 'overflowing'
-    | 'laundry' | 'wetWashing' | 'canHang' | 'dryWashing';
+    | 'laundry' | 'wetWashing' | 'canHang' | 'dryWashing'
+    | 'hasPet' | 'petHungry' | 'cageDirty' | 'bowlLow';
   /** Groceries used from the household's food supply. */
   food?: number;
   dirties?: number; cleans?: boolean; cleansRoom?: boolean;
@@ -94,7 +96,7 @@ export interface OutingDef {
   days?: number[]; hours?: [number, number]; special?: string; tags?: string[];
   /** Food added to the household supply. */
   groceries?: number;
-  condition?: 'learner' | 'testReady' | 'canDrive';
+  condition?: 'learner' | 'testReady' | 'canDrive' | 'hasDog';
   season?: string; seasonDays?: number[]; event?: string;
   /** The whole household goes together (holidays). */
   household?: boolean;
@@ -149,6 +151,20 @@ export const BUILD_PRICES = buildData.prices;
 export const FLOORS = byId(buildData.floors as SurfaceDef[]);
 export const PAINTS = byId(buildData.paints as SurfaceDef[]);
 export const NAMES = namesData;
+
+export interface PetActionDef {
+  id: string; name: string; icon: string; duration: number; anim: AnimId;
+  effects?: Effects; skill?: SkillId; skillRate?: number;
+  pet: { fun?: number; clean?: number; energy?: number; hunger?: number; bond?: number };
+  moodlet?: string; special?: string; petAnim?: string;
+}
+export interface PetSpeciesDef {
+  id: string; name: string; icon: string; price: number; weekly: number; roams: boolean; speed?: number;
+  habitat?: string; colors: string[]; names: string[]; desc: string;
+  decay: { hunger: number; fun: number; clean: number; energy: number };
+  words?: string[]; actions: PetActionDef[];
+}
+export const PET_SPECIES = byId(petsData.species as unknown as PetSpeciesDef[]);
 
 export function interaction(defId: string, interactionId: string): InteractionDef | undefined {
   return OBJECTS[defId]?.interactions.find((i) => i.id === interactionId);

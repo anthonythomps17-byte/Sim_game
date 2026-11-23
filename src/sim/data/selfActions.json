@@ -103,6 +103,15 @@
     "outdoors",
     "cleaning"
    ]
+  },
+  {
+   "id": "adopt",
+   "name": "Adopt a pet",
+   "icon": "🐾",
+   "duration": 5,
+   "anim": "phone",
+   "ui": "pets",
+   "auto": false
   }
  ],
  "outings": [
@@ -596,6 +605,40 @@
    "effects": {},
    "special": "refuel",
    "condition": "canDrive"
+  },
+  {
+   "id": "dogwalk",
+   "name": "Walk the dog round the park",
+   "icon": "🦮",
+   "duration": 60,
+   "effects": {
+    "fun": 25,
+    "social": 10,
+    "energy": -8
+   },
+   "skill": "fitness",
+   "skillXp": 25,
+   "moodlet": "dog_walk",
+   "special": "dogWalk",
+   "condition": "hasDog",
+   "tags": [
+    "outdoors"
+   ]
+  },
+  {
+   "id": "petshop",
+   "name": "Pet shop",
+   "icon": "🦴",
+   "duration": 45,
+   "cost": 15,
+   "effects": {
+    "fun": 15
+   },
+   "special": "petFood",
+   "hours": [
+    9,
+    18
+   ]
   }
  ]
 }

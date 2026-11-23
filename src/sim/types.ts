@@ -48,7 +48,7 @@ export interface Appearance {
 
 export interface ActiveMoodlet { id: string; expires: number }
 
-export type ActionKind = 'object' | 'seat' | 'social' | 'self' | 'goto' | 'work' | 'leave' | 'respond' | 'outing';
+export type ActionKind = 'object' | 'seat' | 'social' | 'self' | 'goto' | 'work' | 'leave' | 'respond' | 'outing' | 'pet';
 
 export interface QueuedAction {
   uid: number;
@@ -61,6 +61,8 @@ export interface QueuedAction {
   targetSimId?: number;
   socialId?: string;
   selfId?: string;
+  petId?: number;
+  petAction?: string;
   dest?: Point;
   /** Inline definition for 'seat' follow-ups (eat a cooked meal, etc). */
   inline?: InlineAction;
@@ -217,6 +219,7 @@ export interface GameState {
     wetWashing: number;
     /** Extra electricity this week (tumble dryer). */
     extraEnergy: number;
+    petFood: number;
   };
   sims: Sim[];
   relationships: Relationship[];
@@ -231,8 +234,44 @@ export interface GameState {
   pendingVisits: { simId: number; at: number }[];
   flags: { lastHour: number; nextVisitAt: number; lowFoodWarned?: boolean };
   party: Party | null;
+  pets: Pet[];
   noise: { tonight: number; stage: number };
   fireworksUntil: number;
+}
+
+export type PetAnim = 'idle' | 'walk' | 'run' | 'sleep' | 'sit' | 'eat' | 'happy' | 'pounce' | 'hop';
+
+export interface PetTask {
+  kind: 'wander' | 'eat' | 'sleep' | 'follow' | 'withSim' | 'idle';
+  path: Point[];
+  i: number;
+  until: number;
+  targetId?: number;
+}
+
+export interface Pet {
+  id: number;
+  species: string;
+  name: string;
+  color: string;
+  /** 0–100 needs, plus how attached the pet is to the family. */
+  hunger: number;
+  fun: number;
+  clean: number;
+  energy: number;
+  bond: number;
+  pos: Point;
+  facing: number;
+  anim: PetAnim;
+  location: 'lot' | 'away';
+  /** Cage, hutch or perch for pets that don't roam. */
+  homeId: number | null;
+  task: PetTask | null;
+  words: number;
+  tricks: number;
+  say: { text: string; until: number } | null;
+  warnedAt: number;
+  adopted: number;
 }
 
 export interface Party {

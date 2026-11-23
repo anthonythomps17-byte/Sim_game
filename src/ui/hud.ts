@@ -353,6 +353,27 @@ export class Hud {
       b.n.style.display = label ? '' : 'none';
       b.n.style.transform = `translate(${pos.x}px, ${pos.y + 4}px) translate(-50%, 0)`;
     }
+    for (const pet of game.state.pets) {
+      const key = -pet.id;
+      const pos = pet.location === 'lot' ? world.petScreenPos(pet.id) : null;
+      if (!pos || !pos.visible) continue;
+      seen.add(key);
+      let b = this.bubbles.get(key);
+      if (!b) {
+        b = { b: h('div', { class: 'bubble' }), n: h('div', { class: 'nametag' }) };
+        this.bubblesEl.append(b.b, b.n);
+        this.bubbles.set(key, b);
+      }
+      const need = pet.hunger < 20 ? '🍖' : pet.fun < 15 ? '🎾' : pet.clean < 15 ? '🫧' : '';
+      const text = pet.say ? `💬 ${pet.say.text}` : need;
+      if (b.b.textContent !== text) b.b.textContent = text;
+      b.b.style.display = text ? '' : 'none';
+      b.b.style.fontSize = pet.say ? '14px' : '';
+      b.b.style.transform = `translate(${pos.x}px, ${pos.y}px) translate(-50%, -100%)`;
+      if (b.n.textContent !== pet.name) b.n.textContent = pet.name;
+      b.n.style.display = '';
+      b.n.style.transform = `translate(${pos.x}px, ${pos.y + 4}px) translate(-50%, 0)`;
+    }
     for (const [id, b] of this.bubbles) if (!seen.has(id)) { b.b.style.display = 'none'; b.n.style.display = 'none'; }
   }
 

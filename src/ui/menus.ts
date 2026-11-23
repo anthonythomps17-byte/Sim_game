@@ -68,6 +68,7 @@ export class Menus {
       btn('📤  Export save (backup file)', () => this.app.exportSave()),
       btn('📥  Import save file', () => this.app.importSave()),
       btn('🏠  Home, bills and subscriptions', () => this.app.panels.home()),
+      btn('🐾  Pets', () => this.app.panels.pets()),
       btn('🗺️  Ashton map', () => this.app.panels.map()),
       btn('🏡  Invite someone over', () => this.app.panels.invite(this.app.selectedSim())),
       btn('⚙️  Settings', () => this.settings()),

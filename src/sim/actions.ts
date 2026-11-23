@@ -12,6 +12,7 @@ import { arriveAtWork, skipWork } from './schedule';
 import { changeRel, findRel } from './relationships';
 import { calendarOf, canDriveNow, hasFood, openPresent, outingCheck, useFood } from './life';
 import { binsOverflowing, binWindow, homeSpecial, noHotWater, selfSpecial } from './home';
+import { applyPetAction, petCondition, petObjectSpecial, speciesOf } from './pets';
 import type { NeedId, PlacedObject, Point, QueuedAction, RunningAction, Sim, SkillId } from './types';
 
 export const WALK_SPEED = 1.7; // tiles per game minute
@@ -113,6 +114,10 @@ export function checkInteraction(game: Game, sim: Sim, obj: PlacedObject, inter:
       if (game.isNight()) return { ok: false, reason: 'Wait until morning' };
       break;
     case 'dryWashing': if (!obj.load || obj.growth < 100) return { ok: false, hidden: true }; break;
+  }
+  if (inter.condition) {
+    const pc = petCondition(game, obj, inter.condition);
+    if (pc && !pc.ok) return pc;
   }
   if (obj.broken && inter.condition !== 'broken' && obj.defId !== 'boiler') return { ok: false, reason: 'Blocked! Unblock it first' };
   if (inter.food && !hasFood(game, inter.food)) return { ok: false, reason: 'No food left. Go food shopping!' };
@@ -325,6 +330,21 @@ function startAction(game: Game, sim: Sim, q: QueuedAction): RunningAction | nul
       r.rates = toRates({ social: social.social * gain, fun: social.fun ?? 0 }, social.duration);
       return r;
     }
+    case 'pet': {
+      const pet = game.state.pets.find((x) => x.id === q.petId);
+      const def = pet && speciesOf(pet)?.actions.find((a) => a.id === q.petAction);
+      if (!pet || !def || pet.location !== 'lot') return null;
+      const path = pathNextTo(game, sim, pet.pos);
+      if (!path) { fail(game, sim, '❓', `can't reach ${pet.name}`, q); return null; }
+      r.path = path;
+      r.duration = def.duration;
+      r.anim = def.anim;
+      r.tags = ['pets'];
+      r.rates = toRates(totalEffects(sim, def.effects, ['pets']), def.duration);
+      r.skill = def.skill;
+      r.skillRate = def.skillRate;
+      return r;
+    }
     case 'respond': {
       const inline = q.inline!;
       r.duration = inline.duration;
@@ -441,6 +461,25 @@ function arrive(game: Game, sim: Sim, cur: RunningAction): void {
       sim.anim = 'idle';
       arriveAtWork(game, sim, cur);
       return;
+    case 'pet': {
+      const pet = game.state.pets.find((x) => x.id === cur.petId);
+      if (!pet || pet.location !== 'lot') { finish(game, sim, false); return; }
+      if (Math.hypot(pet.pos.x - sim.pos.x, pet.pos.z - sim.pos.z) > 2.2) {
+        cur.waitTime++;
+        const path = cur.waitTime < 4 ? pathNextTo(game, sim, pet.pos) : null;
+        if (!path) { finish(game, sim, false); return; }
+        cur.path = path;
+        cur.pathIndex = 0;
+        return;
+      }
+      const def = speciesOf(pet).actions.find((a) => a.id === cur.petAction);
+      pet.task = { kind: 'withSim', path: [], i: 0, until: 0, targetId: sim.id };
+      pet.anim = (def?.petAnim as typeof pet.anim) ?? 'happy';
+      sim.facing = Math.atan2(pet.pos.x - sim.pos.x, pet.pos.z - sim.pos.z);
+      cur.phase = 'perform';
+      sim.anim = cur.anim;
+      return;
+    }
     case 'social': {
       const target = game.sim(cur.targetSimId!);
       if (!target || target.location !== 'lot') { finish(game, sim, false); return; }
@@ -554,6 +593,10 @@ function finish(game: Game, sim: Sim, completed: boolean): void {
     if (def?.ui) game.events.push({ type: 'openPanel', panel: def.ui, simId: sim.id });
   } else if (cur.kind === 'social') {
     resolveSocial(game, sim, cur);
+  } else if (cur.kind === 'pet') {
+    const pet = game.state.pets.find((x) => x.id === cur.petId);
+    const def = pet && speciesOf(pet).actions.find((a) => a.id === cur.petAction);
+    if (pet && def) applyPetAction(game, sim, pet, def);
   }
 }
 
@@ -584,7 +627,7 @@ function completeInteraction(game: Game, sim: Sim, obj: PlacedObject, inter: Int
     game.notify(`${sim.name} sold their ${what} for £${amount}.`, inter.icon, 'good');
     game.sound('cash');
   }
-  if (inter.special && homeSpecial(game, sim, obj, inter.special)) { /* handled */ }
+  if (inter.special && (homeSpecial(game, sim, obj, inter.special) || petObjectSpecial(game, obj, inter.special))) { /* handled */ }
   else switch (inter.special) {
     case 'plant': obj.growth = 1; break;
     case 'tend': {
@@ -642,10 +685,11 @@ export function onceKey(obj: PlacedObject, inter: InteractionDef): string {
 }
 
 /** A key for "the same kind of thing" when judging variety. */
-export function activityKey(a: Pick<QueuedAction, 'kind' | 'objectId' | 'interactionId' | 'selfId' | 'socialId'>): string | null {
+export function activityKey(a: Pick<QueuedAction, 'kind' | 'objectId' | 'interactionId' | 'selfId' | 'socialId' | 'petAction'>): string | null {
   if (a.kind === 'object') return `o:${a.interactionId}`;
   if (a.kind === 'self') return `s:${a.selfId}`;
   if (a.kind === 'social') return `c:${a.socialId}`;
+  if (a.kind === 'pet') return `p:${a.petAction}`;
   return null;
 }
 

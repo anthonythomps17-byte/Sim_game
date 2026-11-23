@@ -220,12 +220,12 @@ export function createGame(opts: NewGameOptions): GameState {
     rng: opts.seed ?? Math.floor(Math.random() * 2 ** 31),
     time: 8 * 60, // Monday 08:00
     speed: 1,
-    household: { name: opts.householdName, funds: opts.lot === 'starter' ? 14000 : 30000, memberIds: [], rewardsUnlocked: [], marketFinds: [], paintingsSold: 0, groceries: 30, neighbourMood: 80, nextDoorId: 0, dust: 0, weeds: 10, rubbish: 0, subscriptions: { netflix: false, sky: false }, discount: 0, laundry: 20, wetWashing: 0, extraEnergy: 0 },
+    household: { name: opts.householdName, funds: opts.lot === 'starter' ? 14000 : 30000, memberIds: [], rewardsUnlocked: [], marketFinds: [], paintingsSold: 0, groceries: 30, neighbourMood: 80, nextDoorId: 0, dust: 0, weeds: 10, rubbish: 0, subscriptions: { netflix: false, sky: false }, discount: 0, laundry: 20, wetWashing: 0, extraEnergy: 0, petFood: 0 },
     sims: [], relationships: [], lot, bills: null, notifications: [],
     settings: { freeWill: 'full', romance: true },
     nextId: 1, selectedSimId: 0, lastVisitDay: -1, tutorialDone: false,
     pendingVisits: [], flags: { lastHour: 8, nextVisitAt: 13 * 60 },
-    party: null, noise: { tonight: 0, stage: 0 }, fireworksUntil: 0,
+    party: null, pets: [], noise: { tonight: 0, stage: 0 }, fireworksUntil: 0,
   };
   const spawn = [{ x: 7.5, z: 3.5 }, { x: 8.5, z: 2.5 }, { x: 6.5, z: 2.5 }, { x: 9.5, z: 3.5 }];
   opts.sims.slice(0, 4).forEach((draft, i) => {

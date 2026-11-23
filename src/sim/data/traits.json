@@ -1,44 +1,306 @@
 {
-  "traits": [
-    { "id": "active", "name": "Active", "icon": "🏃", "desc": "Loves exercise. Gets bored fast sitting still.",
-      "sittingDecay": { "fun": 1.8 }, "tagWeight": { "fitness": 2.0, "tv": 0.6, "dance": 1.5 }, "tagEffects": { "fitness": { "fun": 20 } }, "skillRate": { "fitness": 1.3 } },
-    { "id": "bookworm", "name": "Bookworm", "icon": "📚", "desc": "Gets extra Fun from reading.",
-      "tagWeight": { "reading": 2.2 }, "tagEffects": { "reading": { "fun": 25 } } },
-    { "id": "creative", "name": "Creative", "icon": "🎨", "desc": "Learns Creativity faster and loves making art.",
-      "tagWeight": { "art": 1.8 }, "tagEffects": { "art": { "fun": 15 } }, "skillRate": { "creativity": 1.4 } },
-    { "id": "foodie", "name": "Foodie", "icon": "🍜", "desc": "Cooks well and enjoys every bite.",
-      "tagWeight": { "cooking": 1.6 }, "tagEffects": { "food": { "fun": 10 } }, "skillRate": { "cooking": 1.4 } },
-    { "id": "neat", "name": "Neat", "icon": "🧹", "desc": "Enjoys cleaning. Hates mess.",
-      "tagWeight": { "cleaning": 3.0 }, "tagEffects": { "cleaning": { "fun": 20 } }, "messMood": -10 },
-    { "id": "lazy", "name": "Lazy", "icon": "🛋️", "desc": "Loves naps and TV. Energy drains faster.",
-      "needDecay": { "energy": 1.3 }, "tagWeight": { "nap": 2.0, "tv": 1.6, "fitness": 0.4, "cleaning": 0.4 } },
-    { "id": "outgoing", "name": "Outgoing", "icon": "🥳", "desc": "Needs people. Social fills and drains faster.",
-      "needDecay": { "social": 1.5 }, "socialGain": 1.4, "socialChance": 0.08 },
-    { "id": "loner", "name": "Loner", "icon": "🌙", "desc": "Happy with their own company.",
-      "needDecay": { "social": 0.5 }, "socialChance": -0.05, "tagWeight": { "reading": 1.3, "games": 1.3 } },
-    { "id": "musical", "name": "Musical", "icon": "🎵", "desc": "Learns Music faster.",
-      "tagWeight": { "music": 1.8, "instrument": 1.5 }, "tagEffects": { "music": { "fun": 15 } }, "skillRate": { "music": 1.4 } },
-    { "id": "cheerful", "name": "Cheerful", "icon": "😄", "desc": "Always a bit happier. Jokes land well.",
-      "moodBonus": 10, "socialChance": 0.06 },
-    { "id": "geek", "name": "Geek", "icon": "🤓", "desc": "Loves games and science. Learns Logic faster.",
-      "tagWeight": { "games": 1.8, "logic": 1.5 }, "tagEffects": { "games": { "fun": 15 } }, "skillRate": { "logic": 1.3 } },
-    { "id": "romantic", "name": "Romantic", "icon": "💖", "desc": "Romantic chats go better.",
-      "romanceChance": 0.15, "romanceGain": 1.4 },
-    { "id": "green_thumb", "name": "Green Thumb", "icon": "🌿", "desc": "Plants grow better. Learns Gardening faster.",
-      "tagWeight": { "gardening": 2.0, "outdoors": 1.3 }, "skillRate": { "gardening": 1.5 }, "growthBonus": 1.5 },
-    { "id": "ambitious", "name": "Ambitious", "icon": "📈", "desc": "Works harder. Promoted sooner.",
-      "workPerformance": 1.35, "tagWeight": { "study": 1.5 } },
-    { "id": "sporty", "name": "Football Mad", "icon": "⚽", "desc": "Lives for the beautiful game.",
-      "tagWeight": { "sport": 2.5 }, "tagEffects": { "sport": { "fun": 20 } } },
-    { "id": "handy", "name": "Handy", "icon": "🔧", "desc": "Good with tools, like Ashton's old lock-makers.",
-      "tagWeight": { "making": 2.0 }, "tagEffects": { "making": { "fun": 15 } }, "makingMoney": 1.4 }
-  ],
-  "rewardTraits": [
-    { "id": "iron_bladder", "name": "Iron Bladder", "icon": "🛡️", "desc": "Bladder drains half as fast.", "cost": 4, "needDecay": { "bladder": 0.5 } },
-    { "id": "steel_stomach", "name": "Steel Stomach", "icon": "🥩", "desc": "Hunger drains 30% slower.", "cost": 4, "needDecay": { "hunger": 0.7 } },
-    { "id": "night_owl", "name": "Night Owl", "icon": "🦉", "desc": "Energy drains 30% slower.", "cost": 5, "needDecay": { "energy": 0.7 } },
-    { "id": "fresh_as_daisy", "name": "Fresh as a Daisy", "icon": "🌼", "desc": "Hygiene drains half as fast.", "cost": 3, "needDecay": { "hygiene": 0.5 } },
-    { "id": "quick_learner", "name": "Quick Learner", "icon": "⚡", "desc": "All skills grow 25% faster.", "cost": 8, "skillRateAll": 1.25 },
-    { "id": "people_person", "name": "People Person", "icon": "🤝", "desc": "Social actions almost always go well.", "cost": 6, "socialChance": 0.25 }
-  ]
+ "traits": [
+  {
+   "id": "active",
+   "name": "Active",
+   "icon": "🏃",
+   "desc": "Loves exercise. Gets bored fast sitting still.",
+   "sittingDecay": {
+    "fun": 1.8
+   },
+   "tagWeight": {
+    "fitness": 2.0,
+    "tv": 0.6,
+    "dance": 1.5
+   },
+   "tagEffects": {
+    "fitness": {
+     "fun": 20
+    }
+   },
+   "skillRate": {
+    "fitness": 1.3
+   }
+  },
+  {
+   "id": "bookworm",
+   "name": "Bookworm",
+   "icon": "📚",
+   "desc": "Gets extra Fun from reading.",
+   "tagWeight": {
+    "reading": 2.2
+   },
+   "tagEffects": {
+    "reading": {
+     "fun": 25
+    }
+   }
+  },
+  {
+   "id": "creative",
+   "name": "Creative",
+   "icon": "🎨",
+   "desc": "Learns Creativity faster and loves making art.",
+   "tagWeight": {
+    "art": 1.8
+   },
+   "tagEffects": {
+    "art": {
+     "fun": 15
+    }
+   },
+   "skillRate": {
+    "creativity": 1.4
+   }
+  },
+  {
+   "id": "foodie",
+   "name": "Foodie",
+   "icon": "🍜",
+   "desc": "Cooks well and enjoys every bite.",
+   "tagWeight": {
+    "cooking": 1.6
+   },
+   "tagEffects": {
+    "food": {
+     "fun": 10
+    }
+   },
+   "skillRate": {
+    "cooking": 1.4
+   }
+  },
+  {
+   "id": "neat",
+   "name": "Neat",
+   "icon": "🧹",
+   "desc": "Enjoys cleaning. Hates mess.",
+   "tagWeight": {
+    "cleaning": 3.0
+   },
+   "tagEffects": {
+    "cleaning": {
+     "fun": 20
+    }
+   },
+   "messMood": -10
+  },
+  {
+   "id": "lazy",
+   "name": "Lazy",
+   "icon": "🛋️",
+   "desc": "Loves naps and TV. Energy drains faster.",
+   "needDecay": {
+    "energy": 1.3
+   },
+   "tagWeight": {
+    "nap": 2.0,
+    "tv": 1.6,
+    "fitness": 0.4,
+    "cleaning": 0.4
+   }
+  },
+  {
+   "id": "outgoing",
+   "name": "Outgoing",
+   "icon": "🥳",
+   "desc": "Needs people. Social fills and drains faster.",
+   "needDecay": {
+    "social": 1.5
+   },
+   "socialGain": 1.4,
+   "socialChance": 0.08
+  },
+  {
+   "id": "loner",
+   "name": "Loner",
+   "icon": "🌙",
+   "desc": "Happy with their own company.",
+   "needDecay": {
+    "social": 0.5
+   },
+   "socialChance": -0.05,
+   "tagWeight": {
+    "reading": 1.3,
+    "games": 1.3
+   }
+  },
+  {
+   "id": "musical",
+   "name": "Musical",
+   "icon": "🎵",
+   "desc": "Learns Music faster.",
+   "tagWeight": {
+    "music": 1.8,
+    "instrument": 1.5
+   },
+   "tagEffects": {
+    "music": {
+     "fun": 15
+    }
+   },
+   "skillRate": {
+    "music": 1.4
+   }
+  },
+  {
+   "id": "cheerful",
+   "name": "Cheerful",
+   "icon": "😄",
+   "desc": "Always a bit happier. Jokes land well.",
+   "moodBonus": 10,
+   "socialChance": 0.06
+  },
+  {
+   "id": "geek",
+   "name": "Geek",
+   "icon": "🤓",
+   "desc": "Loves games and science. Learns Logic faster.",
+   "tagWeight": {
+    "games": 1.8,
+    "logic": 1.5
+   },
+   "tagEffects": {
+    "games": {
+     "fun": 15
+    }
+   },
+   "skillRate": {
+    "logic": 1.3
+   }
+  },
+  {
+   "id": "romantic",
+   "name": "Romantic",
+   "icon": "💖",
+   "desc": "Romantic chats go better.",
+   "romanceChance": 0.15,
+   "romanceGain": 1.4
+  },
+  {
+   "id": "green_thumb",
+   "name": "Green Thumb",
+   "icon": "🌿",
+   "desc": "Plants grow better. Learns Gardening faster.",
+   "tagWeight": {
+    "gardening": 2.0,
+    "outdoors": 1.3
+   },
+   "skillRate": {
+    "gardening": 1.5
+   },
+   "growthBonus": 1.5
+  },
+  {
+   "id": "ambitious",
+   "name": "Ambitious",
+   "icon": "📈",
+   "desc": "Works harder. Promoted sooner.",
+   "workPerformance": 1.35,
+   "tagWeight": {
+    "study": 1.5
+   }
+  },
+  {
+   "id": "sporty",
+   "name": "Football Mad",
+   "icon": "⚽",
+   "desc": "Lives for the beautiful game.",
+   "tagWeight": {
+    "sport": 2.5
+   },
+   "tagEffects": {
+    "sport": {
+     "fun": 20
+    }
+   }
+  },
+  {
+   "id": "handy",
+   "name": "Handy",
+   "icon": "🔧",
+   "desc": "Good with tools, like Ashton's old lock-makers.",
+   "tagWeight": {
+    "making": 2.0
+   },
+   "tagEffects": {
+    "making": {
+     "fun": 15
+    }
+   },
+   "makingMoney": 1.4
+  },
+  {
+   "id": "animal_lover",
+   "name": "Animal Lover",
+   "icon": "🐾",
+   "desc": "Adores pets. Gets extra Fun from them.",
+   "tagWeight": {
+    "pets": 2.5
+   },
+   "tagEffects": {
+    "pets": {
+     "fun": 15
+    }
+   }
+  }
+ ],
+ "rewardTraits": [
+  {
+   "id": "iron_bladder",
+   "name": "Iron Bladder",
+   "icon": "🛡️",
+   "desc": "Bladder drains half as fast.",
+   "cost": 4,
+   "needDecay": {
+    "bladder": 0.5
+   }
+  },
+  {
+   "id": "steel_stomach",
+   "name": "Steel Stomach",
+   "icon": "🥩",
+   "desc": "Hunger drains 30% slower.",
+   "cost": 4,
+   "needDecay": {
+    "hunger": 0.7
+   }
+  },
+  {
+   "id": "night_owl",
+   "name": "Night Owl",
+   "icon": "🦉",
+   "desc": "Energy drains 30% slower.",
+   "cost": 5,
+   "needDecay": {
+    "energy": 0.7
+   }
+  },
+  {
+   "id": "fresh_as_daisy",
+   "name": "Fresh as a Daisy",
+   "icon": "🌼",
+   "desc": "Hygiene drains half as fast.",
+   "cost": 3,
+   "needDecay": {
+    "hygiene": 0.5
+   }
+  },
+  {
+   "id": "quick_learner",
+   "name": "Quick Learner",
+   "icon": "⚡",
+   "desc": "All skills grow 25% faster.",
+   "cost": 8,
+   "skillRateAll": 1.25
+  },
+  {
+   "id": "people_person",
+   "name": "People Person",
+   "icon": "🤝",
+   "desc": "Social actions almost always go well.",
+   "cost": 6,
+   "socialChance": 0.25
+  }
+ ]
 }

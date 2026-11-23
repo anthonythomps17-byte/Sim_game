@@ -9,6 +9,7 @@ import { random } from './rng';
 import { activityKey, checkInteraction, totalEffects, socialGainMult } from './actions';
 import { socialCheck } from './social';
 import { partyActive } from './life';
+import { petActionsFor, petsOnLot, label as petLabel } from './pets';
 import type { NeedId, QueuedAction, Sim, SkillId } from './types';
 
 export interface Option { action: Omit<QueuedAction, 'uid'>; score: number; label: string }
@@ -88,6 +89,10 @@ export function scoreOptions(game: Game, sim: Sim): Option[] {
       if (inter.condition === 'wetWashing' || inter.condition === 'canHang') score += 22;
       if (inter.condition === 'dryWashing') score += 15;
       if (inter.special === 'bedding') score += obj.dirt / 6;
+      if (inter.condition === 'bowlLow') score += 18;
+      if (inter.condition === 'petHungry') score += 16;
+      if (inter.condition === 'cageDirty') score += 12;
+      if (inter.condition === 'hasPet') score += 4;
       if (inter.condition === 'binsBack') score += 12;
       if (inter.condition === 'overflowing') score += 14;
       if (inter.condition === 'broken') score += 16;
@@ -113,6 +118,22 @@ export function scoreOptions(game: Game, sim: Sim): Option[] {
     if (self.special === 'weed') score += game.state.household.weeds / 6;
     score *= tagMult(sim, self.tags);
     if (score > 0.5) options.push({ action: { kind: 'self', selfId: self.id, label: self.name, icon: self.icon, userQueued: false }, score, label: self.name });
+  }
+
+  // Fuss and play with pets.
+  for (const pet of petsOnLot(game)) {
+    if (pet.task?.kind === 'withSim') continue;
+    const dist = Math.hypot(pet.pos.x - sim.pos.x, pet.pos.z - sim.pos.z);
+    for (const { def, ok } of petActionsFor(game, sim, pet)) {
+      if (!ok || def.id === 'bath') continue;
+      let score = effectsUtility(sim, totalEffects(sim, def.effects, ['pets'])) * 0.8;
+      if (def.pet.fun) score += (100 - pet.fun) / 9;
+      if (def.pet.clean) score += (100 - pet.clean) / 10;
+      if (lowOnly && score < 8) continue;
+      score *= tagMult(sim, ['pets']);
+      score /= 1 + dist / 18;
+      if (score > 0.5) options.push({ action: { kind: 'pet', petId: pet.id, petAction: def.id, label: petLabel(def.name, pet), icon: def.icon, userQueued: false }, score, label: def.name });
+    }
   }
 
   // Socials with other Sims on the lot.
