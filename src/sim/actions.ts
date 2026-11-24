@@ -12,7 +12,9 @@ import { arriveAtWork, skipWork } from './schedule';
 import { changeRel, findRel } from './relationships';
 import { calendarOf, canDriveNow, hasFood, openPresent, outingCheck, useFood } from './life';
 import { binsOverflowing, binWindow, homeSpecial, noHotWater, selfSpecial } from './home';
-import { applyPetAction, petCondition, petObjectSpecial, speciesOf } from './pets';
+import { applyPetAction, petCondition, petObjectSpecial, pooAt, speciesOf } from './pets';
+import { addClothesDirt, changeClothes, cleanClothes, dirtOf } from './clothes';
+import { callDone, textDone } from './phone';
 import type { NeedId, PlacedObject, Point, QueuedAction, RunningAction, Sim, SkillId } from './types';
 
 export const WALK_SPEED = 1.7; // tiles per game minute
@@ -114,6 +116,10 @@ export function checkInteraction(game: Game, sim: Sim, obj: PlacedObject, inter:
       if (game.isNight()) return { ok: false, reason: 'Wait until morning' };
       break;
     case 'dryWashing': if (!obj.load || obj.growth < 100) return { ok: false, hidden: true }; break;
+    case 'dirtyClothes':
+      if (dirtOf(sim) < 25) return { ok: false, hidden: true };
+      if (cleanClothes(game) <= 0) return { ok: false, reason: 'No clean clothes left. Do the washing!' };
+      break;
   }
   if (inter.condition) {
     const pc = petCondition(game, obj, inter.condition);
@@ -427,6 +433,18 @@ export function stepSim(game: Game, sim: Sim, dt: number): void {
   perform(game, sim, cur, dt);
 }
 
+/** Watch where you're walking! */
+function treadCheck(game: Game, sim: Sim, x: number, z: number): void {
+  const poo = pooAt(game, x, z);
+  if (!poo || poo.growth >= 1) return;
+  poo.growth = 1; // squashed
+  addClothesDirt(sim, 25);
+  addMoodlet(sim, 'trod_in_poo', game.state.time);
+  game.think(sim, '💩', 20);
+  game.notify(`${sim.name} trod in poo! Yuck! 🤢`, '💩', 'bad');
+  game.lotChanged();
+}
+
 function walk(game: Game, sim: Sim, cur: RunningAction, dt: number): void {
   let budget = WALK_SPEED * dt;
   sim.anim = 'walk';
@@ -440,6 +458,7 @@ function walk(game: Game, sim: Sim, cur: RunningAction, dt: number): void {
       sim.pos = { x: tx, z: tz };
       budget -= dist;
       cur.pathIndex++;
+      if (game.isHousehold(sim)) treadCheck(game, sim, t.x, t.z);
     } else {
       sim.pos = { x: sim.pos.x + (dx / dist) * budget, z: sim.pos.z + (dz / dist) * budget };
       budget = 0;
@@ -581,6 +600,9 @@ function finish(game: Game, sim: Sim, completed: boolean): void {
     if (inline?.counter) sim.counters[inline.counter] = (sim.counters[inline.counter] ?? 0) + 1;
     const def = cur.selfId ? SELF_ACTIONS[cur.selfId] : undefined;
     if (def?.special === 'callFriend') callFriend(game, sim);
+    if (def?.special === 'phoneCall') callDone(game, sim, cur.targetSimId);
+    if (def?.special === 'text') textDone(game, sim);
+    if (def?.moodlet) addMoodlet(sim, def.moodlet, now);
     if (def?.special === 'hoover' || def?.special === 'weed') selfSpecial(game, sim, def.special);
     if (def?.special === 'takeaway') {
       game.addFunds(-(def.cost ?? 0));
@@ -606,6 +628,8 @@ function completeInteraction(game: Game, sim: Sim, obj: PlacedObject, inter: Int
   const cold = inter.tags?.includes('wash') && noHotWater(game);
   if (cold) addMoodlet(sim, 'cold_shower', now);
   else if (inter.moodlet) addMoodlet(sim, inter.moodlet, now);
+  // After a shower or bath, put on something clean (if there is anything clean).
+  if (inter.tags?.includes('wash') && game.isHousehold(sim) && dirtOf(sim) >= 30 && cleanClothes(game) > 0) changeClothes(game, sim, true);
   if (inter.counter) sim.counters[inter.counter] = (sim.counters[inter.counter] ?? 0) + 1;
   if (inter.condition === 'once' || inter.condition === 'nightOnce') sim.counters[onceKey(obj, inter)] = 1;
   if (inter.food) useFood(game, inter.food);

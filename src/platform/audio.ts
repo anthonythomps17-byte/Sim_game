@@ -77,6 +77,7 @@ export class Audio {
         src.start(t);
         break;
       }
+      case 'phone': for (let i = 0; i < 4; i++) { this.tone(1046, t + i * 0.12, 0.06, 'square', 0.04, out); this.tone(1318, t + i * 0.12 + 0.06, 0.06, 'square', 0.04, out); } break;
       case 'error': this.tone(200, t, 0.2, 'square', 0.06, out); break;
     }
   }

@@ -1,43 +1,375 @@
 {
-  "species": [
-    { "id": "dog", "name": "Dog", "icon": "🐕", "price": 120, "weekly": 12, "roams": true, "speed": 1.9,
-      "colors": ["#c69c6d", "#3b2a1e", "#f4f1ea", "#8a8a8a", "#d9a066", "#1c1c1c"],
-      "names": ["Biscuit", "Buster", "Bella", "Max", "Daisy", "Teddy", "Luna", "Alfie"],
-      "desc": "Loyal and full of energy. Needs walks, play and lots of fuss.",
-      "decay": { "hunger": 4.5, "fun": 4, "clean": 1.5, "energy": 4 },
-      "actions": [
-        { "id": "pet", "name": "Give {name} a fuss", "icon": "🤗", "duration": 10, "anim": "garden", "effects": { "fun": 10, "social": 12 }, "pet": { "fun": 12, "bond": 3 }, "moodlet": "pet_love" },
-        { "id": "fetch", "name": "Play fetch", "icon": "🎾", "duration": 30, "anim": "cheer", "effects": { "fun": 30, "energy": -6 }, "skill": "fitness", "skillRate": 25, "pet": { "fun": 45, "energy": -15, "bond": 4 }, "petAnim": "run" },
-        { "id": "groom", "name": "Brush {name}", "icon": "🪮", "duration": 20, "anim": "garden", "effects": { "fun": 8 }, "pet": { "clean": 60, "bond": 2 } },
-        { "id": "bath", "name": "Give {name} a bath", "icon": "🛁", "duration": 30, "anim": "use", "effects": { "hygiene": -15, "fun": 10 }, "pet": { "clean": 100, "bond": 1 } },
-        { "id": "train", "name": "Teach {name} a trick", "icon": "🦴", "duration": 30, "anim": "talk", "effects": { "fun": 15 }, "skill": "charisma", "skillRate": 20, "pet": { "fun": 10, "bond": 3 }, "special": "trick" }
-      ] },
-    { "id": "cat", "name": "Cat", "icon": "🐈", "price": 80, "weekly": 8, "roams": true, "speed": 1.6,
-      "colors": ["#e8913a", "#2b2b2b", "#f4f1ea", "#8a8a8a", "#a8754d", "#d8c3a5"],
-      "names": ["Tigger", "Smudge", "Misty", "Oscar", "Poppy", "Tilly", "Felix", "Willow"],
-      "desc": "Independent, loves naps and a good stroke. Mostly looks after itself.",
-      "decay": { "hunger": 3.5, "fun": 2.5, "clean": 0.8, "energy": 5 },
-      "actions": [
-        { "id": "pet", "name": "Stroke {name}", "icon": "😻", "duration": 10, "anim": "garden", "effects": { "fun": 12, "comfort": 8, "social": 8 }, "pet": { "fun": 12, "bond": 3 }, "moodlet": "pet_love" },
-        { "id": "play", "name": "Play with a feather toy", "icon": "🪶", "duration": 20, "anim": "cheer", "effects": { "fun": 25 }, "pet": { "fun": 40, "energy": -10, "bond": 4 }, "petAnim": "pounce" },
-        { "id": "groom", "name": "Brush {name}", "icon": "🪮", "duration": 15, "anim": "garden", "effects": { "fun": 8 }, "pet": { "clean": 60, "bond": 2 } }
-      ] },
-    { "id": "parrot", "name": "Parrot", "icon": "🦜", "price": 150, "weekly": 6, "roams": false, "habitat": "parrot_cage",
-      "colors": ["#2fb34a", "#e0473a", "#2f7fd6", "#f2c14e"],
-      "names": ["Polly", "Kiwi", "Rio", "Mango", "Pepper", "Captain"],
-      "desc": "Chatty and clever. Talk to it often and it learns to say things!",
-      "decay": { "hunger": 3, "fun": 4, "clean": 2, "energy": 0 },
-      "words": ["Hello!", "Pretty bird!", "Cup of tea?", "Ey up!", "Who's a good boy?", "Biscuit!", "Shut the door!", "Love you!", "Ashton!", "Pass the gravy!"],
-      "actions": [] },
-    { "id": "rabbit", "name": "Rabbit", "icon": "🐇", "price": 40, "weekly": 5, "roams": false, "habitat": "rabbit_hutch",
-      "colors": ["#f4f1ea", "#8a6a4a", "#5a4a3a", "#bdb5a8"],
-      "names": ["Thumper", "Flopsy", "Clover", "Nibbles", "Hazel", "Peter"],
-      "desc": "Fluffy and gentle. Lives in a hutch in the garden and loves carrots.",
-      "decay": { "hunger": 3.5, "fun": 3, "clean": 2.5, "energy": 0 }, "actions": [] },
-    { "id": "hamster", "name": "Hamster", "icon": "🐹", "price": 20, "weekly": 3, "roams": false, "habitat": "hamster_cage",
-      "colors": ["#e0a35c", "#f4f1ea", "#8a6a4a", "#c9b08f"],
-      "names": ["Nibbles", "Peanut", "Hammy", "Squeak", "Pip", "Gizmo"],
-      "desc": "Tiny and busy. Lives in a cage indoors and runs on its wheel all night.",
-      "decay": { "hunger": 4, "fun": 3, "clean": 2.5, "energy": 0 }, "actions": [] }
-  ]
+ "species": [
+  {
+   "id": "dog",
+   "name": "Dog",
+   "icon": "🐕",
+   "price": 120,
+   "weekly": 12,
+   "roams": true,
+   "speed": 1.9,
+   "colors": [
+    "#c69c6d",
+    "#3b2a1e",
+    "#f4f1ea",
+    "#8a8a8a",
+    "#d9a066",
+    "#1c1c1c"
+   ],
+   "names": [
+    "Biscuit",
+    "Buster",
+    "Bella",
+    "Max",
+    "Daisy",
+    "Teddy",
+    "Luna",
+    "Alfie"
+   ],
+   "desc": "Loyal and full of energy. Needs walks, play and lots of fuss.",
+   "decay": {
+    "hunger": 4.5,
+    "fun": 4,
+    "clean": 1.5,
+    "energy": 4
+   },
+   "actions": [
+    {
+     "id": "pet",
+     "name": "Give {name} a fuss",
+     "icon": "🤗",
+     "duration": 10,
+     "anim": "garden",
+     "effects": {
+      "fun": 10,
+      "social": 12
+     },
+     "pet": {
+      "fun": 12,
+      "bond": 3
+     },
+     "moodlet": "pet_love"
+    },
+    {
+     "id": "fetch",
+     "name": "Play fetch",
+     "icon": "🎾",
+     "duration": 30,
+     "anim": "cheer",
+     "effects": {
+      "fun": 30,
+      "energy": -6
+     },
+     "skill": "fitness",
+     "skillRate": 25,
+     "pet": {
+      "fun": 45,
+      "energy": -15,
+      "bond": 4
+     },
+     "petAnim": "run"
+    },
+    {
+     "id": "groom",
+     "name": "Brush {name}",
+     "icon": "🪮",
+     "duration": 20,
+     "anim": "garden",
+     "effects": {
+      "fun": 8
+     },
+     "pet": {
+      "clean": 60,
+      "bond": 2
+     }
+    },
+    {
+     "id": "bath",
+     "name": "Give {name} a bath",
+     "icon": "🛁",
+     "duration": 30,
+     "anim": "use",
+     "effects": {
+      "hygiene": -15,
+      "fun": 10
+     },
+     "pet": {
+      "clean": 100,
+      "bond": 1
+     }
+    },
+    {
+     "id": "train",
+     "name": "Teach {name} a trick",
+     "icon": "🦴",
+     "duration": 30,
+     "anim": "talk",
+     "effects": {
+      "fun": 15
+     },
+     "skill": "charisma",
+     "skillRate": 20,
+     "pet": {
+      "fun": 10,
+      "bond": 3
+     },
+     "special": "trick"
+    },
+    {
+     "id": "treat",
+     "name": "Give {name} a treat",
+     "icon": "🍪",
+     "duration": 5,
+     "anim": "garden",
+     "effects": {
+      "fun": 5
+     },
+     "pet": {
+      "fun": 15,
+      "hunger": 5,
+      "bond": 5
+     },
+     "special": "treat",
+     "condition": "treats"
+    },
+    {
+     "id": "fleas",
+     "name": "Flea treatment",
+     "icon": "🐜",
+     "duration": 10,
+     "anim": "garden",
+     "effects": {
+      "hygiene": -5
+     },
+     "pet": {
+      "clean": 10
+     },
+     "special": "fleas",
+     "condition": "fleas",
+     "cost": 15
+    }
+   ]
+  },
+  {
+   "id": "cat",
+   "name": "Cat",
+   "icon": "🐈",
+   "price": 80,
+   "weekly": 8,
+   "roams": true,
+   "speed": 1.6,
+   "colors": [
+    "#e8913a",
+    "#2b2b2b",
+    "#f4f1ea",
+    "#8a8a8a",
+    "#a8754d",
+    "#d8c3a5"
+   ],
+   "names": [
+    "Tigger",
+    "Smudge",
+    "Misty",
+    "Oscar",
+    "Poppy",
+    "Tilly",
+    "Felix",
+    "Willow"
+   ],
+   "desc": "Independent, loves naps and a good stroke. Mostly looks after itself.",
+   "decay": {
+    "hunger": 3.5,
+    "fun": 2.5,
+    "clean": 0.8,
+    "energy": 5
+   },
+   "actions": [
+    {
+     "id": "pet",
+     "name": "Stroke {name}",
+     "icon": "😻",
+     "duration": 10,
+     "anim": "garden",
+     "effects": {
+      "fun": 12,
+      "comfort": 8,
+      "social": 8
+     },
+     "pet": {
+      "fun": 12,
+      "bond": 3
+     },
+     "moodlet": "pet_love"
+    },
+    {
+     "id": "play",
+     "name": "Play with a feather toy",
+     "icon": "🪶",
+     "duration": 20,
+     "anim": "cheer",
+     "effects": {
+      "fun": 25
+     },
+     "pet": {
+      "fun": 40,
+      "energy": -10,
+      "bond": 4
+     },
+     "petAnim": "pounce"
+    },
+    {
+     "id": "groom",
+     "name": "Brush {name}",
+     "icon": "🪮",
+     "duration": 15,
+     "anim": "garden",
+     "effects": {
+      "fun": 8
+     },
+     "pet": {
+      "clean": 60,
+      "bond": 2
+     }
+    },
+    {
+     "id": "treat",
+     "name": "Give {name} a treat",
+     "icon": "🍪",
+     "duration": 5,
+     "anim": "garden",
+     "effects": {
+      "fun": 5
+     },
+     "pet": {
+      "fun": 15,
+      "hunger": 5,
+      "bond": 5
+     },
+     "special": "treat",
+     "condition": "treats"
+    },
+    {
+     "id": "fleas",
+     "name": "Flea treatment",
+     "icon": "🐜",
+     "duration": 10,
+     "anim": "garden",
+     "effects": {
+      "hygiene": -5
+     },
+     "pet": {
+      "clean": 10
+     },
+     "special": "fleas",
+     "condition": "fleas",
+     "cost": 15
+    }
+   ]
+  },
+  {
+   "id": "parrot",
+   "name": "Parrot",
+   "icon": "🦜",
+   "price": 150,
+   "weekly": 6,
+   "roams": false,
+   "habitat": "parrot_cage",
+   "colors": [
+    "#2fb34a",
+    "#e0473a",
+    "#2f7fd6",
+    "#f2c14e"
+   ],
+   "names": [
+    "Polly",
+    "Kiwi",
+    "Rio",
+    "Mango",
+    "Pepper",
+    "Captain"
+   ],
+   "desc": "Chatty and clever. Talk to it often and it learns to say things!",
+   "decay": {
+    "hunger": 3,
+    "fun": 4,
+    "clean": 2,
+    "energy": 0
+   },
+   "words": [
+    "Hello!",
+    "Pretty bird!",
+    "Cup of tea?",
+    "Ey up!",
+    "Who's a good boy?",
+    "Biscuit!",
+    "Shut the door!",
+    "Love you!",
+    "Ashton!",
+    "Pass the gravy!"
+   ],
+   "actions": []
+  },
+  {
+   "id": "rabbit",
+   "name": "Rabbit",
+   "icon": "🐇",
+   "price": 40,
+   "weekly": 5,
+   "roams": false,
+   "habitat": "rabbit_hutch",
+   "colors": [
+    "#f4f1ea",
+    "#8a6a4a",
+    "#5a4a3a",
+    "#bdb5a8"
+   ],
+   "names": [
+    "Thumper",
+    "Flopsy",
+    "Clover",
+    "Nibbles",
+    "Hazel",
+    "Peter"
+   ],
+   "desc": "Fluffy and gentle. Lives in a hutch in the garden and loves carrots.",
+   "decay": {
+    "hunger": 3.5,
+    "fun": 3,
+    "clean": 2.5,
+    "energy": 0
+   },
+   "actions": []
+  },
+  {
+   "id": "hamster",
+   "name": "Hamster",
+   "icon": "🐹",
+   "price": 20,
+   "weekly": 3,
+   "roams": false,
+   "habitat": "hamster_cage",
+   "colors": [
+    "#e0a35c",
+    "#f4f1ea",
+    "#8a6a4a",
+    "#c9b08f"
+   ],
+   "names": [
+    "Nibbles",
+    "Peanut",
+    "Hammy",
+    "Squeak",
+    "Pip",
+    "Gizmo"
+   ],
+   "desc": "Tiny and busy. Lives in a cage indoors and runs on its wheel all night.",
+   "decay": {
+    "hunger": 4,
+    "fun": 3,
+    "clean": 2.5,
+    "energy": 0
+   },
+   "actions": []
+  }
+ ]
 }

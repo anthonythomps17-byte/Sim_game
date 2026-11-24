@@ -12,6 +12,8 @@ import { ENGINEER_COST, PLUMBER_COST, SUBSCRIPTIONS, type SubscriptionId } from 
 import { activePlayer, canControl, checkSpend, managers, ownerOf, recordSpend } from './family';
 import { addMoodlet } from './mood';
 import { REWARD_TRAITS } from './defs';
+import { answerCall, answerOffer, markRead, order, sendText, startCall, SHOP_ITEMS, type TextKind } from './phone';
+import { vetVisit } from './pets';
 
 export type Cmd =
   | { t: 'queue'; simId: number; action: Omit<QueuedAction, 'uid'> }
@@ -41,7 +43,14 @@ export type Cmd =
   | { t: 'wallKind'; key: string; kind: WallKind }
   | { t: 'paintFloor'; x0: number; z0: number; x1: number; z1: number; floor: string | null }
   | { t: 'paintWall'; key: string; side: 0 | 1; paint: string; wholeRoom: boolean }
-  | { t: 'approve'; id: number; yes: boolean; pin?: string };
+  | { t: 'approve'; id: number; yes: boolean; pin?: string }
+  | { t: 'text'; simId: number; to: number; kind: TextKind }
+  | { t: 'call'; simId: number; to: number }
+  | { t: 'answerCall'; simId: number; yes: boolean }
+  | { t: 'offer'; simId: number; msgId: number; yes: boolean }
+  | { t: 'readPhone'; simId: number }
+  | { t: 'order'; item: string }
+  | { t: 'vet'; petId: number };
 
 /** Money a command costs, checked against the player's allowance in family mode. */
 export interface Spend { amount: number; what: string; household?: boolean }
@@ -233,6 +242,40 @@ function exec(game: Game, cmd: Cmd): CmdResult {
     case 'paintFloor': { const r = paintFloor(game, cmd.x0, cmd.z0, cmd.x1, cmd.z1, cmd.floor); return r.ok ? OK : fail(r.reason); }
     case 'paintWall': { const r = paintWall(game, cmd.key, cmd.side, cmd.paint, cmd.wholeRoom); return r.ok ? OK : fail(r.reason); }
     case 'approve': return answerApproval(game, cmd.id, cmd.yes, cmd.pin);
+    case 'text':
+    case 'call': {
+      const sim = simOf(cmd.simId);
+      if (!sim) return fail();
+      if (!canControl(st, sim)) return fail(`${first(sim.name)} is ${ownerOf(st, sim.id)?.name}'s Sim.`);
+      const r = cmd.t === 'text' ? sendText(game, sim, cmd.to, cmd.kind) : startCall(game, sim, cmd.to);
+      return r.ok ? { ok: true, sound: 'tap' } : fail(r.why);
+    }
+    case 'answerCall': {
+      const sim = simOf(cmd.simId);
+      if (!sim) return fail();
+      const r = answerCall(game, sim, cmd.yes);
+      return r.ok ? OK : fail(r.why);
+    }
+    case 'offer': {
+      const sim = simOf(cmd.simId);
+      if (!sim) return fail();
+      if (!canControl(st, sim)) return fail(`${first(sim.name)} is ${ownerOf(st, sim.id)?.name}'s Sim.`);
+      const r = answerOffer(game, sim, cmd.msgId, cmd.yes);
+      return r.ok ? OK : fail(r.why);
+    }
+    case 'readPhone': {
+      const sim = simOf(cmd.simId);
+      if (sim) markRead(sim);
+      return OK;
+    }
+    case 'order': {
+      const r = order(game, cmd.item);
+      return r.ok ? { ok: true, toast: { text: `Ordered: ${SHOP_ITEMS[cmd.item]?.name}. It'll arrive in ${SHOP_ITEMS[cmd.item]?.hours} hours.`, icon: '📦' } } : fail(r.why);
+    }
+    case 'vet': {
+      const r = vetVisit(game, cmd.petId);
+      return r.ok ? OK : fail(r.why);
+    }
   }
 }
 

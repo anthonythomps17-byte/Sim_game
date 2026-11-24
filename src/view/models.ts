@@ -171,7 +171,8 @@ export const BUILDERS: Record<string, Builder> = {
     b.torus(0.62, 0.16, '#4a90d9', 0, 0.1, 0, 18);
     b.cyl(0.5, 0.5, 0.05, '#f4f1ea', 0, 0.06, 0, 16);
   },
-  parrot_cage: (b) => {
+  parrot_cage: (b, _d, obj) => {
+    if ((obj?.dirt ?? 0) >= 40) for (let i = 0; i < 7; i++) b.sphere(0.04, i % 2 ? '#e8e6e0' : '#9a9a8a', Math.cos(i * 1.7) * 0.15, 0.97, Math.sin(i * 1.7) * 0.15, 1, 0.3, 1);
     b.cyl(0.45, 0.5, 0.05, '#2d3037', 0, 0, 0, 14);
     b.cyl(0.04, 0.04, 0.95, '#2d3037', 0, 0.05, 0, 6);
     b.cyl(0.55, 0.55, 0.04, '#d9b25a', 0, 0.95, 0, 16);
@@ -180,7 +181,22 @@ export const BUILDERS: Record<string, Builder> = {
     b.cyl(0.03, 0.03, 0.46, '#8b5e3c', 0, 1.12, 0, 6).rotation.z = Math.PI / 2;
     b.cyl(0.08, 0.06, 0.05, '#c0392b', 0.15, 1.0, 0.1, 8);
   },
-  rabbit_hutch: (b) => {
+  pet_poo: (b, _d, obj) => {
+    const c = '#6b4a2b';
+    if ((obj?.growth ?? 0) >= 1) { b.sphere(0.26, '#5a3e24', 0.02, 0.005, 0.03, 1.3, 0.15, 1); return; } // trodden in
+    b.sphere(0.17, c, 0, 0.035, 0, 1, 0.55, 1);
+    b.sphere(0.12, '#7a5532', 0, 0.085, 0, 1, 0.6, 1);
+    b.sphere(0.07, c, 0.01, 0.125, 0, 1, 0.8, 1);
+  },
+  litter_tray: (b, _d, obj) => {
+    b.box(0.6, 0.12, 0.48, '#6ea8d6', 0, 0, 0);
+    b.box(0.52, 0.02, 0.4, '#d8c9a3', 0, 0.1, 0);
+    const dirt = obj?.dirt ?? 0;
+    const clumps = dirt >= 70 ? 7 : dirt >= 30 ? 3 : 0;
+    for (let i = 0; i < clumps; i++) b.sphere(0.07, i % 3 === 0 ? '#6b4a2b' : '#b8a57e', -0.18 + (i * 0.13) % 0.4, 0.12, -0.12 + ((i * 0.17) % 0.26), 1, 0.6, 1);
+  },
+  rabbit_hutch: (b, _d, obj) => {
+    if ((obj?.dirt ?? 0) >= 40) for (let i = 0; i < 9; i++) b.sphere(0.035, '#4a3622', -0.7 + i * 0.13, 0.33, -0.2 + ((i * 0.23) % 0.5));
     b.legs(1.8, 0.8, 0.25, DARKWOOD, 0.06, 0.07);
     b.box(1.85, 0.05, 0.85, WOOD, 0, 0.25, 0);
     b.box(1.8, 0.02, 0.78, '#e6c96e', 0, 0.3, 0);
@@ -191,7 +207,8 @@ export const BUILDERS: Record<string, Builder> = {
     const roof = b.box(2.0, 0.05, 1.0, '#4a515c', 0, 1.02, -0.02); roof.rotation.x = 0.15;
     b.sphere(0.12, '#e7833a', 0.6, 0.36, 0.1, 1, 0.5, 2.2);
   },
-  hamster_cage: (b) => {
+  hamster_cage: (b, _d, obj) => {
+    if ((obj?.dirt ?? 0) >= 40) for (let i = 0; i < 8; i++) b.sphere(0.02, '#4a3622', -0.22 + i * 0.05, 0.665, -0.12 + ((i * 0.11) % 0.24));
     b.box(0.7, 0.04, 0.5, LIGHTWOOD, 0, 0.56, 0);
     b.legs(0.66, 0.46, 0.56, DARKWOOD, 0.04, 0.04);
     b.box(0.58, 0.06, 0.4, '#3d8fd6', 0, 0.6, 0);

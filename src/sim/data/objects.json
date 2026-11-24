@@ -65,6 +65,12 @@
    "id": "rewards",
    "name": "Rewards",
    "icon": "🏆"
+  },
+  {
+   "id": "mess",
+   "name": "Mess",
+   "icon": "💩",
+   "hidden": true
   }
  ],
  "objects": [
@@ -1029,7 +1035,7 @@
     1
    ],
    "decor": 1,
-   "description": "Try on outfits and plan new looks.",
+   "description": "Clean clothes live here. Change into a fresh outfit, try on outfits and plan new looks.",
    "spots": [
     {
      "at": [
@@ -1039,6 +1045,18 @@
     }
    ],
    "interactions": [
+    {
+     "id": "clean",
+     "name": "Change into clean clothes",
+     "icon": "👕",
+     "duration": 6,
+     "anim": "use",
+     "condition": "dirtyClothes",
+     "special": "changeClothes",
+     "effects": {
+      "comfort": 5
+     }
+    },
     {
      "id": "outfits",
      "name": "Try on outfits",
@@ -1254,9 +1272,29 @@
     1
    ],
    "decor": 2,
-   "description": "Smart storage. Makes a room nicer.",
-   "spots": [],
-   "interactions": []
+   "description": "Smart storage for clean clothes. Makes a room nicer.",
+   "spots": [
+    {
+     "at": [
+      0,
+      1
+     ]
+    }
+   ],
+   "interactions": [
+    {
+     "id": "clean",
+     "name": "Change into clean clothes",
+     "icon": "👕",
+     "duration": 6,
+     "anim": "use",
+     "condition": "dirtyClothes",
+     "special": "changeClothes",
+     "effects": {
+      "comfort": 5
+     }
+    }
+   ]
   },
   {
    "id": "sofa",
@@ -3562,7 +3600,7 @@
     1
    ],
    "decor": 0,
-   "description": "Wash the dirty clothes and bedding. Then hang them out or tumble dry.",
+   "description": "Wash the dirty clothes and bedding. Then hang them out or tumble dry them, and they go back in the wardrobes.",
    "spots": [
     {
      "at": [
@@ -3803,7 +3841,7 @@
     },
     {
      "id": "clean",
-     "name": "Clean the cage",
+     "name": "Change the cage lining",
      "icon": "🧽",
      "duration": 25,
      "anim": "use",
@@ -3815,6 +3853,30 @@
      "tags": [
       "cleaning"
      ]
+    },
+    {
+     "id": "treat",
+     "name": "Give {name} a treat",
+     "icon": "🍪",
+     "duration": 5,
+     "anim": "use",
+     "condition": "hasTreats",
+     "special": "treatCaged",
+     "effects": {
+      "fun": 5
+     }
+    },
+    {
+     "id": "exercise",
+     "name": "Let {name} out for a fly",
+     "icon": "🪶",
+     "duration": 25,
+     "anim": "cheer",
+     "condition": "hasPet",
+     "special": "exercise",
+     "effects": {
+      "fun": 20
+     }
     }
    ]
   },
@@ -3872,7 +3934,7 @@
     },
     {
      "id": "clean",
-     "name": "Clean the hutch",
+     "name": "Clean out the hutch",
      "icon": "🧽",
      "duration": 25,
      "anim": "use",
@@ -3884,6 +3946,31 @@
      "tags": [
       "cleaning"
      ]
+    },
+    {
+     "id": "treat",
+     "name": "Give {name} a treat",
+     "icon": "🍪",
+     "duration": 5,
+     "anim": "use",
+     "condition": "hasTreats",
+     "special": "treatCaged",
+     "effects": {
+      "fun": 5
+     }
+    },
+    {
+     "id": "exercise",
+     "name": "Let {name} hop round the garden",
+     "icon": "🌿",
+     "duration": 30,
+     "anim": "garden",
+     "condition": "hasPet",
+     "special": "exercise",
+     "effects": {
+      "fun": 15,
+      "comfort": 5
+     }
     }
    ]
   },
@@ -3945,7 +4032,7 @@
     },
     {
      "id": "clean",
-     "name": "Clean the cage",
+     "name": "Clean out the cage",
      "icon": "🧽",
      "duration": 25,
      "anim": "use",
@@ -3953,6 +4040,133 @@
      "special": "cleanCage",
      "effects": {
       "hygiene": -10
+     },
+     "tags": [
+      "cleaning"
+     ]
+    },
+    {
+     "id": "treat",
+     "name": "Give {name} a treat",
+     "icon": "🍪",
+     "duration": 5,
+     "anim": "use",
+     "condition": "hasTreats",
+     "special": "treatCaged",
+     "effects": {
+      "fun": 5
+     }
+    },
+    {
+     "id": "exercise",
+     "name": "Put {name} in the hamster ball",
+     "icon": "⚪",
+     "duration": 30,
+     "anim": "cheer",
+     "condition": "hasPet",
+     "special": "exercise",
+     "effects": {
+      "fun": 20
+     }
+    }
+   ]
+  },
+  {
+   "id": "litter_tray",
+   "name": "Litter Tray",
+   "category": "pets",
+   "price": 25,
+   "footprint": [
+    1,
+    1
+   ],
+   "decor": -1,
+   "walkable": false,
+   "description": "Cats need one indoors. Scoop it out every day or two, or they go somewhere else!",
+   "spots": [
+    {
+     "at": [
+      0,
+      1
+     ],
+     "alt": [
+      [
+       1,
+       0
+      ],
+      [
+       -1,
+       0
+      ],
+      [
+       0,
+       -1
+      ]
+     ]
+    }
+   ],
+   "interactions": [
+    {
+     "id": "clean",
+     "name": "Clean the litter tray",
+     "icon": "🧹",
+     "duration": 10,
+     "anim": "use",
+     "condition": "dirty",
+     "special": "cleanTray",
+     "effects": {
+      "hygiene": -8
+     },
+     "tags": [
+      "cleaning"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "pet_poo",
+   "name": "Poo",
+   "category": "mess",
+   "price": 0,
+   "footprint": [
+    1,
+    1
+   ],
+   "decor": -4,
+   "walkable": true,
+   "description": "Yuck! Pick it up and put it in the bin.",
+   "spots": [
+    {
+     "at": [
+      0,
+      1
+     ],
+     "alt": [
+      [
+       1,
+       0
+      ],
+      [
+       -1,
+       0
+      ],
+      [
+       0,
+       -1
+      ]
+     ]
+    }
+   ],
+   "interactions": [
+    {
+     "id": "scoop",
+     "name": "Pick up the poo",
+     "icon": "💩",
+     "duration": 5,
+     "anim": "garden",
+     "special": "scoopPoo",
+     "effects": {
+      "hygiene": -6
      },
      "tags": [
       "cleaning"

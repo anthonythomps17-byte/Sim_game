@@ -297,3 +297,31 @@ input[type=text] { border: 2px solid var(--line); border-radius: 12px; padding: 
   .online-banner { top: calc(var(--hud-top, 118px) + 6px); font-size: 12px; }
   .join-code { font-size: 34px; }
 }
+
+/* Phone */
+.phone { background: #1d1c22; border-radius: 26px; padding: 8px 8px 12px; color: var(--ink); box-shadow: inset 0 0 0 2px #3a3842; }
+.ph-status { display: flex; justify-content: space-between; color: #f4f1ea; font-size: 12px; font-weight: 700; padding: 2px 12px 6px; }
+.ph-screen { background: var(--paper, #fffaf3); border-radius: 18px; padding: 10px; min-height: 360px; max-height: 62vh; overflow-y: auto; display: flex; flex-direction: column; gap: 6px; }
+.ph-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px 8px; padding: 8px 2px; }
+.ph-app { display: flex; flex-direction: column; align-items: center; gap: 4px; background: none; border: 0; font: inherit; font-size: 12px; font-weight: 700; color: var(--ink); cursor: pointer; }
+.ph-app:disabled { opacity: 0.4; }
+.ph-icon { position: relative; width: 56px; height: 56px; border-radius: 16px; display: flex; align-items: center; justify-content: center; font-size: 28px; background: linear-gradient(160deg, #fff, #ece4d8); box-shadow: 0 2px 6px rgba(0,0,0,0.12); }
+.ph-bar { display: flex; align-items: center; gap: 8px; position: sticky; top: -10px; background: inherit; padding: 2px 0 6px; z-index: 1; }
+.ph-row { display: flex; align-items: center; gap: 10px; padding: 8px; border-radius: 12px; background: rgba(44,42,51,0.04); border: 0; font: inherit; text-align: left; color: var(--ink); width: 100%; }
+button.ph-row { cursor: pointer; }
+.ph-row .t { font-weight: 800; }
+.ph-row .s { font-size: 12px; color: var(--ink-soft); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 220px; }
+.ph-av { width: 38px; height: 38px; flex: 0 0 38px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 18px; background: #ece4d8; }
+.ph-thread { display: flex; flex-direction: column; gap: 6px; flex: 1; overflow-y: auto; min-height: 160px; padding: 4px 0; }
+.ph-bubble { max-width: 78%; padding: 8px 12px; border-radius: 16px; font-size: 14px; line-height: 1.3; }
+.ph-bubble small { display: block; font-size: 10px; opacity: 0.6; margin-top: 2px; }
+.ph-bubble.in { align-self: flex-start; background: #ece4d8; border-bottom-left-radius: 4px; }
+.ph-bubble.out { align-self: flex-end; background: var(--accent); color: white; border-bottom-right-radius: 4px; }
+.ph-offer { display: flex; gap: 6px; justify-content: flex-start; }
+.ph-note { font-size: 12px; color: var(--ink-soft); }
+.ph-compose { display: flex; flex-wrap: wrap; gap: 6px; border-top: 1px solid var(--line); padding-top: 8px; }
+.ph-compose .opt { font-size: 13px; padding: 6px 10px; }
+.ph-balance { font-size: 30px; font-weight: 900; text-align: center; padding: 10px; }
+.ph-balance small { display: block; font-size: 12px; font-weight: 700; color: var(--ink-soft); }
+.sp-phone { width: 40px; height: 40px; font-size: 20px; flex: 0 0 40px; }
+.clothes-need { margin-top: 6px; }

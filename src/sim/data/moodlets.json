@@ -426,6 +426,76 @@
    "icon": "🐶",
    "value": 30,
    "duration": 1440
+  },
+  {
+   "id": "fresh_clothes",
+   "name": "Fresh clothes",
+   "icon": "👕",
+   "value": 8,
+   "duration": 180
+  },
+  {
+   "id": "grubby_clothes",
+   "name": "Grubby clothes",
+   "icon": "👕",
+   "value": -8,
+   "duration": 90
+  },
+  {
+   "id": "filthy_clothes",
+   "name": "Filthy clothes",
+   "icon": "🤢",
+   "value": -20,
+   "duration": 90
+  },
+  {
+   "id": "trod_in_poo",
+   "name": "Trod in poo",
+   "icon": "💩",
+   "value": -15,
+   "duration": 120
+  },
+  {
+   "id": "poo_smell",
+   "name": "What's that smell?",
+   "icon": "💩",
+   "value": -12,
+   "duration": 90
+  },
+  {
+   "id": "itchy",
+   "name": "Itchy",
+   "icon": "🐜",
+   "value": -6,
+   "duration": 120
+  },
+  {
+   "id": "lol_meme",
+   "name": "LOL",
+   "icon": "😂",
+   "value": 8,
+   "duration": 90
+  },
+  {
+   "id": "flirty",
+   "name": "Flirty",
+   "icon": "😘",
+   "value": 12,
+   "duration": 180
+  },
+  {
+   "id": "nice_call",
+   "name": "Lovely chat",
+   "icon": "📞",
+   "value": 10,
+   "duration": 180
+  },
+  {
+   "id": "selfie",
+   "name": "Looking good",
+   "icon": "🤳",
+   "value": 6,
+   "duration": 120
   }
  ]
 }

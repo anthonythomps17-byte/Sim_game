@@ -53,7 +53,9 @@ export function deserialize(text: string): GameState {
   st.household.extraEnergy ??= 0;
   st.household.petFood ??= 0;
   st.pets ??= [];
-  for (const p of st.pets) p.task = null;
+  for (const p of st.pets) { p.task = null; p.poo ??= 20; }
+  st.household.cleanClothes ??= st.household.memberIds.length * 5;
+  st.household.petTreats ??= 0;
   st.household.neighbourMood ??= 80;
   st.household.nextDoorId ??= st.sims.find((s) => s.isTownie)?.id ?? 0;
   st.party ??= null;

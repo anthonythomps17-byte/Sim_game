@@ -3,7 +3,8 @@ import { ALL_TRAITS, ASPIRATIONS, CAREERS, NEEDS, OBJECTS, OUTINGS, REWARD_OBJEC
 import { calendarOf, DAYS_PER_SEASON, EVENTS, eventsOn, familyCar, outingCheck, PARTY_COST_PER_GUEST, PARTY_THEMES, SEASONS, YEAR_DAYS } from '../sim/life';
 import { ACCESSORIES, BOTTOMS, CLOTH_COLORS, normalizeAppearance, SHOES, TOPS } from '../sim/newgame';
 import { PET_SPECIES } from '../sim/defs';
-import { adoptQuote, MAX_PETS, petHappiness, speciesOf } from '../sim/pets';
+import { adoptQuote, litterTray, MAX_PETS, petHappiness, petStatus, poos, speciesOf, VET_COST } from '../sim/pets';
+import { cleanClothes, maxClothes } from '../sim/clothes';
 import { activePlayer, familyOn, managers, newPlayer, ownerOf, PLAYER_COLORS } from '../sim/family';
 import { billBreakdown, BIN_DAY, binsOverflowing, boiler, ENGINEER_COST, hasHeatPump, noHotWater, PLUMBER_COST, SUBSCRIPTIONS, wheelieBin, type SubscriptionId } from '../sim/home';
 import { DAY_NAMES } from '../sim/game';
@@ -343,7 +344,9 @@ export class Panels {
       const extra = pet.species === 'parrot' ? ` · knows ${pet.words} word${pet.words === 1 ? '' : 's'}` : pet.species === 'dog' ? ` · ${Math.floor(pet.tricks / 2)} trick${Math.floor(pet.tricks / 2) === 1 ? '' : 's'}` : '';
       return h_('div', { class: 'card' },
         h_('div', { class: 'row' }, h_('span', { style: 'font-size:30px' }, sp.icon),
-          h_('div', { class: 'grow' }, h_('div', { class: 't' }, `${pet.name} the ${sp.name.toLowerCase()}`), h_('div', { class: 's' }, `${happy >= 70 ? '😊 Happy' : happy >= 40 ? '😐 OK' : '😿 Needs you'}${where}${extra}`)),
+          h_('div', { class: 'grow' }, h_('div', { class: 't' }, `${pet.name} the ${sp.name.toLowerCase()}`), h_('div', { class: 's' }, `${happy >= 70 ? '😊 Happy' : happy >= 40 ? '😐 OK' : '😿 Needs you'}${where}${extra}`),
+            ...petStatus(pet).map((x) => h_('div', { class: 's', style: 'color:var(--bad)' }, x))),
+          petStatus(pet).some((x) => !x.startsWith('💩')) ? h_('button', { class: 'btn small primary', disabled: st.household.funds < VET_COST, onclick: () => { close(); void this.app.act({ t: 'vet', petId: pet.id }, { amount: VET_COST, what: `the vet for ${pet.name}` }).then(() => this.pets()); } }, `🩺 Vet £${VET_COST}`) : null,
           h_('button', { class: 'btn small ghost', onclick: () => this.confirm(`Rehome ${pet.name}?`, `${pet.name} will go to live with another family. This can't be undone.`, 'Rehome', () => { close(); void this.app.act({ t: 'rehome', petId: pet.id }).then(() => this.pets()); }) }, 'Rehome')),
         h_('div', { class: 'needs', style: 'margin-top:6px' },
           ...([['🍖', 'Food', pet.hunger], ['🎾', 'Fun', pet.fun], ['🫧', 'Clean', pet.clean], ...(sp.roams ? [['💤', 'Energy', pet.energy]] : []), ['💗', 'Bond', pet.bond]] as [string, string, number][])
@@ -358,10 +361,30 @@ export class Panels {
     });
     close = modal(this.root, 'Pets', [
       ...(mine.length ? [h_('div', { class: 'opt-label', style: 'margin-top:0' }, 'Your pets'), ...mine] : [h_('p', { class: 'muted' }, 'No pets yet. Give an animal from the rescue centre a loving home!')]),
-      h_('p', { class: 'muted' }, `🦴 Pet food: ${st.household.petFood}. Buy more at the pet shop (Go out), and a little comes with the big food shop.`),
+      h_('p', { class: 'muted' }, `🦴 Pet food: ${st.household.petFood} · 🍪 Treats: ${st.household.petTreats ?? 0}. Buy more at the pet shop (Go out) or with the Shop app on your 📱 phone.`),
+      ...this.petChores(),
       h_('div', { class: 'opt-label' }, `Ashton Animal Rescue (up to ${MAX_PETS} pets)`),
       ...adopt,
     ]);
+  }
+
+  /** Poo, litter trays and cages that need cleaning. */
+  private petChores(): HTMLElement[] {
+    const game = this.app.game!;
+    const st = game.state;
+    if (!st.pets.length) return [];
+    const out: string[] = [];
+    const p = poos(game);
+    const inside = p.filter((o) => game.roomOf({ x: o.x + 0.5, z: o.z + 0.5 }) !== 0).length;
+    if (p.length) out.push(`💩 ${p.length} poo${p.length === 1 ? '' : 's'} to pick up${inside ? ` (${inside} indoors!)` : ''}. Tap it, then "Pick up the poo".`);
+    const tray = litterTray(game);
+    if (st.pets.some((x) => x.species === 'cat')) out.push(!tray ? '🪣 Cats need a litter tray (Buy mode → Pets).' : tray.dirt >= 70 ? '🪣 The litter tray is full! Clean it out.' : tray.dirt >= 30 ? '🪣 The litter tray needs scooping soon.' : '🪣 Litter tray is clean.');
+    for (const o of st.lot.objects) {
+      if (!['rabbit_hutch', 'hamster_cage', 'parrot_cage'].includes(o.defId) || o.dirt < 40) continue;
+      out.push(`🧽 The ${OBJECTS[o.defId].name.toLowerCase()} needs cleaning out.`);
+    }
+    if (!out.length) return [];
+    return [h_('div', { class: 'opt-label' }, 'Pet chores'), ...out.map((t) => h_('div', { class: 's', style: 'margin:4px 0' }, t))];
   }
 
   adoptForm(speciesId: string) {
@@ -430,7 +453,8 @@ export class Panels {
       meter('Dust', '🧹', h.dust, h.dust >= 35 ? 'Tap a Sim → Hoover the house' : 'Nice and clean'),
       meter('Weeds', '🌿', h.weeds, h.weeds >= 35 ? 'Tap a Sim → Weed the garden' : 'The garden looks tidy'),
       bin ? meter('Bins', '🗑️', Math.min(100, h.rubbish), binsOverflowing(game) ? 'Overflowing! Tap the bin to clear up.' : bin.atKerb ? 'Out on the street. Bring it back in after collection.' : nextBin === 0 ? 'Collection is today' : nextBin === 1 ? 'Bin day is tomorrow: take it out tonight' : `Bin day is Thursday (in ${nextBin} days)`) : null,
-      meter('Laundry', '🧺', h.laundry, h.wetWashing > 0 ? 'A wash is done! Hang it out or tumble dry it.' : h.laundry >= 15 ? 'Tap the washing machine → Do the washing' : 'All clean'),
+      meter('Laundry basket', '🧺', h.laundry, h.wetWashing > 0 ? 'A wash is done! Hang it out or tumble dry it.' : h.laundry >= 15 ? 'Tap the washing machine → Do the washing' : 'Nearly empty'),
+      meter('Clean clothes', '👕', 100 - Math.round((cleanClothes(game) / maxClothes(game)) * 100), `${cleanClothes(game)} clean outfit${cleanClothes(game) === 1 ? '' : 's'} in the wardrobes.${cleanClothes(game) <= game.household().length ? ' Running low: do a wash!' : ''} Sims change after a shower, or tap a wardrobe.`),
       ...st.lot.objects.filter((o) => o.defId === 'washing_line' && o.load).map((o) => h_('div', { class: 'row' }, h_('span', { style: 'font-size:22px' }, '👕'), h_('div', { class: 'grow' }, h_('div', { class: 't' }, o.growth >= 100 ? 'Washing is dry: bring it in' : `Washing drying on the line (${Math.floor(o.growth)}%)`)))),
       ...(familyCar(game) ? [
         h_('div', { class: 'opt-label' }, 'Car'),

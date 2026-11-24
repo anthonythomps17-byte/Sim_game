@@ -96,6 +96,10 @@ export function scoreOptions(game: Game, sim: Sim): Option[] {
       if (inter.condition === 'binsBack') score += 12;
       if (inter.condition === 'overflowing') score += 14;
       if (inter.condition === 'broken') score += 16;
+      if (inter.condition === 'dirtyClothes') score += (sim.clothesDirt ?? 0) / 2.5;
+      if (inter.special === 'scoopPoo') score += game.roomOf(c) !== 0 ? 34 : 16;
+      if (inter.special === 'cleanTray') score += obj.dirt / 3;
+      if (inter.special === 'exercise') score += 5;
       score *= tagMult(sim, inter.tags);
       score /= 1 + dist / 18;
       if (score > 0.5) options.push({ action: { kind: 'object', objectId: obj.id, interactionId: inter.id, label: inter.name, icon: inter.icon, userQueued: false }, score, label: inter.name });

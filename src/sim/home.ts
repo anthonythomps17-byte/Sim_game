@@ -1,4 +1,5 @@
 // Running a home: chores (dust, weeds, bins), things breaking (drains, boiler), energy and bills.
+import { changeClothes, putAwayWashing } from './clothes';
 import { OBJECTS } from './defs';
 import type { Game } from './game';
 import { calendarOf } from './life';
@@ -95,7 +96,8 @@ export function homeHour(game: Game, hour: number): void {
   const season = calendarOf(game.day).season.id;
   const bin = wheelieBin(game);
   if (hour === 0) {
-    h.laundry = clamp(h.laundry + game.household().length * 7, 0, 100);
+    // Towels and bedding (clothes go in the basket when Sims change).
+    h.laundry = clamp(h.laundry + game.household().length * 3, 0, 100);
     if (h.laundry >= 70 && h.laundry < 100) game.notify('The laundry basket is nearly full. Time to do the washing!', '🧺', 'info');
     if (h.wetWashing > 0) {
       h.laundry = clamp(h.laundry + Math.round(h.wetWashing / 2), 0, 100);
@@ -109,7 +111,6 @@ export function homeHour(game: Game, hour: number): void {
     if (h.weeds >= 70) game.notify('Weeds are taking over the garden! (Tap your Sim → Weed the garden)', '🌿', 'info');
   }
   if (hour === 6) randomProblems(game, season);
-  if (hour === 8 && h.laundry >= 100) for (const sim of game.household()) addMoodlet(sim, 'no_clean_clothes', st.time);
   if (bin) {
     if (game.weekday === BIN_DAY - 1 && hour === 19 && !bin.atKerb) game.notify("It's bin day tomorrow! Take the wheelie bin out tonight.", '🗑️', 'bills');
     if (game.weekday === BIN_DAY && hour === 7) {
@@ -219,21 +220,28 @@ export function homeSpecial(game: Game, sim: Sim, obj: PlacedObject, special: st
       game.notify(`${sim.name} put a wash on. Hang it out or tumble dry it before it goes smelly!`, '🧺', 'info');
       return true;
     }
-    case 'tumble':
+    case 'tumble': {
+      const n = putAwayWashing(game, h_(game).wetWashing);
       h_(game).wetWashing = 0;
       h_(game).extraEnergy += 4;
+      game.notify(`${sim.name} tumble dried the washing and put it away (${n} clean outfit${n === 1 ? '' : 's'}).`, '👕', 'good');
       return true;
+    }
     case 'hang':
       obj.load = h_(game).wetWashing;
       obj.growth = 1;
       h_(game).wetWashing = 0;
       game.lotChanged();
       return true;
-    case 'bringIn':
+    case 'bringIn': {
+      const n = putAwayWashing(game, obj.load ?? 0);
+      game.notify(`${sim.name} brought the washing in and put it away (${n} clean outfit${n === 1 ? '' : 's'}).`, '👕', 'good');
       obj.load = 0;
       obj.growth = 0;
       game.lotChanged();
       return true;
+    }
+    case 'changeClothes': changeClothes(game, sim); return true;
     case 'bedding':
       h_(game).laundry = clamp(h_(game).laundry + 15, 0, 100);
       return true;

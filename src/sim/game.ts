@@ -12,6 +12,8 @@ import { runSchedules } from './schedule';
 import { runLife } from './life';
 import { dryWashing, roomPenalty } from './home';
 import { petsTick } from './pets';
+import { clothesTick } from './clothes';
+import { phoneTick } from './phone';
 import type { GameEvent, GameNotification, GameState, NeedId, PlacedObject, Point, Sim } from './types';
 import { NEED_IDS } from './types';
 
@@ -208,6 +210,7 @@ export class Game {
     this.growPlants(dt);
     dryWashing(this, dt);
     petsTick(this, dt);
+    phoneTick(this);
     runSchedules(this, dt);
     runLife(this, dt);
 
@@ -221,6 +224,7 @@ export class Game {
     const sitting = sim.poseObjectId !== null && anim !== 'sleep';
     const sleeping = anim === 'sleep' && performing;
     const atWork = sim.location === 'work' || sim.location === 'away';
+    clothesTick(this, sim, dt, anim, performing ? cur!.tags : undefined);
     for (const need of NEED_IDS) {
       if (need === 'room') continue;
       if (performing && (cur!.rates[need] ?? 0) > 0) continue; // being filled

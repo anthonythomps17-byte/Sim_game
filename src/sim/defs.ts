@@ -31,7 +31,7 @@ export interface InteractionDef {
   condition?: 'dirty' | 'grown' | 'growing' | 'empty' | 'bills' | 'lightOn' | 'lightOff' | 'night'
     | 'once' | 'uncarved' | 'carved' | 'nightOnce' | 'canDrive'
     | 'notWinter' | 'broken' | 'working' | 'netflix' | 'sky' | 'binsIn' | 'binsBack' | 'overflowing'
-    | 'laundry' | 'wetWashing' | 'canHang' | 'dryWashing'
+    | 'laundry' | 'wetWashing' | 'canHang' | 'dryWashing' | 'dirtyClothes' | 'hasTreats'
     | 'hasPet' | 'petHungry' | 'cageDirty' | 'bowlLow';
   /** Groceries used from the household's food supply. */
   food?: number;
@@ -85,7 +85,7 @@ export interface SocialDef {
 export interface SelfDef {
   id: string; name: string; icon: string; duration: number; anim: AnimId;
   effects?: Effects; skill?: SkillId; skillRate?: number; special?: string; ui?: string; auto?: boolean; tags?: string[];
-  cost?: number; condition?: 'noFood' | 'dusty' | 'weedy';
+  cost?: number; condition?: 'noFood' | 'dusty' | 'weedy'; moodlet?: string;
   /** Walk to a spot indoors / in the garden first. */
   indoors?: boolean; outdoors?: boolean;
 }
@@ -157,6 +157,10 @@ export interface PetActionDef {
   effects?: Effects; skill?: SkillId; skillRate?: number;
   pet: { fun?: number; clean?: number; energy?: number; hunger?: number; bond?: number };
   moodlet?: string; special?: string; petAnim?: string;
+  /** 'fleas': only when the pet has fleas; 'treats': needs pet treats. */
+  condition?: 'fleas' | 'treats';
+  /** Costs money (flea treatment). */
+  cost?: number;
 }
 export interface PetSpeciesDef {
   id: string; name: string; icon: string; price: number; weekly: number; roams: boolean; speed?: number;

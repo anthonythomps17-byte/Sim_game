@@ -112,6 +112,61 @@
    "anim": "phone",
    "ui": "pets",
    "auto": false
+  },
+  {
+   "id": "text",
+   "name": "Texting",
+   "icon": "💬",
+   "duration": 8,
+   "anim": "phone",
+   "effects": {
+    "social": 8
+   },
+   "special": "text",
+   "auto": false
+  },
+  {
+   "id": "call",
+   "name": "Phone call",
+   "icon": "📞",
+   "duration": 30,
+   "anim": "phone",
+   "effects": {
+    "social": 35,
+    "fun": 8
+   },
+   "special": "phoneCall",
+   "auto": false
+  },
+  {
+   "id": "selfie",
+   "name": "Take a selfie",
+   "icon": "🤳",
+   "duration": 10,
+   "anim": "phone",
+   "effects": {
+    "fun": 10,
+    "social": 5
+   },
+   "skill": "creativity",
+   "skillRate": 8,
+   "auto": false,
+   "moodlet": "selfie"
+  },
+  {
+   "id": "scroll",
+   "name": "Scroll social media",
+   "icon": "📲",
+   "duration": 30,
+   "anim": "phone",
+   "effects": {
+    "fun": 18,
+    "social": 6,
+    "energy": -3
+   },
+   "tags": [
+    "screens"
+   ]
   }
  ],
  "outings": [
@@ -627,7 +682,7 @@
   },
   {
    "id": "petshop",
-   "name": "Pet shop",
+   "name": "Pet shop (food and treats)",
    "icon": "🦴",
    "duration": 45,
    "cost": 15,

@@ -1,4 +1,6 @@
 // Things that happen on the clock: work, bills, visitors, lights, aspirations.
+import { afterWork } from './clothes';
+import { billsText, takeBonus } from './phone';
 import { ALL_TRAITS, ASPIRATIONS, CAREERS, OBJECTS, OUTINGS, type AspirationCond, type CareerLevel } from './defs';
 import type { Game } from './game';
 import { MINUTES_PER_DAY } from './game';
@@ -191,8 +193,10 @@ function finishWorkDay(game: Game, sim: Sim): void {
   const def = CAREERS[career.id];
   const lvl = def.levels[career.level];
   const hours = lvl.end - lvl.start;
-  const pay = Math.round(lvl.pay * hours);
+  const bonus = takeBonus(sim);
+  const pay = Math.round(lvl.pay * hours) + bonus;
   game.addFunds(pay);
+  afterWork(sim, career.id);
   career.daysWorked++;
   const mf = moodFactor(sim);
   let perf = 10 * mf;
@@ -201,7 +205,7 @@ function finishWorkDay(game: Game, sim: Sim): void {
   career.performance = clamp(career.performance + perf, -100, 100);
   const now = game.state.time;
   addMoodlet(sim, mf >= 1.1 ? 'good_day' : mf < 0.85 ? 'hard_day' : 'good_day', now);
-  game.notify(`${sim.name} earned £${pay} at work today.`, '💷', 'good');
+  game.notify(`${sim.name} earned £${pay} at work today${bonus ? ` (with £${bonus} for the extra hours)` : ''}.`, '💷', 'good');
   game.sound('cash');
   if (career.performance >= 100) tryPromote(game, sim);
 }
@@ -258,6 +262,7 @@ function issueBills(game: Game): void {
   else game.state.bills = { amount, issued: game.state.time, dueBy: game.state.time + 3 * MINUTES_PER_DAY };
   const parts = [`home £${b.home}`, `energy £${b.energy}${b.energySaved ? ` (saved £${b.energySaved})` : ''}`, b.subscriptions ? `TV £${b.subscriptions}` : '', b.pets ? `pets £${b.pets}` : ''].filter(Boolean).join(', ');
   game.notify(`Weekly bills have arrived: £${game.state.bills.amount} (${parts}). Pay within 3 days.`, '🧾', 'bills');
+  billsText(game, game.state.bills.amount);
   game.sound('notify');
 }
 

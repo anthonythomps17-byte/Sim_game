@@ -50,6 +50,11 @@ export class SimAvatar {
   readonly ring: Mesh;
   private appearanceKey = '';
   private walkPhase = 0;
+  /** Dirty clothes: 0 clean, 1 grubby (stains), 2 filthy (more stains and flies). */
+  private dirt: 0 | 1 | 2 = 0;
+  private cloth: { m: StandardMaterial; base: Color3 }[] = [];
+  private stains: { mesh: Mesh; stage: 1 | 2 }[] = [];
+  private flies: Mesh[] = [];
 
   constructor(private scene: Scene, public simId: number, appearance: Appearance, private shadowCaster?: (m: Mesh) => void) {
     this.root = new TransformNode(`sim${simId}`, scene);
@@ -87,6 +92,10 @@ export class SimAvatar {
     this.legs = [];
     this.eyes = [];
     this.skirt = null;
+    this.cloth = [];
+    this.stains = [];
+    for (const f of this.flies) f.dispose();
+    this.flies = [];
     for (const child of this.body.getChildren()) if (child !== this.ring) child.dispose();
     this.spine = new TransformNode('spine', this.scene);
     this.head = new TransformNode('head', this.scene);
@@ -121,6 +130,7 @@ export class SimAvatar {
     const acc = mat(s, 'acc', a.accessoryColor, 0.3);
     const gold = mat(s, 'gold', '#d9b25a', 0.6);
     this.mats.push(skin, skinShade, hair, brow, top, topTrim, bottom, bottomTrim, shoe, sole, eyeWhite, iris, pupil, shine, lip, dark, freckle, blush, acc, gold);
+    this.cloth = [top, topTrim, bottom, bottomTrim, shoe].map((m) => ({ m, base: m.diffuseColor.clone() }));
 
     const shoulderW = a.body === 'slim' ? 0.31 : a.body === 'broad' ? 0.41 : 0.35;
     const depth = a.body === 'slim' ? 0.19 : a.body === 'broad' ? 0.25 : 0.21;
@@ -405,6 +415,56 @@ export class SimAvatar {
       skirt.position.y = 0.06 - len / 2;
       this.skirt = this.add(skirt, this.body, a.top === 'dress' ? top : bottom);
     }
+    this.buildStains(shoulderW, depth, hipW);
+    this.applyDirt();
+  }
+
+  /** Mud and food stains, hidden until the clothes get dirty. */
+  private buildStains(shoulderW: number, depth: number, hipW: number): void {
+    const s = this.scene;
+    const mud = mat(s, 'mud', '#4a3420', 0.02);
+    const food = mat(s, 'foodStain', '#8a4a1c', 0.02);
+    this.mats.push(mud, food);
+    const spots: [TransformNode, number, number, number, number, StandardMaterial, 1 | 2][] = [
+      [this.spine, -shoulderW * 0.18, 0.3, depth / 2 + 0.004, 0.11, food, 1],
+      [this.spine, shoulderW * 0.2, 0.15, depth / 2 + 0.004, 0.1, mud, 1],
+      [this.spine, 0.03, 0.4, depth / 2 - 0.008, 0.08, food, 2],
+      [this.spine, -shoulderW * 0.08, 0.06, depth / 2 + 0.006, 0.12, mud, 2],
+      [this.spine, shoulderW * 0.05, 0.25, -depth / 2 - 0.004, 0.12, mud, 2],
+      [this.body, hipW * 0.25, -0.05, depth / 2 + 0.01, 0.1, mud, 1],
+      [this.body, -hipW * 0.22, -0.02, depth / 2 + 0.01, 0.09, mud, 2],
+    ];
+    for (const [parent, x, y, z, d, m, stage] of spots) {
+      const st = MeshBuilder.CreateSphere('stain', { diameter: d, segments: 6 }, s);
+      st.scaling.z = 0.25;
+      st.position.set(x, y, z);
+      this.add(st, parent, m);
+      st.isPickable = false;
+      this.stains.push({ mesh: st, stage });
+    }
+    const black = mat(s, 'fly', '#111111');
+    this.mats.push(black);
+    for (let i = 0; i < 3; i++) {
+      const f = MeshBuilder.CreateSphere('fly', { diameter: 0.045, segments: 4 }, s);
+      f.parent = this.root;
+      f.material = black;
+      f.isPickable = false;
+      this.flies.push(f);
+    }
+  }
+
+  setDirt(stage: 0 | 1 | 2): void {
+    if (stage === this.dirt) return;
+    this.dirt = stage;
+    this.applyDirt();
+  }
+
+  private applyDirt(): void {
+    const mudColor = hex('#6b5434');
+    const t = this.dirt === 2 ? 0.48 : this.dirt === 1 ? 0.24 : 0;
+    for (const c of this.cloth) c.m.diffuseColor = Color3.Lerp(c.base, mudColor, t);
+    for (const st of this.stains) st.mesh.setEnabled(this.dirt >= st.stage);
+    for (const f of this.flies) f.setEnabled(this.dirt === 2);
   }
 
   /** Hair shell that hugs the head. `slice` = how far down it reaches, `arc` = how far round (gap at the front). */
@@ -692,6 +752,12 @@ export class SimAvatar {
     ra.root.rotation.z = 0.08; la.root.rotation.z = -0.08;
     if (this.skirt) this.skirt.scaling.set(1, 1, 1);
     const props: string[] = [];
+
+    // Flies buzzing round filthy clothes.
+    if (this.dirt === 2) this.flies.forEach((f, i) => {
+      const a = t * (3 + i) + i * 2.1;
+      f.position.set(Math.cos(a) * (0.28 + i * 0.05), 1.25 + Math.sin(t * 5 + i) * 0.2, Math.sin(a) * (0.28 + i * 0.05));
+    });
 
     // Blinking.
     const blink = ((t + p.blinkSeed) % 4) < 0.12 ? 0.1 : 1;

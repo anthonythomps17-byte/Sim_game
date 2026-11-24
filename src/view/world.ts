@@ -18,6 +18,7 @@ import '@babylonjs/core/Rendering/outlineRenderer';
 import '@babylonjs/core/Culling/ray';
 import type { Game } from '../sim/game';
 import type { Appearance } from '../sim/types';
+import { dirtStage } from '../sim/clothes';
 import { OBJECTS } from '../sim/defs';
 import { moodLabel, moodScore } from '../sim/mood';
 import type { Sim } from '../sim/types';
@@ -272,6 +273,7 @@ export class WorldView {
         this.avatars.set(sim.id, av);
       }
       av.setAppearance(this.previews.get(sim.id) ?? sim.appearance);
+      av.setDirt(this.previews.has(sim.id) ? 0 : dirtStage(sim));
       av.setVisible(true);
       this.poseSim(av, sim, game, dt, speed);
     }

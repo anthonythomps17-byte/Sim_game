@@ -10,6 +10,8 @@ import type { App } from './app';
 import { calendarOf, eventsOn, PARTY_THEMES } from '../sim/life';
 import { neighbourFace } from './panels';
 import { activePlayer, ownerOf } from '../sim/family';
+import { clothesLabel } from '../sim/clothes';
+import { unreadCount } from '../sim/phone';
 import { bar, clear, h, initials, money } from './dom';
 
 type Tab = 'needs' | 'skills' | 'career' | 'people' | 'goals';
@@ -221,6 +223,7 @@ export class Hud {
       const head = h('div', { class: 'sp-head', onclick: () => { this.collapsed = !this.collapsed; this.sigs.clear(); this.refresh(); } },
         h('div', null, h('div', { class: 'sp-name' }, sim.name), h('div', { class: 'sp-sub' }, job + where)),
         h('div', { class: 'sp-mood', style: `color:${mood.color}` }, h('span', { class: 'em' }, mood.emoji), mood.label),
+        game.isHousehold(sim) ? h('button', { class: 'btn icon-btn round rel sp-phone', 'aria-label': 'Phone', onclick: (e: Event) => { e.stopPropagation(); this.app.phone.open(sim); } }, '📱', h('span', { class: 'badge', style: 'display:none' })) : null,
       );
       const tabs = h('div', { class: 'tabs' },
         ...([['needs', 'Needs'], ['skills', 'Skills'], ['career', 'Job'], ['people', 'People'], ['goals', 'Goal']] as [Tab, string][])
@@ -228,6 +231,12 @@ export class Hud {
       const body = h('div', { class: 'sp-body' }, tabs, h('div', { class: 'sp-content' }));
       this.panelEl.append(head, body);
       this.sigs.delete('content');
+    }
+    const badge = this.panelEl.querySelector('.sp-phone .badge') as HTMLElement | null;
+    if (badge) {
+      const n = unreadCount(sim) + (sim.call ? 1 : 0);
+      badge.textContent = sim.call ? '📞' : String(n);
+      badge.style.display = n ? '' : 'none';
     }
     const content = this.panelEl.querySelector('.sp-content') as HTMLElement | null;
     if (!content || this.collapsed) return;
@@ -243,11 +252,17 @@ export class Hud {
 
   private renderNeeds(el: HTMLElement, sim: Sim) {
     const now = this.app.game!.state.time;
-    const sig = NEED_IDS.map((n) => Math.round(sim.needs[n] / 2)).join(',') + '|' + sim.moodlets.map((m) => m.id).join(',');
+    const dirt = sim.clothesDirt ?? 0;
+    const sig = NEED_IDS.map((n) => Math.round(sim.needs[n] / 2)).join(',') + '|' + sim.moodlets.map((m) => m.id).join(',') + '|' + Math.round(dirt / 5);
     if (!this.changed('content', sig)) return;
     clear(el);
     el.append(h('div', { class: 'needs' }, ...NEED_IDS.map((n) =>
       h('div', { class: 'need' }, h('span', { class: 'ic' }, NEEDS[n].icon), h('span', { class: 'lbl' }, NEEDS[n].name), bar(sim.needs[n])))));
+    if (this.app.game!.isHousehold(sim)) {
+      const c = clothesLabel(dirt);
+      el.append(h('div', { class: 'need clothes-need' }, h('span', { class: 'ic' }, '👕'), h('span', { class: 'lbl' }, `Clothes: ${c.label}`),
+        bar(100 - dirt)));
+    }
     if (sim.moodlets.length) {
       el.append(h('div', { class: 'moodlets' }, ...sim.moodlets.map((m) => {
         const def = MOODLETS[m.id];

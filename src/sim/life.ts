@@ -1,5 +1,7 @@
 // Everyday life systems: the calendar and holidays, food shopping, driving, parties and noise,
 // and how fast the clock runs by day and by night.
+import { addClothesDirt, clothesHour } from './clothes';
+import { phoneHour } from './phone';
 import { CAREERS, OBJECTS, OUTINGS, type OutingDef } from './defs';
 import type { Game } from './game';
 import { MINUTES_PER_DAY } from './game';
@@ -172,6 +174,8 @@ export function onHour(game: Game, hour: number): void {
   const st = game.state;
   homeHour(game, hour);
   petsHour(game, hour);
+  clothesHour(game, hour);
+  phoneHour(game, hour);
   const cal = calendarOf(game.day);
   if (hour === 0) {
     removeExpiredTemps(game);
@@ -386,8 +390,10 @@ export function outingReturn(game: Game, sim: Sim, id: string): void {
   }
   if (o.special === 'petFood') {
     game.state.household.petFood += 30;
-    game.notify(`${sim.name} bought pet food and treats (+30).`, '🦴', 'good');
+    game.state.household.petTreats = (game.state.household.petTreats ?? 0) + 5;
+    game.notify(`${sim.name} bought pet food (+30) and treats (+5).`, '🦴', 'good');
   }
+  addClothesDirt(sim, o.special === 'dogWalk' || id === 'walk' ? 12 : o.duration >= 1440 ? 40 : 8);
   if (o.special === 'dogWalk') dogBack(game, sim);
   if (o.groceries && game.state.pets.length) game.state.household.petFood += 10;
   if (o.special === 'bargain') {

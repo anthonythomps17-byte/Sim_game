@@ -234,6 +234,8 @@ export function createGame(opts: NewGameOptions): GameState {
     st.sims.push(sim);
     st.household.memberIds.push(sim.id);
   });
+  st.household.cleanClothes = st.household.memberIds.length * 5;
+  st.household.petTreats = 0;
   // Household members already know each other.
   const ids = st.household.memberIds;
   for (let i = 0; i < ids.length; i++) {

@@ -100,7 +100,41 @@ export interface RunningAction extends QueuedAction {
   partnerOk?: boolean;
 }
 
-export interface CareerState { id: string; level: number; performance: number; daysWorked: number; workedToday: boolean }
+export interface CareerState {
+  id: string; level: number; performance: number; daysWorked: number; workedToday: boolean;
+  /** Extra pay agreed by text for the next shift. */
+  bonus?: number;
+}
+
+/** A text message on a Sim's phone. `from` is a townie's id, or a service ('boss', 'bank', 'shop', 'vet'). */
+export interface PhoneMsg {
+  id: number;
+  from: number | string;
+  text: string;
+  time: number;
+  /** Sent by this Sim (to `from`, the other person in the conversation). */
+  out?: boolean;
+  offer?: PhoneOffer;
+}
+
+export interface PhoneOffer {
+  kind: 'visit' | 'walk' | 'shift' | 'bills';
+  until: number;
+  answer?: 'yes' | 'no';
+  pay?: number;
+}
+
+/** A reply on its way (people take a while to text back). */
+export interface PendingText {
+  at: number;
+  to: number;
+  from: number;
+  text: string;
+  friendship?: number;
+  romance?: number;
+  visit?: boolean;
+  moodlet?: string;
+}
 
 export interface Sim {
   id: number;
@@ -136,6 +170,11 @@ export interface Sim {
   /** Recently finished activities, so free will doesn't repeat itself. */
   recent: string[];
   driving: { lessons: number; licence: boolean };
+  /** 0 (fresh on) to 100 (filthy). */
+  clothesDirt?: number;
+  phone?: { msgs: PhoneMsg[]; readUpTo: number };
+  /** Someone ringing this Sim's phone. */
+  call?: { from: number; until: number } | null;
 }
 
 export type WallKind = 'wall' | 'door' | 'window';
@@ -220,6 +259,9 @@ export interface GameState {
     /** Extra electricity this week (tumble dryer). */
     extraEnergy: number;
     petFood: number;
+    /** Clean outfits in the wardrobes, and pet treats in the cupboard. */
+    cleanClothes?: number;
+    petTreats?: number;
   };
   sims: Sim[];
   relationships: Relationship[];
@@ -239,6 +281,9 @@ export interface GameState {
   family?: FamilyState;
   /** Spending requests waiting for a money manager (when playing on several devices). */
   approvals?: Approval[];
+  /** Text replies on their way, and online shopping on its way. */
+  phoneQueue?: PendingText[];
+  deliveries?: { at: number; item: string }[];
   noise: { tonight: number; stage: number };
   fireworksUntil: number;
 }
@@ -279,7 +324,7 @@ export interface FamilyState {
 export type PetAnim = 'idle' | 'walk' | 'run' | 'sleep' | 'sit' | 'eat' | 'happy' | 'pounce' | 'hop';
 
 export interface PetTask {
-  kind: 'wander' | 'eat' | 'sleep' | 'follow' | 'withSim' | 'idle';
+  kind: 'wander' | 'eat' | 'sleep' | 'follow' | 'withSim' | 'idle' | 'poo';
   path: Point[];
   i: number;
   until: number;
@@ -309,6 +354,13 @@ export interface Pet {
   say: { text: string; until: number } | null;
   warnedAt: number;
   adopted: number;
+  /** Needs the toilet at 100. */
+  poo?: number;
+  fleas?: boolean;
+  /** Flea treatment works until this time. */
+  fleaGuard?: number;
+  /** Poorly since this time (needs the vet), or undefined. */
+  sickSince?: number;
 }
 
 export interface Party {

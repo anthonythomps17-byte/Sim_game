@@ -13,6 +13,7 @@ import { label as petLabel, occupant, petActionsFor } from '../sim/pets';
 import { activePlayer, canControl, familyOn, ownerOf } from '../sim/family';
 import { GuestSession, HostSession, type Device, type OnlineSession } from '../net/online';
 import { OnlineUi } from './online';
+import { PhoneUi } from './phone';
 import { randomCode } from '../net/relay';
 import type { GameEvent, GameState, QueuedAction, Sim } from '../sim/types';
 import { WorldView } from '../view/world';
@@ -32,6 +33,7 @@ import { GAME_TITLE } from './title';
 import { h } from './dom';
 
 type Screen = 'title' | 'cas' | 'play';
+const PHONE_ONLY = new Set(['text', 'call', 'selfie', 'scroll', 'phone']);
 type Mode = 'live' | 'buy' | 'build';
 
 export class App {
@@ -58,6 +60,7 @@ export class App {
   readonly cas: CasScreen;
   readonly tutorial: Tutorial;
   readonly onlineUi: OnlineUi;
+  readonly phone: PhoneUi;
   private playLayer: HTMLElement;
   private hudTimer = 0;
   private lastSave = 0;
@@ -83,6 +86,7 @@ export class App {
     this.cas = new CasScreen(this);
     this.tutorial = new Tutorial(this);
     this.onlineUi = new OnlineUi(this);
+    this.phone = new PhoneUi(this);
     this.playLayer = h('div', { class: 'passthrough', style: 'position:absolute;inset:0' }, this.hud.el, this.buy.el, this.build.el, this.tutorial.el);
     document.title = GAME_TITLE;
     this.applySettings();
@@ -135,7 +139,7 @@ export class App {
     this.world.frame(dt, speed);
     this.hud.frame();
     this.hudTimer -= dt;
-    if (this.hudTimer <= 0) { this.hudTimer = 0.2; this.hud.refresh(); if (online) this.onlineUi.checkApprovals(); }
+    if (this.hudTimer <= 0) { this.hudTimer = 0.2; this.hud.refresh(); this.phone.checkCalls(); if (online) this.onlineUi.checkApprovals(); }
   }
 
   // ---------- Screens ----------
@@ -555,7 +559,7 @@ export class App {
     const options: RadialOption[] = [];
     if (sel) {
       for (const { def, ok, why } of petActionsFor(game, sel, pet)) {
-        options.push({ icon: def.icon, label: petLabel(def.name, pet), disabled: !ok, why, onPick: () => this.queue(sel, { kind: 'pet', petId: pet.id, petAction: def.id, label: petLabel(def.name, pet), icon: def.icon, userQueued: true }) });
+        options.push({ icon: def.icon, label: petLabel(def.name, pet) + (def.cost ? ` (£${def.cost})` : ''), disabled: !ok, why, onPick: () => this.queue(sel, { kind: 'pet', petId: pet.id, petAction: def.id, label: petLabel(def.name, pet), icon: def.icon, userQueued: true }, def.cost ? { amount: def.cost, what: `${def.name.toLowerCase()} for ${pet.name}` } : undefined) });
       }
       if (pet.species === 'dog') options.push({ icon: '🦮', label: `Walk ${pet.name}`, onPick: () => this.queueOuting(sel, 'dogwalk') });
     }
@@ -599,11 +603,13 @@ export class App {
         const hh = game.state.household;
         if (s.condition === 'dusty' && hh.dust < 15) continue;
         if (s.condition === 'weedy' && hh.weeds < 15) continue;
+        if (PHONE_ONLY.has(s.id)) continue; // these live in the 📱 Phone
         options.push({
           icon: s.icon, label: s.name,
           onPick: () => s.ui === 'relationships' ? this.panels.invite(sel) : s.ui === 'party' ? this.panels.party(sel) : s.ui === 'pets' ? this.panels.pets() : this.queue(sel, { kind: 'self', selfId: s.id, label: s.name, icon: s.icon, userQueued: true }),
         });
       }
+      options.push({ icon: '📱', label: 'Phone', onPick: () => this.phone.open(sel) });
       options.push({ icon: '🌳', label: 'Go for a walk', onPick: () => this.queueOuting(sel, 'walk') });
       options.push({ icon: '🚶', label: 'Go out…', onPick: () => this.panels.outings(sel) });
       options.push({ icon: 'ℹ️', label: 'About', onPick: () => this.panels.simInfo(sel) });
