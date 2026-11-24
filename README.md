@@ -54,11 +54,14 @@ Ashton flavour: red-brick terraces and slate roofs, a church spire and pit-head 
 
 ## Out and about
 
-Sims can walk out of the front door into the neighbourhood. The street outside, Town Green Park and the Town Green Café are real places to walk around, not just a timer.
+Sims can walk out of the front door into the neighbourhood. The street outside, Town Green Park, the Town Green Café, Aldi and Hillcrest Primary School are real places to walk around, not just a timer.
 
 - **Getting there:** tap your Sim → 🌳 Go to the park or ☕ Go to the café, tap anything in the park or café, or tap the pavement → Go here. They walk down Larkfield Close and Wellbrook Road to get there. Tap your Sim → 🏠 Go home to come back.
 - **Walk mode (🕹️):** steer your Sim yourself with the joystick (or WASD / arrow keys on a computer) while the camera follows. Walk straight out of the garden into the street. Tapping still works for using things and chatting.
 - **The park:** swings, a slide, picnic tables, benches, an outdoor chess table, the duck pond (feed the ducks), a football goal for a kickabout, and the ice cream van (spring to autumn, 10am–6pm).
+- **Aldi** (8am–10pm): walk the aisles and pick tins and pasta, fruit and veg, bread, snacks, fridge and freezer food, and pet food into your basket (the Sim panel shows it), then pay at a till. Rummage in the middle aisle for oddities and the odd voucher. Walk out without paying and the shopping goes back.
+- **Hillcrest Primary School** (opposite the park): maths, art and cookery lessons at the desks (weekdays 9–3, not in the summer holidays) build skills; evening classes (£10) after school; a reading corner, the hall stage, piano and PE mats; and a playground with a climbing frame, hopscotch and a goal.
+- **Busy streets:** people walking by (some with dogs), kids on bikes, cars that stop when your Sims cross, the postman on weekday mornings, the bin lorry on Thursday morning and the school run at 8:30 and 3:15. They're scenery only, so they cost nothing to save or share between devices.
 - **The café** (open 7am–7pm): order a coffee, tea and cake, a hot chocolate or a full English breakfast at the counter, then sit at a table. There's a customer toilet, armchairs and a bookshelf.
 - **Neighbours are out too:** they come and go through the day (more at weekends), using the park and café. Chat to them to make friends; then they're in your phone's contacts.
 - With free will, your Sims go out for a while now and then when they're bored or lonely, and head home when tired or when it gets late.
@@ -171,7 +174,7 @@ The spec suggests Kenney/Quaternius glTF packs and Mixamo animations. This versi
 ## Not in this version
 
 - Playing together needs the internet (the rest of the game still works offline). Only one household is shared at a time, and the host device has to stay awake.
-- More places to walk into (the high street, Aldi and the school are still off-screen outings for now).
+- More places to walk into (the high street and the market are still off-screen outings for now).
 - Ageing and generations, multiple lots, online play (out of scope for v1 in the spec).
 - Hand-made art: everything is procedural for now.
 

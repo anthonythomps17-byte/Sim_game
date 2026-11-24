@@ -11,10 +11,10 @@ import { clamp } from './mood';
 import type { GameState, Lot, PlacedObject, Point, Sim, Wall } from './types';
 
 export const TOWN_ORIGIN = { x: -66, z: -121 };
-export const TOWN_W = 92;
+export const TOWN_W = 116;
 export const TOWN_D = 121;
 /** Bump when the layout changes, so older saves get the new town. */
-export const TOWN_VERSION = 1;
+export const TOWN_VERSION = 2;
 
 type P = [number, number];
 export interface StreetDef { name: string; points: P[]; width: number; houses: boolean; sign?: P }
@@ -48,6 +48,11 @@ export function streets(lotD: number): StreetDef[] {
 export const PARK = { x0: -64, x1: 18, z0: -118, z1: -38 };
 /** The café building (world, walls on these lines). */
 export const CAFE = { x0: -31, x1: -21, z0: -27, z1: -19 };
+/** Aldi, on Maple Avenue next to the café (world, walls on these lines). */
+export const ALDI = { x0: -59, x1: -36, z0: -25, z1: -12 };
+/** Hillcrest Primary: the school building, and its grounds (front yard and playground). */
+export const SCHOOL = { x0: 24, x1: 44, z0: -49, z1: -39 };
+export const SCHOOL_GROUNDS = { x0: 22, x1: 46, z0: -64, z1: -36 };
 /** The row of shops in the park's corner (solid). */
 const SHOPS = { x0: -62, x1: -40, z0: -48, z1: -40 };
 
@@ -61,10 +66,14 @@ export interface Destination { id: string; name: string; icon: string; tile: Poi
 export const DESTINATIONS: Record<string, Destination> = {
   park: { id: 'park', name: 'Town Green Park', icon: '🌳', tile: { x: 66, z: 80 } },
   cafe: { id: 'cafe', name: 'Town Green Café', icon: '☕', tile: { x: 40, z: 98 } },
+  aldi: { id: 'aldi', name: 'Aldi', icon: '🛒', tile: { x: 26, z: 100 } },
+  school: { id: 'school', name: 'Hillcrest Primary School', icon: '🏫', tile: { x: 100, z: 83 } },
 };
+/** Short names for buttons ("Go to the park"). */
+export const DEST_SHORT: Record<string, string> = { park: 'the park', cafe: 'the café', aldi: 'Aldi', school: 'school' };
 
 /** Where townies walk in from and leave by (town tiles). */
-export const TOWN_EXITS: Point[] = [{ x: 2, z: 41 }, { x: 83, z: 11 }, { x: 1, z: 89 }, { x: 90, z: 117 }];
+export const TOWN_EXITS: Point[] = [{ x: 2, z: 41 }, { x: 83, z: 11 }, { x: 1, z: 89 }, { x: 90, z: 117 }, { x: 115, z: 61 }, { x: 115, z: 21 }];
 
 /** The town tile just outside the home lot's front gate. */
 export function townGate(game: Game): Point {
@@ -122,6 +131,9 @@ export function townMask(): Uint8Array {
       if (wx > PARK.x0 && wx < PARK.x1 && wz > PARK.z0 && wz < PARK.z1 + 1.5) ok = true;
       if (wx > SHOPS.x0 && wx < SHOPS.x1 && wz > SHOPS.z0 && wz < SHOPS.z1) ok = false;
       if (wx > CAFE.x0 && wx < CAFE.x1 + 1 && wz > CAFE.z0 && wz < CAFE.z1) ok = true;
+      if (wx > ALDI.x0 && wx < ALDI.x1 && wz > ALDI.z0 - 2 && wz < ALDI.z1) ok = true;
+      const g = SCHOOL_GROUNDS;
+      if (wx > g.x0 && wx < g.x1 && wz > g.z0 && wz < g.z1) ok = true;
       m[z * TOWN_W + x] = ok ? 1 : 0;
     }
   }
@@ -151,6 +163,31 @@ function layout() {
   for (const x of [35, 36]) put(`h,${x},100`, ['plaster', 'plaster']);
   for (const z of [100, 101]) put(`v,37,${z}`, ['plaster', 'plaster']);
   for (let x = x0; x < x1; x++) for (let z = z0; z < z1; z++) floors[z * TOWN_W + x] = x <= 36 && z >= 100 ? 'tile_white' : 'oak';
+
+  /** A building: outside paint, inside paint, doors and windows (wall keys). */
+  const building = (b: { x0: number; x1: number; z0: number; z1: number }, outside: string, inside: string, floor: string, doorKeys: string[], windowKeys: string[]) => {
+    const bx0 = b.x0 - TOWN_ORIGIN.x, bx1 = b.x1 - TOWN_ORIGIN.x, bz0 = b.z0 - TOWN_ORIGIN.z, bz1 = b.z1 - TOWN_ORIGIN.z;
+    const d = new Set(doorKeys), w = new Set(windowKeys);
+    const set = (key: string, paint: [string, string]) => { walls[key] = { kind: d.has(key) ? 'door' : w.has(key) ? 'window' : 'wall', paint }; };
+    for (let x = bx0; x < bx1; x++) { set(`h,${x},${bz0}`, [outside, inside]); set(`h,${x},${bz1}`, [inside, outside]); }
+    for (let z = bz0; z < bz1; z++) { set(`v,${bx0},${z}`, [outside, inside]); set(`v,${bx1},${z}`, [inside, outside]); }
+    for (let x = bx0; x < bx1; x++) for (let z = bz0; z < bz1; z++) floors[z * TOWN_W + x] = floor;
+    return set;
+  };
+  // Aldi: a glass shop front on Maple Avenue.
+  const shopWindows: string[] = [];
+  for (let x = 9; x <= 24; x++) shopWindows.push(`h,${x},96`);
+  building(ALDI, 'brick', 'plaster', 'tile_white', ['h,26,96', 'h,27,96'], shopWindows);
+  // Hillcrest Primary: classroom (west), hall (east) and toilets.
+  const school = building(SCHOOL, 'brick', 'sky', 'pine', ['h,103,82', 'h,104,82', 'h,95,72', 'h,105,72'],
+    ['h,92,82', 'h,93,82', 'h,96,82', 'h,97,82', 'h,101,82', 'h,108,82', 'h,93,72', 'h,98,72', 'h,102,72', 'h,108,72', 'v,90,76', 'v,90,79', 'v,110,76', 'v,110,79']);
+  for (let z = 72; z < 82; z++) school(`v,100,${z}`, ['sky', 'mustard']);
+  walls['v,100,77'] = { kind: 'door', paint: ['sky', 'mustard'] };
+  for (const x of [90, 91]) school(`h,${x},74`, ['plaster', 'plaster']);
+  walls['h,91,74'] = { kind: 'door', paint: ['plaster', 'plaster'] };
+  for (const z of [72, 73]) school(`v,92,${z}`, ['plaster', 'plaster']);
+  for (let x = 90; x < 110; x++) for (let z = 72; z < 82; z++) floors[z * TOWN_W + x] = x < 92 && z < 74 ? 'tile_white' : x < 100 ? 'carpet_blue' : 'pine';
+  for (let x = 101; x < 110; x++) walls[`h,${x},82`] && (walls[`h,${x},82`].paint = ['mustard', 'brick']);
   layoutCache = { walls, floors };
   return layoutCache;
 }
@@ -171,6 +208,21 @@ const FURNITURE: [string, number, number, 0 | 1 | 2 | 3][] = [
   ['bench', 54, 78, 0], ['bench', 80, 61, 3], ['bench', 48, 60, 1], ['chess', 52, 71, 0],
   ['duck_pond', 36, 55, 0], ['ice_cream_van', 70, 61, 0], ['goal', 26, 41, 0],
   ['park_bin', 62, 80, 0], ['park_bin', 76, 76, 0], ['flower_bed', 48, 80, 0], ['flower_bed', 72, 80, 0],
+  // Aldi: tills by the door, aisles, fridges and freezers along the back, the middle aisle.
+  ['aldi_till', 22, 99, 0], ['aldi_till', 18, 99, 0], ['trolley_bay', 28, 97, 0],
+  ['aldi_tins', 9, 102, 0], ['aldi_snacks', 14, 102, 0], ['aldi_bakery', 19, 102, 0],
+  ['aldi_pets', 9, 105, 0], ['aldi_veg', 14, 105, 0], ['aldi_middle', 24, 103, 0],
+  ['aldi_fridge', 8, 108, 2], ['aldi_fridge', 12, 108, 2], ['aldi_freezer', 16, 108, 2], ['aldi_freezer', 20, 108, 2],
+  // School: classroom desks facing the whiteboard, reading corner, toilets.
+  ['school_desk', 92, 77, 0], ['school_desk', 94, 77, 0], ['school_desk', 96, 77, 0], ['school_desk', 98, 77, 0],
+  ['school_desk', 92, 79, 0], ['school_desk', 94, 79, 0], ['school_desk', 96, 79, 0], ['school_desk', 98, 79, 0],
+  ['whiteboard', 93, 81, 2], ['bookshelf', 99, 73, 3], ['bookshelf', 99, 74, 3], ['armchair', 97, 72, 0],
+  ['toilet', 90, 72, 0], ['bathroom_sink', 91, 72, 0],
+  // School hall: stage, piano, PE mats, a bench.
+  ['school_stage', 105, 81, 2], ['piano', 107, 80, 2], ['gym_mat', 101, 74, 0], ['gym_mat', 104, 74, 0], ['bench', 109, 75, 3],
+  // Playground.
+  ['climbing_frame', 92, 62, 0], ['hopscotch', 99, 63, 0], ['goal', 105, 60, 0], ['bench', 89, 67, 1], ['bench', 110, 66, 3],
+  ['park_bin', 97, 70, 0], ['flower_bed', 101, 70, 0],
 ];
 
 export function createTown(st: GameState): NonNullable<GameState['town']> {
@@ -227,3 +279,7 @@ export function nearestExit(p: Point): Point {
 }
 
 export function cafeOpen(game: Game): boolean { return game.hour >= 7 && game.hour < 19; }
+export function aldiOpen(game: Game): boolean { return game.hour >= 8 && game.hour < 22; }
+/** Lessons: weekdays 9am–3pm, not in the summer holidays. */
+export function schoolOpen(game: Game, season: string): boolean { return game.weekday < 5 && season !== 'summer' && game.hour >= 9 && game.hour < 15; }
+export function eveningClass(game: Game): boolean { return game.weekday < 5 && game.hour >= 18 && game.hour < 21; }

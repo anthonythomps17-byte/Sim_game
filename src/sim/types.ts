@@ -182,6 +182,8 @@ export interface Sim {
   /** 0 (fresh on) to 100 (filthy). */
   clothesDirt?: number;
   phone?: { msgs: PhoneMsg[]; readUpTo: number };
+  /** Shopping picked at Aldi, not paid for yet. */
+  basket?: { food: number; petFood: number; treats: number; cost: number; items: number } | null;
   /** Someone ringing this Sim's phone. */
   call?: { from: number; until: number } | null;
 }

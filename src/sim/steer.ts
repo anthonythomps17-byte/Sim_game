@@ -1,5 +1,6 @@
 // Walking a Sim directly with the joystick (or WASD). The Sim walks where the player points,
 // bumping into walls and furniture, and steps between home and town at the front of the lot.
+import { dropBasket } from './shop';
 import type { Game } from './game';
 import { interrupt } from './actions';
 import { inLot, wallBetween } from './lot';
@@ -82,6 +83,7 @@ function moveBy(game: Game, sim: Sim, dx: number, dz: number): boolean {
 function cross(game: Game, sim: Sim, to: 'home' | 'town', p: { x: number; z: number }): boolean {
   const ok = game.inArea(to, () => open(game, Math.floor(p.x), Math.floor(p.z)));
   if (!ok) return false;
+  if (to === 'home') dropBasket(game, sim);
   sim.location = to === 'town' ? 'town' : 'lot';
   if (to === 'town') { sim.counters.leftHomeAt = game.state.time; sim.counters.tripDay = game.day; if (game.isHousehold(sim)) addMoodlet(sim, 'fresh_air', game.state.time); }
   sim.pos = p;

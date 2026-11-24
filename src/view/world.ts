@@ -20,6 +20,7 @@ import type { Game } from '../sim/game';
 import type { Appearance } from '../sim/types';
 import { dirtStage } from '../sim/clothes';
 import { TOWN_ORIGIN } from '../sim/town';
+import { StreetLife } from './streetLife';
 import { OBJECTS } from '../sim/defs';
 import { moodLabel, moodScore } from '../sim/mood';
 import type { Sim } from '../sim/types';
@@ -65,6 +66,7 @@ export class WorldView {
   private game: Game | null = null;
   /** The park, café and streets. */
   readonly townView: LotView;
+  private street: StreetLife;
   private time = 0;
   quality: Quality = 'medium';
   private lastNight: boolean | null = null;
@@ -113,6 +115,7 @@ export class WorldView {
     this.townView = new LotView(this.scene, this.mats, () => this.shadows, (l) => this.addLamp(l), (l) => this.removeLamp(l), TOWN_ORIGIN);
     const scenery = buildScenery(this.scene, this.mats, 22, 18);
     this.sky = new SkyEffects(this.scene);
+    this.street = new StreetLife(this.scene, this.mats);
     this.scenery = scenery;
     this.streetGlow = scenery.meshes.find((m) => m.metadata?.glowKind === 'street') ?? null;
     for (const p of scenery.lampPositions) {
@@ -194,7 +197,7 @@ export class WorldView {
     this.time += dt;
     this.fps = this.fps * 0.95 + (1 / Math.max(dt, 1e-3)) * 0.05;
     this.cam.update(dt);
-    if (!game) { this.scene.render(); return; }
+    if (!game) { this.street.update(null, dt, 0, this.camera.target); this.scene.render(); return; }
     const st = game.state;
     const night = game.isNight();
     const c = this.camera.position;
@@ -217,6 +220,7 @@ export class WorldView {
     const snowing = cal.season.id === 'winter' && (cal.dayOfSeason % 2 === 1 || isEventToday(game, 'christmas'));
     const fwd = this.camera.target.subtract(this.camera.position).normalize();
     this.sky.update(dt, fireworksActive(game), snowing, this.camera.target, this.camera.position, fwd);
+    this.street.update(game, dt, speed, this.camera.target);
     this.syncSims(game, dt, speed);
     this.syncPets(game, dt, speed);
     this.scene.render();

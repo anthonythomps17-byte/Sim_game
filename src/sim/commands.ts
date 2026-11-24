@@ -122,7 +122,7 @@ function exec(game: Game, cmd: Cmd): CmdResult {
       const sim = simOf(cmd.simId);
       if (!sim) return fail();
       if (!canControl(st, sim)) return fail(`${first(sim.name)} is ${ownerOf(st, sim.id)?.name}'s Sim.`);
-      if (sim.location !== 'lot') return fail(`${sim.name} isn't home right now.`);
+      if (!game.present(sim)) return fail(`${sim.name} isn't around right now.`);
       const uid = enqueue(game, sim, { ...cmd.action, userQueued: true });
       if (uid < 0) return fail('The action queue is full.');
       return { ok: true, sound: 'tap' };

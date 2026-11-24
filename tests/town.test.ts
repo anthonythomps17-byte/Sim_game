@@ -2,7 +2,7 @@
 import { describe, expect, it } from 'vitest';
 import { Game } from '../src/sim/game';
 import { createGame, randomDraft } from '../src/sim/newgame';
-import { enqueue } from '../src/sim/actions';
+import { checkInteraction, enqueue } from '../src/sim/actions';
 import { setSteer } from '../src/sim/steer';
 import { DESTINATIONS, townGate, townHour, townMask, TOWN_W } from '../src/sim/town';
 import { findPath } from '../src/sim/path';
@@ -114,5 +114,56 @@ describe('the town', () => {
     delete old.state.town;
     old.state.sims.find((s: { id: number }) => s.id === sim.id).location = 'lot';
     expect(deserialize(JSON.stringify(old)).town!.objects.length).toBeGreaterThan(10);
+  });
+
+  it('shopping at Aldi: pick from the aisles, pay at the till', () => {
+    const g = newGame();
+    const sim = g.household()[0];
+    refresh(g);
+    const town = g.state.town!.objects;
+    const tins = town.find((o) => o.defId === 'aldi_tins')!;
+    const veg = town.find((o) => o.defId === 'aldi_veg')!;
+    const till = town.find((o) => o.defId === 'aldi_till')!;
+    const food = g.state.household.groceries;
+    const funds = g.state.household.funds;
+    enqueue(g, sim, { kind: 'object', objectId: tins.id, interactionId: 'pick', label: 'Tins', icon: '🥫', userQueued: true });
+    enqueue(g, sim, { kind: 'object', objectId: veg.id, interactionId: 'pick', label: 'Veg', icon: '🥕', userQueued: true });
+    for (let i = 0; i < 300 && (sim.basket?.items ?? 0) < 2; i++) g.tick(1);
+    expect(sim.basket?.items).toBe(2);
+    expect(sim.basket?.cost).toBe(11);
+    enqueue(g, sim, { kind: 'object', objectId: till.id, interactionId: 'pay', label: 'Pay', icon: '💳', userQueued: true });
+    for (let i = 0; i < 60 && sim.basket; i++) g.tick(1);
+    expect(sim.basket).toBeFalsy();
+    expect(g.state.household.funds).toBe(funds - 11);
+    expect(g.state.household.groceries).toBe(food + 14);
+  });
+
+  it('going home with unpaid shopping puts it back', () => {
+    const g = newGame();
+    const sim = g.household()[0];
+    refresh(g);
+    sim.location = 'town';
+    sim.pos = { x: 26.5, z: 100.5 };
+    sim.basket = { food: 8, petFood: 0, treats: 0, cost: 6, items: 1 };
+    const e = g.exitTile();
+    enqueue(g, sim, { kind: 'goto', area: 'home', dest: { x: e.x, z: e.z + 2 }, label: 'Home', icon: '🏠', userQueued: true });
+    for (let i = 0; i < 200 && (sim.location as string) !== 'lot'; i++) g.tick(1);
+    expect(sim.location).toBe('lot');
+    expect(sim.basket).toBeFalsy();
+  });
+
+  it('school lessons build skills on weekdays, but not in the holidays', () => {
+    const g = newGame();
+    const sim = g.household()[0];
+    refresh(g);
+    const desk = g.state.town!.objects.find((o) => o.defId === 'school_desk')!;
+    enqueue(g, sim, { kind: 'object', objectId: desk.id, interactionId: 'maths', label: 'Maths', icon: '➗', userQueued: true });
+    const before = sim.skills.logic;
+    for (let i = 0; i < 300 && !sim.moodlets.some((m) => m.id === 'learned_something'); i++) g.tick(1);
+    expect(sim.skills.logic).toBeGreaterThan(before);
+    // Summer holidays: no lessons.
+    g.state.time = 7 * 1440 + 10 * 60; // summer, Monday 10am
+    sim.location = 'town';
+    expect(checkInteraction(g, sim, desk, OBJECTS.school_desk.interactions[0]).ok).toBe(false);
   });
 });

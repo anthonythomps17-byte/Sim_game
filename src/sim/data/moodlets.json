@@ -531,6 +531,27 @@
    "icon": "🧺",
    "value": 12,
    "duration": 180
+  },
+  {
+   "id": "good_shop",
+   "name": "Done the shopping",
+   "icon": "🛒",
+   "value": 8,
+   "duration": 180
+  },
+  {
+   "id": "bargain_hunt",
+   "name": "Bargain hunting",
+   "icon": "🛍️",
+   "value": 8,
+   "duration": 120
+  },
+  {
+   "id": "learned_something",
+   "name": "Learned something",
+   "icon": "🎓",
+   "value": 10,
+   "duration": 180
   }
  ]
 }

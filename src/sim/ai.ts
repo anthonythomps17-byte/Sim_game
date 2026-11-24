@@ -185,7 +185,8 @@ function townOptions(game: Game, sim: Sim, area: 'home' | 'town', options: Optio
     if (sim.needs.energy < 40 || sim.needs.bladder < 40 || sim.needs.hunger < 35) return;
     const score = effectsUtility(sim, { fun: 30, social: 30 }) * 0.45;
     if (score < 6) return;
-    const where = random(st) < 0.6 ? DESTINATIONS.park : DESTINATIONS.cafe;
+    const r = random(st);
+    const where = r < 0.5 ? DESTINATIONS.park : r < 0.75 ? DESTINATIONS.cafe : DESTINATIONS.school;
     options.push({ action: { kind: 'goto', area: 'town', dest: where.tile, label: `Go to ${where.name}`, icon: where.icon, userQueued: false }, score, label: where.name });
     return;
   }

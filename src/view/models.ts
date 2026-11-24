@@ -146,7 +146,7 @@ const toiletShape = (b: ModelBuilder, color: string) => {
   b.box(0.08, 0.03, 0.04, METAL, 0.12, 0.7, -0.2);
 };
 
-const carShape = (b: ModelBuilder, paint: string) => {
+export const carShape = (b: ModelBuilder, paint: string) => {
   b.box(1.7, 0.55, 3.7, paint, 0, 0.3, 0);
   b.box(1.5, 0.55, 2.0, paint, 0, 0.85, -0.25);
   b.box(1.45, 0.45, 0.04, '#9fc9e0', 0, 0.9, 0.76);
@@ -157,6 +157,18 @@ const carShape = (b: ModelBuilder, paint: string) => {
   for (const sx of [-0.65, 0.65]) b.box(0.28, 0.12, 0.04, '#d33', sx, 0.62, -1.86);
   b.box(1.72, 0.1, 0.12, '#bbb', 0, 0.35, 1.86);
   b.box(1.72, 0.1, 0.12, '#bbb', 0, 0.35, -1.86);
+};
+
+/** A double-sided supermarket shelf unit, stacked with packets in these colours. */
+const shelfUnit = (b: ModelBuilder, w: number, cols: string[]) => {
+  b.box(w - 0.1, 0.15, 0.8, '#5d6670', 0, 0, 0);
+  b.box(w - 0.1, 1.7, 0.08, '#7b8794', 0, 0.15, 0);
+  for (let r = 0; r < 4; r++) {
+    const y = 0.15 + r * 0.42;
+    b.box(w - 0.1, 0.03, 0.8, '#9aa3ad', 0, y, 0);
+    for (let i = 0; i < Math.round(w * 3); i++) for (const z of [-0.22, 0.22]) b.box(0.22, 0.3, 0.2, cols[(i + r + (z > 0 ? 1 : 0)) % cols.length], -(w - 0.4) / 2 + i * ((w - 0.4) / (w * 3 - 1)), y + 0.03, z);
+  }
+  b.box(w - 0.1, 0.25, 0.04, '#2f6bd1', 0, 1.9, 0.0);
 };
 
 export const BUILDERS: Record<string, Builder> = {
@@ -281,6 +293,105 @@ export const BUILDERS: Record<string, Builder> = {
       const x = -1.2 + (i % 9) * 0.3, z = i < 9 ? -0.15 : 0.18;
       b.cyl(0.03, 0.03, 0.25, LEAF, x, 0.3, z, 4);
       b.sphere(0.15, cols[i % cols.length], x, 0.6, z);
+    }
+  },
+  // ---------- Aldi ----------
+  aldi_tins: (b) => shelfUnit(b, 4, ['#c0392b', '#e7a33a', '#3b6fd1', '#e8e2d6', '#2f8f5b']),
+  aldi_snacks: (b) => shelfUnit(b, 4, ['#9b2fae', '#f2c14e', '#e05a7a', '#2f6bd1', '#ff7a59']),
+  aldi_pets: (b) => shelfUnit(b, 4, ['#8b5e3c', '#2fa36b', '#c0392b', '#f2c14e']),
+  aldi_bakery: (b) => {
+    b.box(2.8, 0.9, 0.8, LIGHTWOOD, 0, 0, 0);
+    for (let i = 0; i < 10; i++) b.sphere(0.24, i % 3 ? '#d9a066' : '#b8783a', -1.2 + (i % 5) * 0.6, 0.98, i < 5 ? -0.18 : 0.18, 1.4, 0.7, 1);
+    b.box(2.8, 0.05, 0.6, LIGHTWOOD, 0, 1.45, -0.1);
+    for (let i = 0; i < 8; i++) b.cyl(0.18, 0.2, 0.12, '#f3c6d3', -1.2 + i * 0.34, 1.5, -0.1, 8);
+    for (const x of [-1.35, 1.35]) b.box(0.05, 0.6, 0.05, DARKWOOD, x, 0.9, -0.3);
+  },
+  aldi_veg: (b) => {
+    const cols = ['#e7833a', '#c0392b', '#f2d13e', '#6fbd56', '#8b5e3c', '#7b3f9e'];
+    for (let i = 0; i < 6; i++) {
+      const x = -0.95 + (i % 3) * 0.95, z = i < 3 ? -0.2 : 0.2, y = i < 3 ? 0.75 : 0.6;
+      b.box(0.88, 0.22, 0.38, WOOD, x, y - 0.22, z);
+      for (let k = 0; k < 5; k++) b.sphere(0.14, cols[i], x - 0.3 + k * 0.15, y + 0.02, z + ((k % 2) - 0.5) * 0.12);
+    }
+    b.box(2.8, 0.4, 0.8, '#4a515c', 0, 0, 0);
+  },
+  aldi_fridge: (b) => {
+    b.box(2.9, 2.0, 0.8, '#e9ecef', 0, 0, -0.05);
+    for (let i = 0; i < 3; i++) b.glassPart(b.box(0.92, 1.7, 0.04, '#cfeaf7', -0.95 + i * 0.95, 0.15, 0.36));
+    for (let r = 0; r < 4; r++) for (let i = 0; i < 9; i++) b.box(0.18, 0.28, 0.2, ['#f4f1ea', '#f2c14e', '#3b6fd1', '#c0392b'][(i + r) % 4], -1.25 + i * 0.31, 0.25 + r * 0.42, 0.15);
+    b.glow(b.box(2.8, 0.06, 0.06, '#e8f6ff', 0, 1.9, 0.34), 'screen');
+  },
+  aldi_freezer: (b) => {
+    b.box(2.9, 0.85, 0.9, '#e9ecef', 0, 0, 0);
+    b.glassPart(b.box(2.8, 0.04, 0.8, '#cfeaf7', 0, 0.86, 0));
+    for (let i = 0; i < 12; i++) b.box(0.3, 0.12, 0.25, ['#3b6fd1', '#f2c14e', '#e05a7a', '#2f8f5b'][i % 4], -1.2 + (i % 6) * 0.48, 0.66, i < 6 ? -0.18 : 0.18);
+  },
+  aldi_middle: (b) => {
+    b.box(1.9, 0.7, 1.9, '#2f6bd1', 0, 0, 0);
+    b.box(0.5, 0.9, 0.7, '#f2c14e', -0.4, 0.7, -0.3);
+    b.cyl(0.6, 0.6, 0.25, '#7fc8e8', 0.4, 0.7, 0.35, 14);
+    const kayak = b.box(0.35, 0.2, 1.7, '#ff7a59', 0.35, 1.0, -0.1); kayak.rotation.y = 0.6;
+    b.box(0.3, 0.35, 0.3, '#2d3037', -0.55, 0.7, 0.5);
+    b.box(1.9, 0.5, 0.06, '#f4f1ea', 0, 1.8, -0.9);
+  },
+  aldi_till: (b) => {
+    b.box(1.9, 0.85, 0.7, '#4a515c', 0, 0, 0);
+    b.box(1.6, 0.04, 0.5, '#2d3037', -0.1, 0.85, 0.02);
+    b.box(0.3, 0.3, 0.3, DARK, 0.75, 0.85, -0.1);
+    b.box(0.26, 0.18, 0.04, '#9bd6a8', 0.75, 1.15, -0.05);
+    // The cashier.
+    b.box(0.5, 0.45, 0.3, '#2f4a8c', 0.55, 0.65, -0.55);
+    b.sphere(0.24, '#e8b48f', 0.55, 1.25, -0.55);
+    b.sphere(0.26, '#5a3a24', 0.55, 1.33, -0.58, 1, 0.7, 1);
+    b.box(0.55, 0.06, 0.45, '#2d3037', 0.55, 0.62, -0.55);
+  },
+  trolley_bay: (b) => {
+    for (let i = 0; i < 4; i++) {
+      const x = -0.6 + i * 0.4;
+      b.box(0.5, 0.04, 0.8, METAL, x, 0.45, 0);
+      for (const z of [-0.38, 0.38]) b.box(0.02, 0.5, 0.02, METAL, x, 0.45, z);
+      b.box(0.5, 0.02, 0.02, METAL, x, 0.95, 0.38);
+      b.box(0.04, 0.06, 0.12, '#2f6bd1', x, 0.95, 0.42);
+    }
+  },
+  // ---------- School ----------
+  school_desk: (b) => {
+    b.box(0.85, 0.05, 0.55, LIGHTWOOD, 0, 0.62, 0.1);
+    b.legs(0.8, 0.5, 0.62, METAL, 0.04, 0.04);
+    b.box(0.4, 0.04, 0.38, '#3b6fd1', 0, 0.4, -0.45);
+    b.legs(0.38, 0.36, 0.4, METAL, 0.03, 0.03);
+    b.box(0.4, 0.35, 0.04, '#3b6fd1', 0, 0.42, -0.63);
+    b.box(0.3, 0.02, 0.22, WHITE, 0.15, 0.67, 0.1);
+  },
+  whiteboard: (b) => {
+    b.box(2.6, 1.2, 0.05, WHITE, 0, 0.9, -0.4);
+    b.box(2.7, 0.06, 0.12, METAL, 0, 0.88, -0.35);
+    for (let i = 0; i < 4; i++) b.box(1.4 - i * 0.25, 0.03, 0.01, ['#2f6bd1', '#c0392b', '#2f8f5b', '#2d3037'][i], -0.4, 1.8 - i * 0.2, -0.37);
+    b.cyl(0.3, 0.3, 0.02, '#f2c14e', 0.8, 1.45, -0.37, 10).rotation.x = Math.PI / 2;
+  },
+  school_stage: (b) => {
+    b.box(3.9, 0.5, 0.95, '#6b4529', 0, 0, 0);
+    b.box(3.9, 2.4, 0.08, '#9b2f3a', 0, 0.5, -0.45);
+    for (const x of [-1.9, 1.9]) b.box(0.3, 2.4, 0.4, '#9b2f3a', x, 0.5, -0.25);
+  },
+  gym_mat: (b) => {
+    b.box(1.8, 0.08, 1.8, '#2f6bd1', 0, 0, 0);
+    b.box(1.8, 0.01, 0.06, '#f4f1ea', 0, 0.08, 0);
+  },
+  climbing_frame: (b) => {
+    const red = '#c0392b', yellow = '#f2c14e', green = '#2f8f5b';
+    for (const x of [-1.3, 1.3]) for (const z of [-1.3, 1.3]) b.cyl(0.1, 0.1, 2.2, green, x, 0, z, 8);
+    b.box(1.3, 0.08, 1.3, yellow, -0.65, 1.2, -0.65);
+    for (let i = 0; i < 6; i++) { const bar = b.cyl(0.05, 0.05, 2.6, red, -1.3 + i * 0.52, 2.15, 0, 6); bar.rotation.x = Math.PI / 2; }
+    for (let i = 0; i < 4; i++) b.box(0.6, 0.05, 0.05, yellow, 0.95, 0.3 + i * 0.3, 1.3);
+    b.cyl(0.05, 0.05, 2.2, METAL, 1.6, 0, -1.3, 6);
+    b.box(3.2, 0.03, 3.2, '#8a6a4a', 0, 0, 0);
+  },
+  hopscotch: (b) => {
+    const cols = ['#f2c14e', '#e05a7a', '#3b6fd1', '#2f8f5b'];
+    for (let i = 0; i < 4; i++) {
+      if (i % 2) for (const x of [-0.22, 0.22]) b.box(0.4, 0.012, 0.85, cols[i], x, 0.005, -1.5 + i * 1);
+      else b.box(0.6, 0.012, 0.85, cols[i], 0, 0.005, -1.5 + i * 1);
     }
   },
   pet_poo: (b, _d, obj) => {
@@ -759,6 +870,19 @@ export const BUILDERS: Record<string, Builder> = {
 };
 
 /** Build a merged mesh for an object. */
+/** One merged mesh from a builder function (street life: cars, bikes). */
+export function buildShape(scene: Scene, mats: Materials, fn: (b: ModelBuilder) => void, name: string): Mesh {
+  const b = new ModelBuilder(scene);
+  fn(b);
+  for (const g of b.glows) b.parts.push(g.mesh);
+  for (const g of b.glass) b.parts.push(g);
+  const root = b.parts.length > 1 ? Mesh.MergeMeshes(b.parts, true, true)! : b.parts[0];
+  root.name = name;
+  root.material = mats.vertexColor;
+  root.isPickable = false;
+  return root;
+}
+
 export function buildModel(scene: Scene, mats: Materials, def: ObjectDef, obj: PlacedObject | null, name: string): BuiltModel {
   const b = new ModelBuilder(scene);
   const fn = BUILDERS[def.id];

@@ -15,7 +15,8 @@ import { binsOverflowing, binWindow, homeSpecial, noHotWater, selfSpecial } from
 import { applyPetAction, petCondition, petObjectSpecial, pooAt, speciesOf } from './pets';
 import { addClothesDirt, changeClothes, cleanClothes, dirtOf } from './clothes';
 import { callDone, textDone } from './phone';
-import { cafeOpen, nearestExit, townGate } from './town';
+import { aldiOpen, cafeOpen, eveningClass, nearestExit, schoolOpen, townGate } from './town';
+import { checkout, dropBasket, middleAisle, pickItem } from './shop';
 import type { Area } from './game';
 import type { NeedId, PlacedObject, Point, QueuedAction, RunningAction, Sim, SkillId } from './types';
 
@@ -123,6 +124,14 @@ export function checkInteraction(game: Game, sim: Sim, obj: PlacedObject, inter:
       break;
     case 'dryWashing': if (!obj.load || obj.growth < 100) return { ok: false, hidden: true }; break;
     case 'cafeOpen': if (!cafeOpen(game)) return { ok: false, reason: 'The café is open 7am–7pm' }; break;
+    case 'aldiOpen': if (!aldiOpen(game)) return { ok: false, reason: 'Aldi is open 8am–10pm' }; if (visitor) return { ok: false, hidden: true }; break;
+    case 'hasBasket':
+      if (!aldiOpen(game)) return { ok: false, reason: 'Aldi is open 8am–10pm' };
+      if (!sim.basket?.items) return { ok: false, reason: 'Pick some shopping from the aisles first' };
+      if (game.state.household.funds < sim.basket.cost) return { ok: false, reason: `The shopping comes to £${sim.basket.cost}` };
+      break;
+    case 'schoolOpen': if (!schoolOpen(game, calendarOf(game.day).season.id)) return { ok: false, reason: calendarOf(game.day).season.id === 'summer' ? "It's the summer holidays!" : 'Lessons are weekdays 9am–3pm' }; break;
+    case 'eveningClass': if (!eveningClass(game)) return { ok: false, reason: 'Evening classes are weekdays 6–9pm' }; break;
     case 'iceCream': {
       const season = calendarOf(game.day).season.id;
       if (season === 'winter') return { ok: false, reason: 'No ice creams in winter! Come back in spring' };
@@ -515,6 +524,7 @@ function crossOver(game: Game, sim: Sim, cur: RunningAction): void {
   releaseReservation(game, sim);
   sim.current = null;
   sim.anim = 'idle';
+  if (to === 'home') dropBasket(game, sim);
   if (to === 'town') {
     const g = townGate(game);
     sim.counters.leftHomeAt = game.state.time;
@@ -718,7 +728,10 @@ function completeInteraction(game: Game, sim: Sim, obj: PlacedObject, inter: Int
     game.sound('cash');
   }
   if (inter.special && (homeSpecial(game, sim, obj, inter.special) || petObjectSpecial(game, obj, inter.special))) { /* handled */ }
+  else if (inter.special?.startsWith('pick:')) pickItem(game, sim, inter.special.slice(5));
   else switch (inter.special) {
+    case 'checkout': checkout(game, sim); break;
+    case 'middleAisle': middleAisle(game, sim); break;
     case 'plant': obj.growth = 1; break;
     case 'tend': {
       let bonus = 12 + levelOf(sim, 'gardening') * 2;

@@ -14,7 +14,7 @@ import { Color3 } from '@babylonjs/core/Maths/math.color';
 import '@babylonjs/core/Meshes/thinInstanceMesh';
 import { ModelBuilder } from './models';
 import type { Materials } from './materials';
-import { CAFE, PARK, parkTrees, streets } from '../sim/town';
+import { ALDI, CAFE, PARK, parkTrees, SCHOOL, SCHOOL_GROUNDS, streets } from '../sim/town';
 
 const BRICKS = ['#a14b35', '#9a4431', '#ad5640', '#8f3f2d', '#b05a43', '#c0b6a4'];
 const DOORS = ['#2f5d50', '#3b4ba8', '#7a2b2b', '#2d3037', '#c9a227', '#5c3a6e'];
@@ -186,11 +186,15 @@ export function buildScenery(scene: Scene, mats: Materials, lotW: number, lotD: 
   const pathPts: P[] = [[16, -40], [0, -55], [-20, -60], [-35, -80], [-30, -100], [-10, -108], [5, -95], [0, -75], [-20, -60]];
   for (let i = 0; i < pathPts.length - 1; i++) segment(flat, pathPts[i], pathPts[i + 1], 2.2, '#d8c9a3', 0.03);
   segment(flat, [-62, -45], [-35, -80], 2.2, '#d8c9a3', 0.03);
-  const school = { x0: 58, x1: 96, z0: 70, z1: 112 };
-  flat.box(school.x1 - school.x0, 0.02, school.z1 - school.z0, '#8cc066', (school.x0 + school.x1) / 2, 0.005, (school.z0 + school.z1) / 2);
-  flat.box(16, 0.03, 18, '#9a9a96', 66, 0.01, 92);
-  for (let i = 0; i < 4; i++) flat.box(0.2, 0.035, 3, '#f2c14e', 62 + i * 2.5, 0.012, 88);
-  occ.rect((school.x0 + school.x1) / 2, (school.z0 + school.z1) / 2, (school.x1 - school.x0) / 2, (school.z1 - school.z0) / 2, 0, true);
+  // Hillcrest Primary, opposite the park: tarmac playground behind, paved yard in front.
+  const school = SCHOOL_GROUNDS;
+  flat.box(school.x1 - school.x0, 0.02, SCHOOL.z0 - school.z0, '#8f9196', (school.x0 + school.x1) / 2, 0.006, (school.z0 + SCHOOL.z0) / 2);
+  flat.box(school.x1 - school.x0, 0.02, school.z1 - SCHOOL.z1, '#c8c2b6', (school.x0 + school.x1) / 2, 0.006, (SCHOOL.z1 + school.z1) / 2);
+  for (let i = 0; i < 5; i++) flat.box(0.15, 0.03, 4, '#f2c14e', 30 + i * 2.2, 0.012, -56);
+  flat.box(6, 0.03, 0.15, '#f4f1ea', 40, 0.012, -54);
+  occ.rect((school.x0 + school.x1) / 2, (school.z0 + school.z1) / 2, (school.x1 - school.x0) / 2 + 1.5, (school.z1 - school.z0) / 2 + 1, 0, true);
+  // Aldi, beside the café on Maple Avenue.
+  occ.rect((ALDI.x0 + ALDI.x1) / 2, (ALDI.z0 + ALDI.z1) / 2, (ALDI.x1 - ALDI.x0) / 2 + 2, (ALDI.z1 - ALDI.z0) / 2 + 2, 0, true);
   // Corner shops.
   occ.rect(-51, -44, 11, 4, 0, true);
 
@@ -251,13 +255,15 @@ export function buildScenery(scene: Scene, mats: Materials, lotW: number, lotD: 
 
   // ---------- Landmarks ----------
   const b = new ModelBuilder(scene);
-  // Primary school.
-  b.box(28, 6, 12, '#b5654a', 82, 0, 100);
-  b.box(28.4, 0.4, 12.4, '#6e3526', 82, 6, 100);
-  for (let i = 0; i < 9; i++) b.box(2, 2, 0.1, '#bfe2f2', 70.5 + i * 3, 2.2, 93.95);
-  b.box(2, 2.6, 0.1, '#1f4e8c', 82, 0, 93.95);
-  for (let i = 0; i < 18; i++) b.box(0.08, 1.4, 0.08, '#2d6b3a', school.x0 + 1 + i * 2, 0, school.z0 + 0.3);
-  b.box(36, 0.1, 0.08, '#2d6b3a', 77, 1.35, school.z0 + 0.3);
+  // School railings round the playground (the building itself is part of the town).
+  const rail = (x0: number, z0: number, x1: number, z1: number) => {
+    const len = Math.hypot(x1 - x0, z1 - z0);
+    for (let t = 0; t <= len; t += 0.6) b.box(0.06, 1.3, 0.06, '#2d6b3a', x0 + ((x1 - x0) * t) / len, 0, z0 + ((z1 - z0) * t) / len);
+    b.box(x1 === x0 ? 0.08 : len, 0.08, z1 === z0 ? 0.08 : len, '#2d6b3a', (x0 + x1) / 2, 1.25, (z0 + z1) / 2);
+  };
+  rail(school.x0, school.z0, school.x1, school.z0);
+  rail(school.x0, school.z0, school.x0, SCHOOL.z0);
+  rail(school.x1, school.z0, school.x1, SCHOOL.z0);
   // A little parade of shops.
   ([['#2f6b8c'], ['#c0392b'], ['#2f5d50']] as const).forEach(([col], i) => {
     const x = -44 - i * 7, z = -44;
@@ -323,7 +329,8 @@ export function buildScenery(scene: Scene, mats: Materials, lotW: number, lotD: 
   meshes.push(lampMesh);
   for (const st of plan) if (st.sign && st.name) addSign(scene, mats, st.name, st.sign[0], st.sign[1], -Math.PI / 2, meshes);
   addSign(scene, mats, 'Ashton-in-Makerfield', -6, -1.0, 0, meshes, 3);
-  addSign(scene, mats, 'Hillcrest Primary School', 70, 69, 0, meshes, 3.6, true);
+  addSign(scene, mats, 'Hillcrest Primary School', (SCHOOL.x0 + SCHOOL.x1) / 2, SCHOOL_GROUNDS.z1 - 0.3, Math.PI, meshes, 3.6, true);
+  addSign(scene, mats, 'ALDI', ALDI.x1 - 6, ALDI.z0 - 0.15, Math.PI, meshes, 3);
   addSign(scene, mats, 'Town Green Park', 17, -40, -Math.PI / 2, meshes, 3);
   addSign(scene, mats, 'Town Green Café', CAFE.x1 + 0.15, (CAFE.z0 + CAFE.z1) / 2 - 2.6, Math.PI / 2, meshes, 2.8);
   return { ground, lotGround, trees, lampPositions: lamps, meshes };

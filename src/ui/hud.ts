@@ -261,11 +261,14 @@ export class Hud {
   private renderNeeds(el: HTMLElement, sim: Sim) {
     const now = this.app.game!.state.time;
     const dirt = sim.clothesDirt ?? 0;
-    const sig = NEED_IDS.map((n) => Math.round(sim.needs[n] / 2)).join(',') + '|' + sim.moodlets.map((m) => m.id).join(',') + '|' + Math.round(dirt / 5);
+    const sig = NEED_IDS.map((n) => Math.round(sim.needs[n] / 2)).join(',') + '|' + sim.moodlets.map((m) => m.id).join(',') + '|' + Math.round(dirt / 5) + '|' + (sim.basket?.cost ?? 0);
     if (!this.changed('content', sig)) return;
     clear(el);
     el.append(h('div', { class: 'needs' }, ...NEED_IDS.map((n) =>
       h('div', { class: 'need' }, h('span', { class: 'ic' }, NEEDS[n].icon), h('span', { class: 'lbl' }, NEEDS[n].name), bar(sim.needs[n])))));
+    if (sim.basket?.items) {
+      el.append(h('div', { class: 'chip', style: 'margin-top:6px' }, `🛒 Basket: ${sim.basket.items} item${sim.basket.items === 1 ? '' : 's'}, ${money(sim.basket.cost)}. Pay at the till!`));
+    }
     if (this.app.game!.isHousehold(sim)) {
       const c = clothesLabel(dirt);
       el.append(h('div', { class: 'need clothes-need' }, h('span', { class: 'ic' }, '👕'), h('span', { class: 'lbl' }, `Clothes: ${c.label}`),

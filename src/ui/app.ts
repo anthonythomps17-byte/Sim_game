@@ -16,7 +16,7 @@ import { OnlineUi } from './online';
 import { PhoneUi } from './phone';
 import { WalkMode } from './walk';
 import { randomCode } from '../net/relay';
-import { DESTINATIONS, TOWN_D, TOWN_ORIGIN, TOWN_W, townMask } from '../sim/town';
+import { DEST_SHORT, DESTINATIONS, TOWN_D, TOWN_ORIGIN, TOWN_W, townMask } from '../sim/town';
 import type { GameEvent, GameState, QueuedAction, Sim } from '../sim/types';
 import { WorldView } from '../view/world';
 import { CasView } from '../view/casView';
@@ -595,7 +595,8 @@ export class App {
       if (avail.hidden) continue;
       const resident = occupant(game, obj);
       const name = resident ? petLabel(inter.name, resident) : inter.name;
-      const fee = inter.special === 'plumber' ? 120 : inter.special === 'engineer' ? 250 : inter.special === 'service' ? 60 : 0;
+      const fee = inter.special === 'plumber' ? 120 : inter.special === 'engineer' ? 250 : inter.special === 'service' ? 60
+        : inter.special === 'checkout' ? sim.basket?.cost ?? 0 : inter.price ?? 0;
       options.push({
         icon: inter.icon, label: name, disabled: !avail.ok, why: avail.reason,
         onPick: () => {
@@ -630,7 +631,7 @@ export class App {
       options.push({ icon: '📱', label: 'Phone', onPick: () => this.phone.open(sel) });
       if (game.state.town) {
         for (const d of Object.values(DESTINATIONS)) {
-          options.push({ icon: d.icon, label: `Go to ${d.id === 'park' ? 'the park' : 'the café'}`, onPick: () => this.queue(sel, { kind: 'goto', area: 'town', dest: d.tile, label: `Go to ${d.name}`, icon: d.icon, userQueued: true }) });
+          options.push({ icon: d.icon, label: `Go to ${DEST_SHORT[d.id] ?? d.name}`, onPick: () => this.queue(sel, { kind: 'goto', area: 'town', dest: d.tile, label: `Go to ${d.name}`, icon: d.icon, userQueued: true }) });
         }
         if (out) {
           const e = game.exitTile();

@@ -4664,6 +4664,822 @@
    "description": "Planted by the Friends of Town Green.",
    "spots": [],
    "interactions": []
+  },
+  {
+   "id": "aldi_tins",
+   "name": "Tins & Pasta Aisle",
+   "category": "town",
+   "price": 0,
+   "footprint": [
+    4,
+    1
+   ],
+   "decor": 1,
+   "description": "Beans, soup, pasta and rice. The basics.",
+   "spots": [
+    {
+     "at": [
+      1,
+      1
+     ]
+    },
+    {
+     "at": [
+      2,
+      -1
+     ]
+    }
+   ],
+   "interactions": [
+    {
+     "id": "pick",
+     "name": "Pick tins and pasta (£6, +8 food)",
+     "icon": "🥫",
+     "duration": 6,
+     "anim": "use",
+     "condition": "aldiOpen",
+     "special": "pick:tins",
+     "auto": false,
+     "poseless": true,
+     "effects": {
+      "fun": 2
+     }
+    },
+    {
+     "id": "browse",
+     "name": "Browse",
+     "icon": "👀",
+     "duration": 12,
+     "anim": "idle",
+     "visitor": true,
+     "effects": {
+      "fun": 5
+     },
+     "poseless": true
+    }
+   ]
+  },
+  {
+   "id": "aldi_snacks",
+   "name": "Snacks & Sweets Aisle",
+   "category": "town",
+   "price": 0,
+   "footprint": [
+    4,
+    1
+   ],
+   "decor": 1,
+   "description": "Crisps, chocolate and fizzy pop.",
+   "spots": [
+    {
+     "at": [
+      1,
+      1
+     ]
+    },
+    {
+     "at": [
+      2,
+      -1
+     ]
+    }
+   ],
+   "interactions": [
+    {
+     "id": "pick",
+     "name": "Pick snacks and sweets (£3, +3 food)",
+     "icon": "🍫",
+     "duration": 6,
+     "anim": "use",
+     "condition": "aldiOpen",
+     "special": "pick:snacks",
+     "auto": false,
+     "poseless": true,
+     "effects": {
+      "fun": 2
+     }
+    },
+    {
+     "id": "browse",
+     "name": "Browse",
+     "icon": "👀",
+     "duration": 12,
+     "anim": "idle",
+     "visitor": true,
+     "effects": {
+      "fun": 5
+     },
+     "poseless": true
+    }
+   ]
+  },
+  {
+   "id": "aldi_bakery",
+   "name": "Bakery",
+   "category": "town",
+   "price": 0,
+   "footprint": [
+    3,
+    1
+   ],
+   "decor": 1,
+   "description": "Fresh bread, crumpets and iced buns.",
+   "spots": [
+    {
+     "at": [
+      1,
+      1
+     ]
+    },
+    {
+     "at": [
+      1,
+      -1
+     ]
+    }
+   ],
+   "interactions": [
+    {
+     "id": "pick",
+     "name": "Pick bread and cakes (£4, +4 food)",
+     "icon": "🥖",
+     "duration": 6,
+     "anim": "use",
+     "condition": "aldiOpen",
+     "special": "pick:bakery",
+     "auto": false,
+     "poseless": true,
+     "effects": {
+      "fun": 2
+     }
+    },
+    {
+     "id": "browse",
+     "name": "Browse",
+     "icon": "👀",
+     "duration": 12,
+     "anim": "idle",
+     "visitor": true,
+     "effects": {
+      "fun": 5
+     },
+     "poseless": true
+    }
+   ]
+  },
+  {
+   "id": "aldi_veg",
+   "name": "Fruit & Veg",
+   "category": "town",
+   "price": 0,
+   "footprint": [
+    3,
+    1
+   ],
+   "decor": 1,
+   "description": "Crates of apples, carrots, potatoes and bananas.",
+   "spots": [
+    {
+     "at": [
+      1,
+      1
+     ]
+    },
+    {
+     "at": [
+      1,
+      -1
+     ]
+    }
+   ],
+   "interactions": [
+    {
+     "id": "pick",
+     "name": "Pick fruit and veg (£5, +6 food)",
+     "icon": "🥕",
+     "duration": 6,
+     "anim": "use",
+     "condition": "aldiOpen",
+     "special": "pick:veg",
+     "auto": false,
+     "poseless": true,
+     "effects": {
+      "fun": 2
+     }
+    },
+    {
+     "id": "browse",
+     "name": "Browse",
+     "icon": "👀",
+     "duration": 12,
+     "anim": "idle",
+     "visitor": true,
+     "effects": {
+      "fun": 5
+     },
+     "poseless": true
+    }
+   ]
+  },
+  {
+   "id": "aldi_fridge",
+   "name": "Fridges",
+   "category": "town",
+   "price": 0,
+   "footprint": [
+    3,
+    1
+   ],
+   "decor": 1,
+   "description": "Milk, cheese, yoghurts and meat.",
+   "spots": [
+    {
+     "at": [
+      1,
+      1
+     ]
+    },
+    {
+     "at": [
+      0,
+      1
+     ]
+    },
+    {
+     "at": [
+      2,
+      1
+     ]
+    }
+   ],
+   "interactions": [
+    {
+     "id": "pick",
+     "name": "Pick milk, cheese and meat (£9, +8 food)",
+     "icon": "🧀",
+     "duration": 6,
+     "anim": "use",
+     "condition": "aldiOpen",
+     "special": "pick:fridge",
+     "auto": false,
+     "poseless": true,
+     "effects": {
+      "fun": 2
+     }
+    },
+    {
+     "id": "browse",
+     "name": "Browse",
+     "icon": "👀",
+     "duration": 12,
+     "anim": "idle",
+     "visitor": true,
+     "effects": {
+      "fun": 5
+     },
+     "poseless": true
+    }
+   ]
+  },
+  {
+   "id": "aldi_freezer",
+   "name": "Freezers",
+   "category": "town",
+   "price": 0,
+   "footprint": [
+    3,
+    1
+   ],
+   "decor": 1,
+   "description": "Fish fingers, pizza, peas and ice lollies.",
+   "spots": [
+    {
+     "at": [
+      1,
+      1
+     ]
+    },
+    {
+     "at": [
+      0,
+      1
+     ]
+    },
+    {
+     "at": [
+      2,
+      1
+     ]
+    }
+   ],
+   "interactions": [
+    {
+     "id": "pick",
+     "name": "Pick frozen food (£7, +8 food)",
+     "icon": "🧊",
+     "duration": 6,
+     "anim": "use",
+     "condition": "aldiOpen",
+     "special": "pick:freezer",
+     "auto": false,
+     "poseless": true,
+     "effects": {
+      "fun": 2
+     }
+    },
+    {
+     "id": "browse",
+     "name": "Browse",
+     "icon": "👀",
+     "duration": 12,
+     "anim": "idle",
+     "visitor": true,
+     "effects": {
+      "fun": 5
+     },
+     "poseless": true
+    }
+   ]
+  },
+  {
+   "id": "aldi_pets",
+   "name": "Pet Aisle",
+   "category": "town",
+   "price": 0,
+   "footprint": [
+    4,
+    1
+   ],
+   "decor": 1,
+   "description": "Dog food, cat food, hamster mix and treats.",
+   "spots": [
+    {
+     "at": [
+      1,
+      1
+     ]
+    },
+    {
+     "at": [
+      2,
+      -1
+     ]
+    }
+   ],
+   "interactions": [
+    {
+     "id": "pick",
+     "name": "Pick pet food and treats (£8)",
+     "icon": "🦴",
+     "duration": 6,
+     "anim": "use",
+     "condition": "aldiOpen",
+     "special": "pick:pets",
+     "auto": false,
+     "poseless": true,
+     "effects": {
+      "fun": 2
+     }
+    },
+    {
+     "id": "browse",
+     "name": "Browse",
+     "icon": "👀",
+     "duration": 12,
+     "anim": "idle",
+     "visitor": true,
+     "effects": {
+      "fun": 5
+     },
+     "poseless": true
+    }
+   ]
+  },
+  {
+   "id": "aldi_middle",
+   "name": "The Middle Aisle",
+   "category": "town",
+   "price": 0,
+   "footprint": [
+    2,
+    2
+   ],
+   "decor": 2,
+   "description": "Anything could be in here. Kayaks? Drills? Onesies?",
+   "spots": [
+    {
+     "at": [
+      0,
+      2
+     ]
+    },
+    {
+     "at": [
+      1,
+      -1
+     ]
+    },
+    {
+     "at": [
+      -1,
+      0
+     ]
+    },
+    {
+     "at": [
+      2,
+      1
+     ]
+    }
+   ],
+   "interactions": [
+    {
+     "id": "rummage",
+     "name": "Rummage in the middle aisle",
+     "icon": "🛍️",
+     "duration": 20,
+     "anim": "use",
+     "condition": "aldiOpen",
+     "special": "middleAisle",
+     "effects": {
+      "fun": 15
+     },
+     "visitor": true,
+     "poseless": true
+    }
+   ]
+  },
+  {
+   "id": "aldi_till",
+   "name": "Checkout",
+   "category": "town",
+   "price": 0,
+   "footprint": [
+    2,
+    1
+   ],
+   "decor": 1,
+   "description": "Pay for your shopping here. Quick, they scan fast!",
+   "spots": [
+    {
+     "at": [
+      0,
+      1
+     ]
+    },
+    {
+     "at": [
+      1,
+      1
+     ]
+    }
+   ],
+   "interactions": [
+    {
+     "id": "pay",
+     "name": "Pay at the till",
+     "icon": "💳",
+     "duration": 8,
+     "anim": "talk",
+     "condition": "hasBasket",
+     "special": "checkout",
+     "effects": {
+      "social": 5
+     },
+     "auto": false,
+     "poseless": true
+    }
+   ]
+  },
+  {
+   "id": "trolley_bay",
+   "name": "Trolleys",
+   "category": "town",
+   "price": 0,
+   "footprint": [
+    2,
+    1
+   ],
+   "decor": 0,
+   "description": "Don't forget your £1 coin!",
+   "spots": [],
+   "interactions": []
+  },
+  {
+   "id": "school_desk",
+   "name": "School Desk",
+   "category": "town",
+   "price": 0,
+   "footprint": [
+    1,
+    1
+   ],
+   "decor": 1,
+   "seatHeight": 0.42,
+   "description": "Lessons on weekdays, evening classes after school.",
+   "spots": [
+    {
+     "at": [
+      0,
+      -1
+     ],
+     "pose": [
+      0.5,
+      -0.2
+     ],
+     "face": "out"
+    }
+   ],
+   "interactions": [
+    {
+     "id": "maths",
+     "name": "Maths lesson",
+     "icon": "➗",
+     "duration": 45,
+     "anim": "read",
+     "seated": true,
+     "condition": "schoolOpen",
+     "skill": "logic",
+     "skillRate": 55,
+     "visitor": true,
+     "effects": {
+      "social": 10,
+      "fun": 5
+     },
+     "tags": [
+      "school"
+     ],
+     "moodlet": "learned_something"
+    },
+    {
+     "id": "art",
+     "name": "Art lesson",
+     "icon": "🎨",
+     "duration": 45,
+     "anim": "paint",
+     "seated": true,
+     "condition": "schoolOpen",
+     "skill": "creativity",
+     "skillRate": 55,
+     "visitor": true,
+     "effects": {
+      "social": 10,
+      "fun": 15
+     },
+     "tags": [
+      "school"
+     ],
+     "moodlet": "learned_something"
+    },
+    {
+     "id": "cook",
+     "name": "Cookery lesson",
+     "icon": "🧁",
+     "duration": 45,
+     "anim": "read",
+     "seated": true,
+     "condition": "schoolOpen",
+     "skill": "cooking",
+     "skillRate": 50,
+     "visitor": true,
+     "effects": {
+      "social": 10,
+      "fun": 10
+     },
+     "tags": [
+      "school"
+     ],
+     "moodlet": "learned_something"
+    },
+    {
+     "id": "evening",
+     "name": "Evening class (£10)",
+     "icon": "🌙",
+     "duration": 60,
+     "anim": "read",
+     "seated": true,
+     "condition": "eveningClass",
+     "price": 10,
+     "skill": "charisma",
+     "skillRate": 60,
+     "visitor": true,
+     "effects": {
+      "social": 20,
+      "fun": 10
+     },
+     "tags": [
+      "school"
+     ],
+     "moodlet": "learned_something"
+    }
+   ]
+  },
+  {
+   "id": "whiteboard",
+   "name": "Whiteboard",
+   "category": "town",
+   "price": 0,
+   "footprint": [
+    3,
+    1
+   ],
+   "decor": 1,
+   "description": "Today: fractions. Tomorrow: volcanoes!",
+   "spots": [],
+   "interactions": []
+  },
+  {
+   "id": "school_stage",
+   "name": "School Stage",
+   "category": "town",
+   "price": 0,
+   "footprint": [
+    4,
+    1
+   ],
+   "decor": 2,
+   "description": "Nativity plays, assemblies and talent shows.",
+   "spots": [
+    {
+     "at": [
+      1,
+      -1
+     ]
+    },
+    {
+     "at": [
+      2,
+      -1
+     ]
+    }
+   ],
+   "interactions": [
+    {
+     "id": "perform",
+     "name": "Practise a show",
+     "icon": "🎭",
+     "duration": 40,
+     "anim": "dance",
+     "skill": "charisma",
+     "skillRate": 40,
+     "visitor": true,
+     "effects": {
+      "fun": 25,
+      "social": 10
+     },
+     "tags": [
+      "school",
+      "loud"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "gym_mat",
+   "name": "PE Mats",
+   "category": "town",
+   "price": 0,
+   "footprint": [
+    2,
+    2
+   ],
+   "decor": 0,
+   "description": "Forward rolls and star jumps.",
+   "spots": [
+    {
+     "at": [
+      0,
+      2
+     ]
+    },
+    {
+     "at": [
+      1,
+      -1
+     ]
+    }
+   ],
+   "interactions": [
+    {
+     "id": "pe",
+     "name": "Do PE",
+     "icon": "🤸",
+     "duration": 40,
+     "anim": "workout",
+     "condition": "schoolOpen",
+     "skill": "fitness",
+     "skillRate": 50,
+     "visitor": true,
+     "effects": {
+      "fun": 20,
+      "energy": -10,
+      "hygiene": -10
+     },
+     "tags": [
+      "fitness",
+      "school"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "climbing_frame",
+   "name": "Climbing Frame",
+   "category": "town",
+   "price": 0,
+   "footprint": [
+    3,
+    3
+   ],
+   "decor": 2,
+   "description": "Monkey bars, a fireman's pole and a lookout.",
+   "spots": [
+    {
+     "at": [
+      1,
+      3
+     ]
+    },
+    {
+     "at": [
+      -1,
+      1
+     ]
+    },
+    {
+     "at": [
+      3,
+      1
+     ]
+    }
+   ],
+   "interactions": [
+    {
+     "id": "climb",
+     "name": "Play on the climbing frame",
+     "icon": "🧗",
+     "duration": 30,
+     "anim": "cheer",
+     "skill": "fitness",
+     "skillRate": 30,
+     "visitor": true,
+     "effects": {
+      "fun": 35,
+      "energy": -6
+     },
+     "tags": [
+      "outdoors",
+      "play",
+      "fitness"
+     ],
+     "moodlet": "playground_fun"
+    }
+   ]
+  },
+  {
+   "id": "hopscotch",
+   "name": "Hopscotch",
+   "category": "town",
+   "price": 0,
+   "footprint": [
+    1,
+    4
+   ],
+   "decor": 1,
+   "walkable": true,
+   "description": "Hop, skip and jump!",
+   "spots": [
+    {
+     "at": [
+      0,
+      4
+     ]
+    },
+    {
+     "at": [
+      0,
+      -1
+     ]
+    }
+   ],
+   "interactions": [
+    {
+     "id": "hop",
+     "name": "Play hopscotch",
+     "icon": "🦘",
+     "duration": 20,
+     "anim": "cheer",
+     "visitor": true,
+     "effects": {
+      "fun": 25
+     },
+     "tags": [
+      "outdoors",
+      "play"
+     ],
+     "moodlet": "playground_fun"
+    }
+   ]
   }
  ]
 }

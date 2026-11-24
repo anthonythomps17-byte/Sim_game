@@ -31,7 +31,7 @@ export interface InteractionDef {
   condition?: 'dirty' | 'grown' | 'growing' | 'empty' | 'bills' | 'lightOn' | 'lightOff' | 'night'
     | 'once' | 'uncarved' | 'carved' | 'nightOnce' | 'canDrive'
     | 'notWinter' | 'broken' | 'working' | 'netflix' | 'sky' | 'binsIn' | 'binsBack' | 'overflowing'
-    | 'laundry' | 'wetWashing' | 'canHang' | 'dryWashing' | 'dirtyClothes' | 'hasTreats' | 'cafeOpen' | 'iceCream'
+    | 'laundry' | 'wetWashing' | 'canHang' | 'dryWashing' | 'dirtyClothes' | 'hasTreats' | 'cafeOpen' | 'iceCream' | 'aldiOpen' | 'hasBasket' | 'schoolOpen' | 'eveningClass'
     | 'hasPet' | 'petHungry' | 'cageDirty' | 'bowlLow';
   /** Groceries used from the household's food supply. */
   food?: number;
