@@ -1,5 +1,6 @@
 // Everyday life systems: the calendar and holidays, food shopping, driving, parties and noise,
 // and how fast the clock runs by day and by night.
+import { agesHour, schoolDayDone } from './ages';
 import { townHour } from './town';
 import { addClothesDirt, clothesHour } from './clothes';
 import { phoneHour } from './phone';
@@ -178,6 +179,7 @@ export function onHour(game: Game, hour: number): void {
   clothesHour(game, hour);
   phoneHour(game, hour);
   townHour(game, hour);
+  agesHour(game, hour);
   const cal = calendarOf(game.day);
   if (hour === 0) {
     removeExpiredTemps(game);
@@ -336,6 +338,11 @@ export function outingCheck(game: Game, sim: Sim, o: OutingDef): OutingCheck {
   if (o.seasonDays && !o.seasonDays.includes(cal.dayOfSeason)) return { ok: false, hidden: true };
   if (o.event && !isEventToday(game, o.event)) return { ok: false, hidden: true };
   if (o.household && !game.isHousehold(sim)) return { ok: false, hidden: true };
+  if (o.hidden && !(o.special === 'highSchool' && sim.age === 'teen')) return { ok: false, hidden: true };
+  // Children can't drive or go off on their own; teens can't drive yet.
+  const age = sim.age ?? 'adult';
+  if (age !== 'adult' && (o.condition === 'learner' || o.condition === 'testReady' || o.condition === 'canDrive')) return { ok: false, hidden: true };
+  if (age === 'child' && !['walk', 'seaside', 'summer_fair', 'christmas_market', 'skating', 'trick', 'bonfire', 'easter_fair', 'dogwalk', 'holiday_blackpool', 'holiday_spain'].includes(o.id)) return { ok: false, why: 'Too young to go on their own' };
   switch (o.condition) {
     case 'learner': if (sim.driving.licence) return { ok: false, hidden: true }; break;
     case 'testReady':
@@ -397,6 +404,7 @@ export function outingReturn(game: Game, sim: Sim, id: string): void {
   }
   addClothesDirt(sim, o.special === 'dogWalk' || id === 'walk' ? 12 : o.duration >= 1440 ? 40 : 8);
   if (o.special === 'dogWalk') dogBack(game, sim);
+  if (o.special === 'highSchool') schoolDayDone(game, sim);
   if (o.groceries && game.state.pets.length) game.state.household.petFood += 10;
   if (o.special === 'bargain') {
     game.state.household.discount = 0.25;

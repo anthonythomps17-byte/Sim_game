@@ -31,7 +31,7 @@ export interface InteractionDef {
   condition?: 'dirty' | 'grown' | 'growing' | 'empty' | 'bills' | 'lightOn' | 'lightOff' | 'night'
     | 'once' | 'uncarved' | 'carved' | 'nightOnce' | 'canDrive'
     | 'notWinter' | 'broken' | 'working' | 'netflix' | 'sky' | 'binsIn' | 'binsBack' | 'overflowing'
-    | 'laundry' | 'wetWashing' | 'canHang' | 'dryWashing' | 'dirtyClothes' | 'hasTreats' | 'cafeOpen' | 'iceCream' | 'aldiOpen' | 'hasBasket' | 'schoolOpen' | 'eveningClass'
+    | 'laundry' | 'wetWashing' | 'canHang' | 'dryWashing' | 'dirtyClothes' | 'hasTreats' | 'cafeOpen' | 'iceCream' | 'aldiOpen' | 'hasBasket' | 'schoolOpen' | 'eveningClass' | 'schoolDay' | 'myShift'
     | 'hasPet' | 'petHungry' | 'cageDirty' | 'bowlLow';
   /** Groceries used from the household's food supply. */
   food?: number;
@@ -51,6 +51,8 @@ export interface ObjectDef {
   footprint: [number, number]; decor: number;
   seat?: boolean; dining?: boolean; surface?: boolean; walkable?: boolean;
   seatHeight?: number; market?: boolean; reward?: boolean;
+  /** Staff work here (café, Aldi, school). */
+  workplace?: 'cafe' | 'aldi' | 'school';
   /** Seasonal decoration placed and removed automatically. */
   temp?: boolean;
   /** Drains that can get blocked. */
@@ -87,7 +89,7 @@ export interface SocialDef {
 export interface SelfDef {
   id: string; name: string; icon: string; duration: number; anim: AnimId;
   effects?: Effects; skill?: SkillId; skillRate?: number; special?: string; ui?: string; auto?: boolean; tags?: string[];
-  cost?: number; condition?: 'noFood' | 'dusty' | 'weedy'; moodlet?: string;
+  cost?: number; condition?: 'noFood' | 'dusty' | 'weedy' | 'homework'; moodlet?: string;
   /** Walk to a spot indoors / in the garden first. */
   indoors?: boolean; outdoors?: boolean;
 }
@@ -105,10 +107,16 @@ export interface OutingDef {
   /** Counts as time off work. */
   leave?: boolean;
   souvenir?: string;
+  /** Not offered in the Go out list (school for teens). */
+  hidden?: boolean;
 }
 
 export interface CareerLevel { title: string; pay: number; start: number; end: number; days: number[]; req: Partial<Record<SkillId, number>>; licence?: boolean }
-export interface CareerDef { id: string; name: string; icon: string; desc: string; skills: SkillId[]; levels: CareerLevel[]; schoolHolidays?: boolean }
+export interface CareerDef {
+  id: string; name: string; icon: string; desc: string; skills: SkillId[]; levels: CareerLevel[]; schoolHolidays?: boolean;
+  /** Works somewhere you can see in town (café, Aldi, school) instead of off-screen. */
+  place?: 'cafe' | 'aldi' | 'school';
+}
 
 export type AspirationCond =
   | { type: 'skill'; skill: SkillId; level: number }

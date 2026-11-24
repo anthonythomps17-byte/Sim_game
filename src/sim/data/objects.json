@@ -4321,8 +4321,45 @@
    ],
    "decor": 2,
    "description": "Mugs, jars of biscuits and a big coffee machine.",
-   "spots": [],
-   "interactions": []
+   "spots": [
+    {
+     "at": [
+      0,
+      1
+     ]
+    },
+    {
+     "at": [
+      1,
+      1
+     ]
+    },
+    {
+     "at": [
+      2,
+      1
+     ]
+    }
+   ],
+   "interactions": [
+    {
+     "id": "work",
+     "name": "Work a shift (barista)",
+     "icon": "☕",
+     "duration": 60,
+     "anim": "cook",
+     "condition": "myShift",
+     "special": "workShift",
+     "effects": {
+      "social": 30,
+      "bladder": 90,
+      "hunger": 45,
+      "fun": 5
+     },
+     "poseless": true
+    }
+   ],
+   "workplace": "cafe"
   },
   {
    "id": "swings",
@@ -5192,6 +5229,29 @@
    ],
    "interactions": [
     {
+     "id": "school",
+     "name": "Go to school",
+     "icon": "🎒",
+     "duration": 60,
+     "anim": "read",
+     "seated": true,
+     "condition": "schoolDay",
+     "special": "schoolDay",
+     "skill": "logic",
+     "skillRate": 30,
+     "visitor": true,
+     "auto": false,
+     "effects": {
+      "social": 40,
+      "fun": 10,
+      "bladder": 90,
+      "hunger": 45
+     },
+     "tags": [
+      "school"
+     ]
+    },
+    {
      "id": "maths",
      "name": "Maths lesson",
      "icon": "➗",
@@ -5285,8 +5345,33 @@
    ],
    "decor": 1,
    "description": "Today: fractions. Tomorrow: volcanoes!",
-   "spots": [],
-   "interactions": []
+   "spots": [
+    {
+     "at": [
+      1,
+      1
+     ]
+    }
+   ],
+   "interactions": [
+    {
+     "id": "work",
+     "name": "Teach the class",
+     "icon": "🧑‍🏫",
+     "duration": 60,
+     "anim": "talk",
+     "condition": "myShift",
+     "special": "workShift",
+     "effects": {
+      "social": 30,
+      "bladder": 90,
+      "hunger": 45,
+      "fun": 5
+     },
+     "poseless": true
+    }
+   ],
+   "workplace": "school"
   },
   {
    "id": "school_stage",
@@ -5478,6 +5563,106 @@
       "play"
      ],
      "moodlet": "playground_fun"
+    }
+   ]
+  },
+  {
+   "id": "stock_cage",
+   "name": "Stock Cage",
+   "category": "town",
+   "price": 0,
+   "footprint": [
+    1,
+    1
+   ],
+   "decor": 0,
+   "workplace": "aldi",
+   "description": "Boxes waiting to go on the shelves.",
+   "spots": [
+    {
+     "at": [
+      0,
+      1
+     ],
+     "alt": [
+      [
+       -1,
+       0
+      ],
+      [
+       1,
+       0
+      ]
+     ]
+    }
+   ],
+   "interactions": [
+    {
+     "id": "work",
+     "name": "Work a shift (stack shelves)",
+     "icon": "📦",
+     "duration": 60,
+     "anim": "use",
+     "condition": "myShift",
+     "special": "workShift",
+     "effects": {
+      "social": 30,
+      "bladder": 90,
+      "hunger": 45,
+      "fun": 5
+     },
+     "poseless": true
+    }
+   ]
+  },
+  {
+   "id": "birthday_cake",
+   "name": "Birthday Cake",
+   "category": "seasonal",
+   "price": 0,
+   "footprint": [
+    1,
+    1
+   ],
+   "decor": 3,
+   "temp": true,
+   "description": "Make a wish!",
+   "spots": [
+    {
+     "at": [
+      0,
+      1
+     ],
+     "alt": [
+      [
+       1,
+       0
+      ],
+      [
+       -1,
+       0
+      ],
+      [
+       0,
+       -1
+      ]
+     ]
+    }
+   ],
+   "interactions": [
+    {
+     "id": "cake",
+     "name": "Have some birthday cake",
+     "icon": "🎂",
+     "duration": 15,
+     "anim": "eat",
+     "condition": "once",
+     "effects": {
+      "hunger": 30,
+      "fun": 25
+     },
+     "moodlet": "birthday_cake",
+     "visitor": true
     }
    ]
   }

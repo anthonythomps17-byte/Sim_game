@@ -6,6 +6,7 @@
 // grid starts at TOWN_ORIGIN, so town tile (x, z) covers world (x + ox, z + oz).
 import type { Game } from './game';
 import { OBJECTS } from './defs';
+import { freeDesk as freeDeskFor, isSchoolDay as schoolDayFor } from './ages';
 import { chance, pick, random } from './rng';
 import { clamp } from './mood';
 import type { GameState, Lot, PlacedObject, Point, Sim, Wall } from './types';
@@ -14,7 +15,7 @@ export const TOWN_ORIGIN = { x: -66, z: -121 };
 export const TOWN_W = 116;
 export const TOWN_D = 121;
 /** Bump when the layout changes, so older saves get the new town. */
-export const TOWN_VERSION = 2;
+export const TOWN_VERSION = 3;
 
 type P = [number, number];
 export interface StreetDef { name: string; points: P[]; width: number; houses: boolean; sign?: P }
@@ -197,7 +198,7 @@ function layout() {
 /** [defId, x, z, rot] in town tiles. */
 const FURNITURE: [string, number, number, 0 | 1 | 2 | 3][] = [
   // Café
-  ['cafe_counter', 39, 100, 2], ['cafe_shelf', 39, 101, 2],
+  ['cafe_counter', 39, 99, 2], ['cafe_shelf', 39, 101, 2],
   ['dining_table', 37, 96, 0], ['dining_chair', 37, 95, 0], ['dining_chair', 38, 95, 0], ['dining_chair', 37, 97, 2], ['dining_chair', 38, 97, 2],
   ['dining_table', 41, 96, 0], ['dining_chair', 41, 95, 0], ['dining_chair', 42, 95, 0], ['dining_chair', 41, 97, 2], ['dining_chair', 42, 97, 2],
   ['armchair', 44, 95, 3], ['armchair', 44, 96, 3], ['plant_big', 44, 94, 0], ['plant_big', 35, 94, 0],
@@ -209,7 +210,7 @@ const FURNITURE: [string, number, number, 0 | 1 | 2 | 3][] = [
   ['duck_pond', 36, 55, 0], ['ice_cream_van', 70, 61, 0], ['goal', 26, 41, 0],
   ['park_bin', 62, 80, 0], ['park_bin', 76, 76, 0], ['flower_bed', 48, 80, 0], ['flower_bed', 72, 80, 0],
   // Aldi: tills by the door, aisles, fridges and freezers along the back, the middle aisle.
-  ['aldi_till', 22, 99, 0], ['aldi_till', 18, 99, 0], ['trolley_bay', 28, 97, 0],
+  ['aldi_till', 22, 99, 0], ['aldi_till', 18, 99, 0], ['trolley_bay', 28, 97, 0], ['stock_cage', 29, 102, 0], ['stock_cage', 29, 106, 0],
   ['aldi_tins', 9, 102, 0], ['aldi_snacks', 14, 102, 0], ['aldi_bakery', 19, 102, 0],
   ['aldi_pets', 9, 105, 0], ['aldi_veg', 14, 105, 0], ['aldi_middle', 24, 103, 0],
   ['aldi_fridge', 8, 108, 2], ['aldi_fridge', 12, 108, 2], ['aldi_freezer', 16, 108, 2], ['aldi_freezer', 20, 108, 2],
@@ -252,11 +253,26 @@ export const inTown = (sim: Sim) => sim.location === 'town';
 export function townHour(game: Game, hour: number): void {
   const st = game.state;
   if (!st.town) return;
+  // Classmates walk to school in the morning.
+  if ((hour === 8 || hour === 9) && schoolDayFor(game)) {
+    for (const k of st.sims.filter((s) => s.isTownie && s.age === 'child' && s.location === 'home')) {
+      const desk = freeDeskFor(game);
+      if (desk === undefined) break;
+      const exit = pick(st, TOWN_EXITS);
+      k.location = 'town';
+      k.pos = { x: exit.x + 0.5, z: exit.z + 0.5 };
+      k.queue = [{ uid: game.nextId(), kind: 'object', objectId: desk, interactionId: 'school', label: 'School', icon: '🎒', userQueued: true }];
+      k.current = null;
+      k.visitUntil = Math.floor(st.time / 1440) * 1440 + 15.5 * 60;
+      for (const n of Object.keys(k.needs) as (keyof Sim['needs'])[]) k.needs[n] = Math.max(k.needs[n], 70);
+    }
+  }
   const here = st.sims.filter((s) => s.isTownie && s.location === 'town');
   const weekend = game.weekday >= 5;
   const wanted = hour < 8 || hour > 20 ? 0 : 3 + (weekend ? 2 : 0) + (hour >= 12 && hour <= 17 ? 1 : 0);
   if (here.length >= wanted) return;
-  const free = st.sims.filter((s) => s.isTownie && s.location === 'home' && !st.pendingVisits.some((v) => v.simId === s.id) && !st.party?.guests.includes(s.id));
+  const inSchool = schoolDayFor(game) && hour >= 8 && hour < 15;
+  const free = st.sims.filter((s) => s.isTownie && s.location === 'home' && !(inSchool && s.age === 'child') && !st.pendingVisits.some((v) => v.simId === s.id) && !st.party?.guests.includes(s.id));
   for (let i = here.length; i < wanted && free.length; i++) {
     if (!chance(st, 0.7)) continue;
     const t = free.splice(Math.floor(random(st) * free.length), 1)[0];

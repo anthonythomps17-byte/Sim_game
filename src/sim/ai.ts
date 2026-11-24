@@ -98,6 +98,8 @@ export function scoreOptions(game: Game, sim: Sim): Option[] {
       if (inter.condition === 'binsBack') score += 12;
       if (inter.condition === 'overflowing') score += 14;
       if (inter.condition === 'broken') score += 16;
+      // Bedtime for children.
+      if (sim.age === 'child' && inter.anim === 'sleep' && (game.hour >= 20 || game.hour < 6)) score += 40;
       if (inter.condition === 'dirtyClothes') score += (sim.clothesDirt ?? 0) / 2.5;
       if (inter.special === 'scoopPoo') score += game.roomOf(c) !== 0 ? 34 : 16;
       if (inter.special === 'cleanTray') score += obj.dirt / 3;
@@ -115,6 +117,7 @@ export function scoreOptions(game: Game, sim: Sim): Option[] {
     if (self.special === 'callFriend' && !game.isHousehold(sim)) continue;
     if (self.condition === 'dusty' && (!game.isHousehold(sim) || game.state.household.dust < 35)) continue;
     if (self.condition === 'weedy' && (!game.isHousehold(sim) || game.state.household.weeds < 35)) continue;
+    if (self.condition === 'homework' && !sim.school?.homework) continue;
     if (self.condition === 'noFood' && (!game.isHousehold(sim) || game.state.household.groceries >= 2 || game.state.household.funds < (self.cost ?? 0))) continue;
     // A takeaway's food arrives afterwards, so score it by the meal.
     const selfFx = self.special === 'takeaway' ? { hunger: 75 } : self.effects;
@@ -122,6 +125,7 @@ export function scoreOptions(game: Game, sim: Sim): Option[] {
     if (lowOnly && score < 8) continue;
     score += skillBonus(sim, self.skill, game) * 0.3;
     if (self.special === 'hoover') score += game.state.household.dust / 6;
+    if (self.special === 'homework') score += game.hour >= 15 && game.hour < 20 ? 30 : 12;
     if (self.special === 'weed') score += game.state.household.weeds / 6;
     score *= tagMult(sim, self.tags);
     if (score > 0.5) options.push({ action: { kind: 'self', selfId: self.id, label: self.name, icon: self.icon, userQueued: false }, score, label: self.name });

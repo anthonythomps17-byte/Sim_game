@@ -4,7 +4,7 @@ import { ASPIRATIONS, NAMES, OBJECTS, TRAITS } from './defs';
 import { computeRooms, hKey, inLot, parseWallKey, vKey } from './lot';
 import { roomOutlineKeys, wallKeysOnLine } from './build';
 import { random } from './rng';
-import { NEED_IDS, SKILL_IDS, type Appearance, type GameState, type Lot, type Needs, type PlacedObject, type Sim, type WallKind } from './types';
+import { NEED_IDS, SKILL_IDS, type Age, type Appearance, type GameState, type Lot, type Needs, type PlacedObject, type Sim, type WallKind } from './types';
 
 export const SAVE_VERSION = 1;
 export const LOT_WIDTH = 22;
@@ -95,7 +95,7 @@ export function fullNeeds(v = 80): Needs {
   return n;
 }
 
-export interface SimDraft { name: string; appearance: Appearance; traits: string[]; aspiration: string }
+export interface SimDraft { name: string; appearance: Appearance; traits: string[]; aspiration: string; age?: Age }
 
 export function makeSim(id: number, draft: SimDraft, isTownie: boolean): Sim {
   const skills = {} as Sim['skills'];
@@ -107,7 +107,21 @@ export function makeSim(id: number, draft: SimDraft, isTownie: boolean): Sim {
     pos: { x: 8.5, z: 3.5 }, facing: 0, anim: 'idle', poseObjectId: null,
     location: isTownie ? 'home' : 'lot', awayUntil: 0, queue: [], current: null,
     thinkCooldown: 1, thought: null, counters: {}, visitUntil: 0, perks: [], recent: [], driving: { lessons: 0, licence: false },
+    age: draft.age ?? 'adult', ageDay: 0,
+    ...(draft.age && draft.age !== 'adult' ? { school: { grade: 60, homework: false, attendedDay: -1 } } : {}),
   };
+}
+
+/** Children who live round Ashton (classmates at Hillcrest). */
+export function addTownieKids(st: GameState, n = 4): void {
+  for (let i = 0; i < n; i++) {
+    const d = randomDraft(st);
+    d.age = 'child';
+    d.appearance = { ...d.appearance, age: 'child' };
+    const t = makeSim(st.nextId++, d, true);
+    t.district = NAMES.districts[(i + 2) % NAMES.districts.length];
+    st.sims.push(t);
+  }
 }
 
 export function randomName(st: GameState): string {
@@ -251,7 +265,8 @@ export function createGame(opts: NewGameOptions): GameState {
     t.district = NAMES.districts[i % NAMES.districts.length];
     st.sims.push(t);
   }
-  const nextDoor = st.sims.find((s) => s.isTownie && s.district === 'Town Green') ?? st.sims.find((s) => s.isTownie);
+  addTownieKids(st);
+  const nextDoor = st.sims.find((s) => s.isTownie && s.district === 'Town Green' && s.age === 'adult') ?? st.sims.find((s) => s.isTownie);
   st.household.nextDoorId = nextDoor?.id ?? 0;
   st.selectedSimId = ids[0] ?? 0;
   return st;

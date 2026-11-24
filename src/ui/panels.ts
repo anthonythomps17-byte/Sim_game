@@ -43,6 +43,7 @@ export class Panels {
   private get root() { return this.app.root; }
 
   careers(sim: Sim) {
+    if ((sim.age ?? 'adult') !== 'adult') { this.message('Jobs', `${sim.name.split(' ')[0]} is too young for a job. ${sim.age === 'teen' ? 'Teens go to Ashton High' : 'Children go to Hillcrest Primary'} on school days.`); return; }
     let close = () => {};
     const cards = Object.values(CAREERS).map((c) => {
       const l = c.levels[0];
@@ -76,7 +77,7 @@ export class Panels {
       for (const id of g.ids) {
         if (used.has(id)) continue;
         const o = OUTINGS[id];
-        if (!o) continue;
+        if (!o || o.hidden) continue;
         const check = outingCheck(game, sim, o);
         if (check.hidden) continue;
         used.add(id);
@@ -300,7 +301,7 @@ export class Panels {
     const rel = game.state.selectedSimId !== sim.id ? findRel(game.state, game.state.selectedSimId, sim.id) : undefined;
     const top = (Object.keys(sim.skills) as SkillId[]).filter((s) => levelOf(sim, s) > 1).map((s) => `${SKILL_NAMES[s].name} ${levelOf(sim, s)}`).join(', ');
     modal(this.root, sim.name, [
-      h('p', { class: 'muted' }, sim.isTownie ? `Lives in ${sim.district}.` : `Part of the ${game.state.household.name} household.`),
+      h('p', { class: 'muted' }, `${{ child: '🧒 Child', teen: '🧑 Teen', adult: '🧑‍🦱 Adult' }[sim.age ?? 'adult']} · ${sim.isTownie ? `Lives in ${sim.district}.` : `Part of the ${game.state.household.name} household.`}`),
       h('div', { class: 'opt-label' }, 'Traits'),
       h('div', { class: 'opts' }, ...[...sim.traits, ...sim.perks].map((t) => chip(`${ALL_TRAITS[t]?.icon} ${ALL_TRAITS[t]?.name}`))),
       asp ? h('p', null, `Dreams of being: ${asp.icon} ${asp.name}`) : null,

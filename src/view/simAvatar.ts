@@ -52,6 +52,7 @@ export class SimAvatar {
   private walkPhase = 0;
   /** Dirty clothes: 0 clean, 1 grubby (stains), 2 filthy (more stains and flies). */
   private dirt: 0 | 1 | 2 = 0;
+  private headScale = 1;
   private cloth: { m: StandardMaterial; base: Color3 }[] = [];
   private stains: { mesh: Mesh; stage: 1 | 2 }[] = [];
   private flies: Mesh[] = [];
@@ -137,7 +138,10 @@ export class SimAvatar {
     const curvy = a.figure === 'curvy';
     const hipW = curvy ? shoulderW * 1.02 + 0.04 : shoulderW * 0.9;
     const waistW = curvy ? shoulderW * 0.72 : shoulderW * 0.86;
-    this.root.scaling.setAll(a.height);
+    // Children and teens are smaller, with bigger heads for their size.
+    const ageScale = a.age === 'child' ? 0.66 : a.age === 'teen' ? 0.88 : 1;
+    this.root.scaling.setAll(a.height * ageScale);
+    this.headScale = a.age === 'child' ? 1.25 : a.age === 'teen' ? 1.07 : 1;
     this.body.position.y = HIP_H;
     const sleeveless = a.top === 'vest' || a.top === 'dress';
     const shortSleeve = a.top === 'tshirt';
@@ -417,6 +421,7 @@ export class SimAvatar {
     }
     this.buildStains(shoulderW, depth, hipW);
     this.applyDirt();
+    this.head.scaling.setAll(this.headScale);
   }
 
   /** Mud and food stains, hidden until the clothes get dirty. */

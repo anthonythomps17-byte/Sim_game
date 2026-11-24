@@ -11,6 +11,7 @@ import { calendarOf, eventsOn, PARTY_THEMES } from '../sim/life';
 import { neighbourFace } from './panels';
 import { activePlayer, ownerOf } from '../sim/family';
 import { clothesLabel } from '../sim/clothes';
+import { AGE_NAMES, ageOf, daysToBirthday, gradeLetter, isKid, isSchoolDay } from '../sim/ages';
 import { unreadCount } from '../sim/phone';
 import { bar, clear, h, initials, money } from './dom';
 
@@ -226,7 +227,9 @@ export class Hud {
     if (this.changed('head', headSig)) {
       clear(this.panelEl);
       this.panelEl.classList.toggle('collapsed', this.collapsed);
-      const job = sim.career ? `${CAREERS[sim.career.id].levels[sim.career.level].title}` : 'No job yet';
+      const left = daysToBirthday(this.app.game!, sim);
+      const job = isKid(sim) ? `${AGE_NAMES[ageOf(sim)]} · report ${gradeLetter(sim.school?.grade ?? 60)}${left !== null ? ` · 🎂 in ${left}d` : ''}`
+        : sim.career ? `${CAREERS[sim.career.id].levels[sim.career.level].title}` : 'No job yet';
       const where = sim.location === 'work' ? ' · at work' : sim.location === 'away' ? ' · out and about' : sim.location === 'town' ? ' · out in town' : '';
       const head = h('div', { class: 'sp-head', onclick: () => { this.collapsed = !this.collapsed; this.sigs.clear(); this.refresh(); } },
         h('div', null, h('div', { class: 'sp-name' }, sim.name), h('div', { class: 'sp-sub' }, job + where)),
@@ -298,9 +301,24 @@ export class Hud {
 
   private renderCareer(el: HTMLElement, sim: Sim) {
     const c = sim.career;
-    const sig = c ? `${c.id}:${c.level}:${Math.round(c.performance)}` : 'none';
+    const sc = sim.school;
+    const sig = c ? `${c.id}:${c.level}:${Math.round(c.performance)}` : sc ? `school:${Math.round(sc.grade)}:${sc.homework}` : 'none';
     if (!this.changed('content', sig + sim.location)) return;
     clear(el);
+    if (isKid(sim)) {
+      const teen = ageOf(sim) === 'teen';
+      const g = sc?.grade ?? 60;
+      el.append(
+        h('div', { class: 't' }, teen ? '🏫 Ashton High School' : '🎒 Hillcrest Primary School'),
+        h('div', { class: 's' }, teen ? 'Catches the bus at 8am on school days, home at 3:30.' : 'Walks to school with the school run on weekdays. Lessons 9am–3pm.'),
+        h('div', { class: 'need', style: 'margin-top:8px' }, h('span', { class: 'ic' }, '📝'), h('span', { class: 'lbl' }, `Report: ${gradeLetter(g)}`), bar(g)),
+        h('p', { class: 'muted' }, sc?.homework ? '📚 Homework to do! Tap them → Do homework.' : 'No homework right now. Reports come out on Fridays.'),
+        h('div', { style: 'display:flex;gap:8px;flex-wrap:wrap' },
+          !teen && isSchoolDay(this.app.game!) && this.app.game!.hour < 15 && sc?.attendedDay !== this.app.game!.day ? h('button', { class: 'btn primary small', onclick: () => { void this.app.act({ t: 'school', simId: sim.id }); } }, '🎒 Go to school') : null,
+          h('button', { class: 'btn small', onclick: () => this.app.panels.outings(sim) }, '🚶 Go out')),
+      );
+      return;
+    }
     if (!c) {
       el.append(h('p', { class: 'muted' }, `${sim.name.split(' ')[0]} doesn't have a job. Jobs pay money and need skills to get promoted.`),
         h('div', { style: 'display:flex;gap:8px;flex-wrap:wrap' },

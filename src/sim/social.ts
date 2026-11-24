@@ -13,6 +13,8 @@ export interface SocialAvailability { ok: boolean; hidden?: boolean; reason?: st
 export function socialCheck(game: Game, sim: Sim, target: Sim, social: SocialDef): SocialAvailability {
   if (sim.id === target.id) return { ok: false, hidden: true };
   if (social.romanceAction && !game.state.settings.romance) return { ok: false, hidden: true };
+  // Romance is for grown-ups.
+  if (social.romanceAction && ((sim.age ?? 'adult') !== 'adult' || (target.age ?? 'adult') !== 'adult')) return { ok: false, hidden: true };
   // Housemates are treated as family, so romance is only with Sims from outside the household.
   if (social.romanceAction && game.isHousehold(sim) && game.isHousehold(target)) return { ok: false, hidden: true };
   const rel = findRel(game.state, sim.id, target.id);

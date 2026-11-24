@@ -736,7 +736,8 @@
       "cooking": 5
      }
     }
-   ]
+   ],
+   "place": "cafe"
   },
   {
    "id": "baker",
@@ -1019,7 +1020,8 @@
      },
      "licence": true
     }
-   ]
+   ],
+   "place": "school"
   },
   {
    "id": "shop",
@@ -1113,7 +1115,8 @@
      },
      "licence": true
     }
-   ]
+   ],
+   "place": "aldi"
   },
   {
    "id": "bar",

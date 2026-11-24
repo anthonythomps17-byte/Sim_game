@@ -17,6 +17,8 @@ import { addClothesDirt, changeClothes, cleanClothes, dirtOf } from './clothes';
 import { callDone, textDone } from './phone';
 import { aldiOpen, cafeOpen, eveningClass, nearestExit, schoolOpen, townGate } from './town';
 import { checkout, dropBasket, middleAisle, pickItem } from './shop';
+import { ageOf, homeworkDone, isSchoolDay, schoolDayDone, untilHour } from './ages';
+import { canWorkHere, shiftAbandoned, shiftDone, shiftEndHour } from './work';
 import type { Area } from './game';
 import type { NeedId, PlacedObject, Point, QueuedAction, RunningAction, Sim, SkillId } from './types';
 
@@ -88,6 +90,9 @@ export function checkInteraction(game: Game, sim: Sim, obj: PlacedObject, inter:
   if (visitor && !inter.visitor && !inTown) return { ok: false, hidden: true };
   if (inTown && (inter.condition === 'dirty' || inter.condition === 'broken' || inter.special === 'unblock' || inter.special === 'plumber' || inter.special === 'engineer')) return { ok: false, hidden: true };
   if (inter.price && !visitor && game.state.household.funds < inter.price) return { ok: false, reason: `Costs £${inter.price}` };
+  // Children don't use the cooker (they can still grab a snack).
+  if (sim.age === 'child' && inter.anim === 'cook') return { ok: false, reason: 'Too young to use the cooker. Ask a grown-up!' };
+  if (sim.age === 'child' && inter.condition === 'eveningClass') return { ok: false, hidden: true };
   switch (inter.condition) {
     case 'dirty': if (obj.dirt < 30) return { ok: false, hidden: true }; break;
     case 'grown': if (obj.growth < 100) return { ok: false, hidden: true }; break;
@@ -132,6 +137,14 @@ export function checkInteraction(game: Game, sim: Sim, obj: PlacedObject, inter:
       break;
     case 'schoolOpen': if (!schoolOpen(game, calendarOf(game.day).season.id)) return { ok: false, reason: calendarOf(game.day).season.id === 'summer' ? "It's the summer holidays!" : 'Lessons are weekdays 9am–3pm' }; break;
     case 'eveningClass': if (!eveningClass(game)) return { ok: false, reason: 'Evening classes are weekdays 6–9pm' }; break;
+    case 'schoolDay': {
+      if (ageOf(sim) !== 'child') return { ok: false, hidden: true };
+      if (!isSchoolDay(game)) return { ok: false, reason: calendarOf(game.day).season.id === 'summer' ? "It's the summer holidays!" : 'No school today' };
+      if (game.hour < 7 || game.hour >= 15) return { ok: false, reason: 'School is 9am–3pm' };
+      if (sim.school?.attendedDay === game.day) return { ok: false, reason: 'Already been today' };
+      break;
+    }
+    case 'myShift': { const w = canWorkHere(game, sim, obj); if (!w.ok) return w; break; }
     case 'iceCream': {
       const season = calendarOf(game.day).season.id;
       if (season === 'winter') return { ok: false, reason: 'No ice creams in winter! Come back in spring' };
@@ -617,6 +630,15 @@ function arrive(game: Game, sim: Sim, cur: RunningAction): void {
     sim.pos = { x: cur.pose.x, z: cur.pose.z };
     sim.facing = cur.pose.facing;
   }
+  // School and shifts last until the end of the day, however long the walk there took.
+  if (cur.kind === 'object' && (cur.interactionId === 'school' || cur.interactionId === 'work')) {
+    const obj = game.object(cur.objectId!);
+    const inter = obj && interaction(obj.defId, cur.interactionId!);
+    if (inter) {
+      cur.duration = untilHour(game, cur.interactionId === 'school' ? 15 : shiftEndHour(sim));
+      cur.rates = toRates(totalEffects(sim, inter.effects, inter.tags), cur.duration);
+    }
+  }
   cur.phase = 'perform';
   sim.anim = cur.anim;
 }
@@ -658,7 +680,10 @@ function finish(game: Game, sim: Sim, completed: boolean): void {
   standUp(sim);
   sim.current = null;
   sim.anim = 'idle';
-  if (!completed) return;
+  if (!completed) {
+    if (cur.kind === 'object' && cur.interactionId === 'work' && cur.phase === 'perform' && game.isHousehold(sim)) shiftAbandoned(game, sim, cur.elapsed / Math.max(1, cur.duration));
+    return;
+  }
   const key = activityKey(cur);
   if (key) {
     sim.recent.push(key);
@@ -677,6 +702,7 @@ function finish(game: Game, sim: Sim, completed: boolean): void {
     if (def?.special === 'callFriend') callFriend(game, sim);
     if (def?.special === 'phoneCall') callDone(game, sim, cur.targetSimId);
     if (def?.special === 'text') textDone(game, sim);
+    if (def?.special === 'homework') homeworkDone(game, sim);
     if (def?.moodlet) addMoodlet(sim, def.moodlet, now);
     if (def?.special === 'hoover' || def?.special === 'weed') selfSpecial(game, sim, def.special);
     if (def?.special === 'takeaway') {
@@ -731,6 +757,8 @@ function completeInteraction(game: Game, sim: Sim, obj: PlacedObject, inter: Int
   else if (inter.special?.startsWith('pick:')) pickItem(game, sim, inter.special.slice(5));
   else switch (inter.special) {
     case 'checkout': checkout(game, sim); break;
+    case 'schoolDay': schoolDayDone(game, sim); break;
+    case 'workShift': shiftDone(game, sim); break;
     case 'middleAisle': middleAisle(game, sim); break;
     case 'plant': obj.growth = 1; break;
     case 'tend': {

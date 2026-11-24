@@ -167,6 +167,22 @@
    "tags": [
     "screens"
    ]
+  },
+  {
+   "id": "homework",
+   "name": "Do homework",
+   "icon": "📚",
+   "duration": 40,
+   "anim": "read",
+   "condition": "homework",
+   "special": "homework",
+   "skill": "logic",
+   "skillRate": 35,
+   "effects": {
+    "fun": -5
+   },
+   "moodlet": "homework_done",
+   "indoors": true
   }
  ],
  "outings": [
@@ -694,6 +710,22 @@
     9,
     18
    ]
+  },
+  {
+   "id": "highschool",
+   "name": "Ashton High School",
+   "icon": "🏫",
+   "duration": 450,
+   "effects": {
+    "social": 40,
+    "fun": 5,
+    "bladder": 80,
+    "hunger": 40
+   },
+   "special": "highSchool",
+   "hidden": true,
+   "skill": "logic",
+   "skillXp": 40
   }
  ]
 }

@@ -1,4 +1,5 @@
 // Things that happen on the clock: work, bills, visitors, lights, aspirations.
+import { goToWorkplace, isOnShift, workPlace } from './work';
 import { afterWork } from './clothes';
 import { billsText, takeBonus } from './phone';
 import { ALL_TRAITS, ASPIRATIONS, CAREERS, OBJECTS, OUTINGS, type AspirationCond, type CareerLevel } from './defs';
@@ -36,11 +37,16 @@ export function runSchedules(game: Game, dt: number): void {
     const lvl = careerLevel(sim)!;
     if (!worksToday(game, sim) || sim.career.workedToday) continue;
     const start = lvl.start * 60;
-    const busyWithWork = sim.current?.kind === 'work' || sim.queue.some((q) => q.kind === 'work');
-    if (minute >= start - 40 && minute < start + 30 && !busyWithWork) {
+    const busyWithWork = sim.current?.kind === 'work' || sim.queue.some((q) => q.kind === 'work') || isOnShift(sim);
+    // Jobs in town: walk there (it takes a while), and work where everyone can see.
+    const inTown = !!workPlace(sim) && !!game.state.town;
+    if (minute >= start - (inTown ? 80 : 40) && minute < start + 30 && !busyWithWork) {
       if (sim.current && !(sim.current.kind === 'work')) interrupt(game, sim);
-      enqueue(game, sim, { kind: 'work', label: 'Go to work', icon: CAREERS[sim.career.id].icon, userQueued: true }, true);
-      if (minute < start - 38) game.notify(`${sim.name} is off to work as a ${lvl.title}.`, '🚌', 'info');
+      if (inTown) goToWorkplace(game, sim);
+      else {
+        enqueue(game, sim, { kind: 'work', label: 'Go to work', icon: CAREERS[sim.career.id].icon, userQueued: true }, true);
+        if (minute < start - 38) game.notify(`${sim.name} is off to work as a ${lvl.title}.`, '🚌', 'info');
+      }
     } else if (minute >= start + 30 && !busyWithWork) {
       skipWork(game, sim); // missed the bus
     }
@@ -153,6 +159,8 @@ export function arriveAtWork(game: Game, sim: Sim, action: RunningAction): void 
     // Drivers get there and back quicker (lessons and tests use the instructor's car).
     const usesCar = o.special !== 'lesson' && o.special !== 'drivingTest' && takeCar(game, sim, o.special === 'refuel');
     sim.awayUntil = now + (usesCar && o.duration > 60 && !o.household ? o.duration - 20 : o.duration);
+    // School finishes at half past three, whenever you got there.
+    if (o.special === 'highSchool') sim.awayUntil = Math.max(now + 60, Math.floor(now / MINUTES_PER_DAY) * MINUTES_PER_DAY + 15.5 * 60);
     if (usesCar && o.id !== 'drive') addMoodlet(sim, 'enjoyed_drive', now);
     return;
   }
@@ -192,7 +200,7 @@ function returnHome(game: Game, sim: Sim): void {
   }
 }
 
-function finishWorkDay(game: Game, sim: Sim): void {
+export function finishWorkDay(game: Game, sim: Sim): void {
   const career = sim.career!;
   const def = CAREERS[career.id];
   const lvl = def.levels[career.level];
@@ -244,7 +252,7 @@ function tryPromote(game: Game, sim: Sim): void {
 }
 
 export function joinCareer(game: Game, sim: Sim, careerId: string): boolean {
-  if (!CAREERS[careerId]) return false;
+  if (!CAREERS[careerId] || (sim.age ?? 'adult') !== 'adult') return false;
   sim.career = { id: careerId, level: 0, performance: 0, daysWorked: 0, workedToday: true };
   const lvl = CAREERS[careerId].levels[0];
   game.notify(`${sim.name} joined the ${CAREERS[careerId].name} career as a ${lvl.title}. Work starts tomorrow.`, CAREERS[careerId].icon, 'good');

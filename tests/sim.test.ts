@@ -282,8 +282,10 @@ describe('long run', () => {
     g.household().forEach((s, i) => joinCareer(g, s, careers[i]));
     const funds = g.state.household.funds;
     let lowCount = 0;
+    let visits = 0;
     for (let h = 0; h < 24 * 14; h++) {
       g.tick(60);
+      for (const e of g.drainEvents()) if (e.type === 'notify' && e.notification.text.includes('has come to visit')) visits++;
       for (const s of g.household()) if (s.location === 'lot' && (s.needs.hunger < 3 || s.needs.energy < 3)) lowCount++;
     }
     // Sims should rarely be at rock bottom.
@@ -292,7 +294,7 @@ describe('long run', () => {
     expect(worked).toBeGreaterThan(15);
     expect(g.state.household.funds).toBeGreaterThan(funds - 2000);
     // Visitors came by.
-    expect(g.state.notifications.some((n) => n.text.includes('has come to visit'))).toBe(true);
+    expect(visits).toBeGreaterThan(0);
     // Everyone has made progress on something.
     for (const s of g.household()) expect(Object.values(s.skills).some((x) => x > 30)).toBe(true);
   });

@@ -552,6 +552,55 @@
    "icon": "🎓",
    "value": 10,
    "duration": 180
+  },
+  {
+   "id": "birthday",
+   "name": "It's my birthday!",
+   "icon": "🎂",
+   "value": 20,
+   "duration": 720
+  },
+  {
+   "id": "birthday_cake",
+   "name": "Birthday cake",
+   "icon": "🍰",
+   "value": 10,
+   "duration": 180
+  },
+  {
+   "id": "homework_done",
+   "name": "Homework done",
+   "icon": "📚",
+   "value": 8,
+   "duration": 240
+  },
+  {
+   "id": "good_report",
+   "name": "Great school report",
+   "icon": "⭐",
+   "value": 18,
+   "duration": 1440
+  },
+  {
+   "id": "bad_report",
+   "name": "Bad school report",
+   "icon": "📉",
+   "value": -12,
+   "duration": 720
+  },
+  {
+   "id": "missed_school",
+   "name": "Bunked off school",
+   "icon": "😬",
+   "value": -8,
+   "duration": 360
+  },
+  {
+   "id": "good_shift",
+   "name": "Good shift",
+   "icon": "💼",
+   "value": 8,
+   "duration": 240
   }
  ]
 }

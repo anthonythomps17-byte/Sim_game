@@ -623,6 +623,7 @@ export class App {
         if (s.condition === 'dusty' && hh.dust < 15) continue;
         if (s.condition === 'weedy' && hh.weeds < 15) continue;
         if (PHONE_ONLY.has(s.id)) continue; // these live in the 📱 Phone
+        if (s.condition === 'homework' && !sel.school?.homework) continue;
         options.push({
           icon: s.icon, label: s.name,
           onPick: () => s.ui === 'relationships' ? this.panels.invite(sel) : s.ui === 'party' ? this.panels.party(sel) : s.ui === 'pets' ? this.panels.pets() : this.queue(sel, { kind: 'self', selfId: s.id, label: s.name, icon: s.icon, userQueued: true }),

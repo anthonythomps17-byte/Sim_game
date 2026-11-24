@@ -17,7 +17,11 @@ export type FreeWill = 'off' | 'low' | 'full';
 
 export interface Point { x: number; z: number }
 
+export type Age = 'child' | 'teen' | 'adult';
+
 export interface Appearance {
+  /** Drawn smaller (and with a bigger head) for children and teens. */
+  age?: Age;
   body: 'slim' | 'average' | 'broad';
   height: number;          // 0.9 .. 1.1
   skin: string;            // hex colour
@@ -181,6 +185,11 @@ export interface Sim {
   driving: { lessons: number; licence: boolean };
   /** 0 (fresh on) to 100 (filthy). */
   clothesDirt?: number;
+  /** Life stage (default adult), and the day they reached it (for birthdays). */
+  age?: Age;
+  ageDay?: number;
+  /** Children and teens: how school is going. */
+  school?: { grade: number; homework: boolean; attendedDay: number };
   phone?: { msgs: PhoneMsg[]; readUpTo: number };
   /** Shopping picked at Aldi, not paid for yet. */
   basket?: { food: number; petFood: number; treats: number; cost: number; items: number } | null;
@@ -279,7 +288,7 @@ export interface GameState {
   lot: Lot;
   bills: Bills | null;
   notifications: GameNotification[];
-  settings: { freeWill: FreeWill; romance: boolean; relaxed?: boolean };
+  settings: { freeWill: FreeWill; romance: boolean; relaxed?: boolean; ageing?: boolean };
   /** The park and café (layout from code; furniture here so seats can be reserved). */
   town?: { version: number; objects: PlacedObject[] };
   nextId: number;

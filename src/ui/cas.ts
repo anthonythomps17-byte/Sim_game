@@ -103,6 +103,9 @@ export class CasScreen {
         el.append(
           h('div', { class: 'opt-label' }, 'Name'),
           h('input', { type: 'text', value: this.d.name, maxlength: 28, 'aria-label': 'Sim name', oninput: (e: Event) => { this.d.name = (e.target as HTMLInputElement).value; } }),
+          ...this.opts('Age', [{ id: 'child', name: '🧒 Child' }, { id: 'teen', name: '🧑 Teen' }, { id: 'adult', name: '🧑‍🦱 Adult' }], this.d.age ?? 'adult', (v) => { this.d.age = v as 'child'; this.d.appearance = { ...this.d.appearance, age: v as 'child' }; }),
+          ...(this.d.age === 'child' ? [h('p', { class: 'muted' }, 'Children walk to Hillcrest Primary on school days, do homework, and grow into teens on their birthday.')]
+            : this.d.age === 'teen' ? [h('p', { class: 'muted' }, 'Teens go to Ashton High on school days and grow up on their birthday. Grown-ups get jobs.')] : []),
           h('div', { class: 'opt-label' }, `Traits (pick 3) · ${this.d.traits.length}/3`),
           h('div', { class: 'grid2' }, ...Object.values(TRAITS).map((t) => {
             const on = this.d.traits.includes(t.id);
@@ -173,6 +176,10 @@ export class CasScreen {
         this.app.toast(`${d.name} needs 3 traits.`, 'ℹ️');
         return;
       }
+    }
+    if (!this.drafts.some((d) => (d.age ?? 'adult') === 'adult')) {
+      this.app.toast('Every household needs at least one grown-up to look after the children.', '🧑‍🦱');
+      return;
     }
     const name = this.household.trim() || 'Household';
     let close = () => {};

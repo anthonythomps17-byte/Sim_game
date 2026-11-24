@@ -15,6 +15,7 @@ import { REWARD_TRAITS } from './defs';
 import { answerCall, answerOffer, markRead, order, sendText, startCall, SHOP_ITEMS, type TextKind } from './phone';
 import { vetVisit } from './pets';
 import { setSteer } from './steer';
+import { goToSchool } from './ages';
 
 export type Cmd =
   | { t: 'queue'; simId: number; action: Omit<QueuedAction, 'uid'> }
@@ -53,7 +54,9 @@ export type Cmd =
   | { t: 'order'; item: string }
   | { t: 'vet'; petId: number }
   | { t: 'steer'; simId: number; dx: number; dz: number }
-  | { t: 'relaxed'; on: boolean };
+  | { t: 'relaxed'; on: boolean }
+  | { t: 'ageing'; on: boolean }
+  | { t: 'school'; simId: number };
 
 /** Money a command costs, checked against the player's allowance in family mode. */
 export interface Spend { amount: number; what: string; household?: boolean }
@@ -285,6 +288,15 @@ function exec(game: Game, cmd: Cmd): CmdResult {
     case 'relaxed':
       st.settings.relaxed = !!cmd.on;
       return OK;
+    case 'ageing':
+      st.settings.ageing = !!cmd.on;
+      return OK;
+    case 'school': {
+      const sim = simOf(cmd.simId);
+      if (!sim) return fail();
+      goToSchool(game, sim);
+      return OK;
+    }
     case 'vet': {
       const r = vetVisit(game, cmd.petId);
       return r.ok ? OK : fail(r.why);

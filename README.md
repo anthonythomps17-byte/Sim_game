@@ -67,6 +67,18 @@ Sims can walk out of the front door into the neighbourhood. The street outside, 
 - With free will, your Sims go out for a while now and then when they're bored or lonely, and head home when tired or when it gets late.
 - **Relaxed needs** (Settings): needs go down about half as fast, for more time to explore.
 
+## Growing up
+
+- **Ages:** in create-a-Sim, pick Child, Teen or Adult for each Sim (every household needs a grown-up). Children and teens are drawn smaller.
+- **School:** on school days (weekdays in term time; not the summer holidays or Christmas Day) children walk to Hillcrest Primary with the school run and sit in class 9am–3pm with their classmates (neighbours' children), then walk home. Teens catch the bus to Ashton High (off-screen) until 3:30. Tap a child → Job tab → 🎒 Go to school if they're late.
+- **Homework and reports:** school days bring homework (tap the Sim → Do homework). Missing school or forgetting homework lowers their grade; going to school in a good mood and doing homework raises it. Reports come out on Friday afternoons (A* to D), with reward points for an A.
+- **Birthdays:** children and teens have a birthday every two game weeks (a cake appears), growing into teens, then adults who can get jobs, learn to drive and fall in love. Switch it off in Settings → Growing up.
+- **Rules for children:** no jobs, no driving, no romance, and no using the cooker (snacks are fine). Children go to bed early.
+
+## Jobs you can see
+
+Café, shop and teaching jobs happen in town. Sims walk to work an hour or so before their shift and work where you can watch them: baristas behind the café counter, shop workers stacking shelves at Aldi, teachers at the whiteboard at Hillcrest (with any children in the class). At the end of the shift they're paid and walk home. Leave early and you only get half pay, and the boss notices. Other jobs still happen off-screen.
+
 ## Everyday life
 
 - **Time:** at normal speed the day (7am–9pm) takes 15 real minutes and the night 8.5. Speeds 2x and 3x are faster. While everyone is out (work, holidays) the game skips ahead; skipping while everyone sleeps is an option in Settings.

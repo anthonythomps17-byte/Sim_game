@@ -1,6 +1,6 @@
 // Saving is just JSON. Storage (IndexedDB) lives in src/platform so the core stays testable.
 import { createTown, TOWN_VERSION } from './town';
-import { SAVE_VERSION } from './newgame';
+import { addTownieKids, SAVE_VERSION } from './newgame';
 import { OBJECTS } from './defs';
 import type { GameState } from './types';
 
@@ -58,6 +58,8 @@ export function deserialize(text: string): GameState {
   st.pets ??= [];
   for (const p of st.pets) { p.task = null; p.poo ??= 20; }
   st.household.cleanClothes ??= st.household.memberIds.length * 5;
+  for (const s of st.sims) s.age ??= 'adult';
+  if (!st.sims.some((s) => s.isTownie && s.age === 'child')) addTownieKids(st);
   if (!st.town || st.town.version !== TOWN_VERSION) {
     st.town = createTown(st);
     // Anyone out in an older town comes home.

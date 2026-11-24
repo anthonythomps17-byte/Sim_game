@@ -104,6 +104,7 @@ export function sendText(game: Game, sim: Sim, toId: number, kind: TextKind): Ph
   const can = canUsePhone(sim);
   if (!can.ok) return can;
   if (kind === 'flirt' && !st.settings.romance) return { ok: false, why: 'Romance is switched off in Settings.' };
+  if (kind === 'flirt' && ((sim.age ?? 'adult') !== 'adult' || (to.age ?? 'adult') !== 'adult')) return { ok: false, why: 'Flirting is for grown-ups.' };
   const rel = findRel(st, sim.id, to.id);
   const f = rel?.friendship ?? 0;
   const r = rel?.romance ?? 0;
