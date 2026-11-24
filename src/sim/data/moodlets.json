@@ -496,6 +496,41 @@
    "icon": "🤳",
    "value": 6,
    "duration": 120
+  },
+  {
+   "id": "cafe_treat",
+   "name": "Café treat",
+   "icon": "☕",
+   "value": 12,
+   "duration": 180
+  },
+  {
+   "id": "ice_cream",
+   "name": "Ice cream!",
+   "icon": "🍦",
+   "value": 12,
+   "duration": 120
+  },
+  {
+   "id": "fed_ducks",
+   "name": "Fed the ducks",
+   "icon": "🦆",
+   "value": 10,
+   "duration": 180
+  },
+  {
+   "id": "playground_fun",
+   "name": "Playground fun",
+   "icon": "🛝",
+   "value": 10,
+   "duration": 120
+  },
+  {
+   "id": "picnic",
+   "name": "Lovely picnic",
+   "icon": "🧺",
+   "value": 12,
+   "duration": 180
   }
  ]
 }

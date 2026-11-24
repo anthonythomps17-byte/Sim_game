@@ -6,6 +6,7 @@ import { MeshBuilder } from '@babylonjs/core/Meshes/meshBuilder';
 import { Matrix, Quaternion, Vector3 } from '@babylonjs/core/Maths/math.vector';
 import { Color3, Color4 } from '@babylonjs/core/Maths/math.color';
 import { PointLight } from '@babylonjs/core/Lights/pointLight';
+import { TransformNode } from '@babylonjs/core/Meshes/transformNode';
 import { StandardMaterial } from '@babylonjs/core/Materials/standardMaterial';
 import type { ShadowGenerator } from '@babylonjs/core/Lights/Shadows/shadowGenerator';
 import type { Light } from '@babylonjs/core/Lights/light';
@@ -95,7 +96,12 @@ export class LotView {
     this.weedMesh.thinInstanceRefreshBoundingInfo(false);
   }
 
-  constructor(private scene: Scene, private mats: Materials, private shadows: () => ShadowGenerator | null, private addLight: (l: Light) => void, private removeLight: (l: Light) => void) {
+  /** Everything this view draws hangs off here, so a whole map can sit somewhere else in the world. */
+  readonly root: TransformNode;
+
+  constructor(private scene: Scene, private mats: Materials, private shadows: () => ShadowGenerator | null, private addLight: (l: Light) => void, private removeLight: (l: Light) => void, origin = { x: 0, z: 0 }) {
+    this.root = new TransformNode('mapRoot', scene);
+    this.root.position.set(origin.x, 0, origin.z);
     this.ghostMat = new StandardMaterial('ghostOk', scene);
     this.ghostMat.diffuseColor = new Color3(0.5, 1, 0.6);
     this.ghostMat.emissiveColor = new Color3(0.1, 0.35, 0.15);
@@ -118,8 +124,14 @@ export class LotView {
     this.outline = this.grid;
   }
 
-  init(lot: Lot) {
+  init(lot: Lot, buildable = true) {
     this.lot = lot;
+    if (!buildable) {
+      for (const v of this.objects.values()) this.disposeObject(v);
+      this.objects.clear();
+      this.version = -1;
+      return;
+    }
     this.grid.dispose();
     const lines: Vector3[][] = [];
     for (let x = 0; x <= lot.width; x++) lines.push([new Vector3(x, 0.03, 0), new Vector3(x, 0.03, lot.depth)]);
@@ -182,6 +194,7 @@ export class LotView {
     let set = this.wallSets.get(base);
     if (set) return set;
     const mesh = MeshBuilder.CreateBox('w_' + base, { size: 1 }, this.scene);
+    mesh.parent = this.root;
     if (base.startsWith('paint:')) {
       const p = PAINTS[base.slice(6)] ?? PAINTS.plaster;
       mesh.material = this.mats.pattern('wall_' + p.id, p.pattern, p.color, 1, WALL_H);
@@ -243,6 +256,7 @@ export class LotView {
       if (!set) {
         const def = FLOORS[f];
         const mesh = MeshBuilder.CreateGround('f_' + f, { width: 1, height: 1 }, this.scene);
+        mesh.parent = this.root;
         mesh.material = this.mats.pattern('floor_' + f, def?.pattern, def?.color ?? '#999', 1);
         mesh.receiveShadows = true;
         mesh.isPickable = false;
@@ -315,6 +329,7 @@ export class LotView {
     const built = buildModel(this.scene, this.mats, def, o, `obj${o.id}`);
     const meta = { kind: 'object', id: o.id };
     built.root.metadata = meta;
+    built.root.parent = this.root;
     for (const g of built.glow) g.metadata = { ...meta, glowKind: g.metadata?.glowKind };
     if (built.glass) built.glass.metadata = meta;
     built.root.receiveShadows = true;
@@ -328,6 +343,7 @@ export class LotView {
       light.range = def.light.range;
       light.intensity = 0;
       light.metadata = { height: h };
+      light.parent = this.root;
       this.addLight(light);
     }
     return { root: built.root, glow: built.glow, key, light, obj: o };

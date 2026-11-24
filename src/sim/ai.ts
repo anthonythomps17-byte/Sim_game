@@ -1,5 +1,6 @@
 // Free will: every object advertises what it offers and each idle Sim picks a high-scoring option.
 // score = Σ need gain × urgency × trait modifiers ÷ walking distance, then pick from the top 3.
+import { DESTINATIONS } from './town';
 import { ALL_TRAITS, ASPIRATIONS, OBJECTS, SELF_ACTIONS, SOCIALS, type Effects } from './defs';
 import type { Game } from './game';
 import { objectCenter } from './lot';
@@ -62,7 +63,8 @@ export function scoreOptions(game: Game, sim: Sim): Option[] {
   const now = game.state.time;
   partyNow = partyActive(game);
 
-  for (const obj of game.state.lot.objects) {
+  const area = game.areaOf(sim);
+  for (const obj of game.areaLot(area).objects) {
     const def = OBJECTS[obj.defId];
     if (!def.interactions.length) continue;
     const retry = game.unreachable.get(`${sim.id}:${obj.id}`);
@@ -109,6 +111,7 @@ export function scoreOptions(game: Game, sim: Sim): Option[] {
   // Self actions.
   for (const self of Object.values(SELF_ACTIONS)) {
     if (self.auto === false || self.ui) continue;
+    if (area === 'town' && !TOWN_SELF.has(self.id)) continue;
     if (self.special === 'callFriend' && !game.isHousehold(sim)) continue;
     if (self.condition === 'dusty' && (!game.isHousehold(sim) || game.state.household.dust < 35)) continue;
     if (self.condition === 'weedy' && (!game.isHousehold(sim) || game.state.household.weeds < 35)) continue;
@@ -124,8 +127,11 @@ export function scoreOptions(game: Game, sim: Sim): Option[] {
     if (score > 0.5) options.push({ action: { kind: 'self', selfId: self.id, label: self.name, icon: self.icon, userQueued: false }, score, label: self.name });
   }
 
+  // Off to the park or the café, or home again.
+  if (game.isHousehold(sim) && game.state.town) townOptions(game, sim, area, options, lowOnly);
+
   // Fuss and play with pets.
-  for (const pet of petsOnLot(game)) {
+  for (const pet of area === 'home' ? petsOnLot(game) : []) {
     if (pet.task?.kind === 'withSim') continue;
     const dist = Math.hypot(pet.pos.x - sim.pos.x, pet.pos.z - sim.pos.z);
     for (const { def, ok } of petActionsFor(game, sim, pet)) {
@@ -141,7 +147,7 @@ export function scoreOptions(game: Game, sim: Sim): Option[] {
   }
 
   // Socials with other Sims on the lot.
-  for (const other of game.simsOnLot()) {
+  for (const other of game.simsIn(area)) {
     if (other.id === sim.id) continue;
     if (other.current?.anim === 'sleep' || other.current?.userQueued) continue;
     const rel = findRel(game.state, sim.id, other.id);
@@ -166,8 +172,39 @@ export function scoreOptions(game: Game, sim: Sim): Option[] {
   return options.sort((a, b) => b.score - a.score);
 }
 
+/** Things a Sim can do on their own while out: no hoovering the park. */
+const TOWN_SELF = new Set(['daydream', 'stretch', 'phone', 'scroll']);
+
+function townOptions(game: Game, sim: Sim, area: 'home' | 'town', options: Option[], lowOnly: boolean): void {
+  const st = game.state;
+  const hour = game.hour;
+  if (area === 'home') {
+    // A trip out now and then, in the daytime, when bored or lonely.
+    if (hour < 9 || hour >= 19 || lowOnly) return;
+    if (sim.counters.tripDay === game.day) return;
+    if (sim.needs.energy < 40 || sim.needs.bladder < 40 || sim.needs.hunger < 35) return;
+    const score = effectsUtility(sim, { fun: 30, social: 30 }) * 0.45;
+    if (score < 6) return;
+    const where = random(st) < 0.6 ? DESTINATIONS.park : DESTINATIONS.cafe;
+    options.push({ action: { kind: 'goto', area: 'town', dest: where.tile, label: `Go to ${where.name}`, icon: where.icon, userQueued: false }, score, label: where.name });
+    return;
+  }
+  // Out and about: head home when tired, grubby, late, or after a good while.
+  const out = st.time - (sim.counters.leftHomeAt ?? st.time);
+  let score = 0;
+  if (sim.needs.energy < 35) score += 30;
+  if (sim.needs.hygiene < 30) score += 20;
+  if (hour >= 20 || hour < 7) score += 35;
+  if (out > 180) score += 12 + (out - 180) / 10;
+  if (score > 0) {
+    const e = game.exitTile();
+    options.push({ action: { kind: 'goto', area: 'home', dest: { x: e.x, z: e.z + 2 }, label: 'Go home', icon: '🏠', userQueued: false }, score, label: 'Go home' });
+  }
+}
+
 export function chooseAutonomous(game: Game, sim: Sim): Omit<QueuedAction, 'uid'> | null {
   if (game.isHousehold(sim) && game.state.settings.freeWill === 'off') return null;
+  if (game.isHousehold(sim) && (sim.manualUntil ?? 0) > game.state.time) return null;
   const options = scoreOptions(game, sim);
   if (!options.length) return null;
   // Pick from the top 3, weighted by score, so Sims don't feel robotic.

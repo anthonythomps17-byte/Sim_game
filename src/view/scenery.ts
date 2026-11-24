@@ -14,6 +14,7 @@ import { Color3 } from '@babylonjs/core/Maths/math.color';
 import '@babylonjs/core/Meshes/thinInstanceMesh';
 import { ModelBuilder } from './models';
 import type { Materials } from './materials';
+import { CAFE, PARK, parkTrees, streets } from '../sim/town';
 
 const BRICKS = ['#a14b35', '#9a4431', '#ad5640', '#8f3f2d', '#b05a43', '#c0b6a4'];
 const DOORS = ['#2f5d50', '#3b4ba8', '#7a2b2b', '#2d3037', '#c9a227', '#5c3a6e'];
@@ -23,33 +24,6 @@ export interface Scenery { ground: Mesh; lotGround: Mesh; trees: Record<SeasonKe
 
 type P = [number, number]; // [x, z]
 
-interface StreetDef { name: string; points: P[]; width: number; houses: boolean; sign?: P }
-
-/** The street plan. */
-function streets(lotD: number): StreetDef[] {
-  return [
-    // The lot's own street, from the north-east terraces to the wide road in the south.
-    { name: 'Larkfield Close', points: [[-70, -4.5], [52, -4.5]], width: 4.5, houses: true, sign: [-12, -1.4] },
-    // Crossing road just north of the lot, from the avenue to the main road.
-    { name: 'Wellbrook Road', points: [[-16, -32], [-16, 70]], width: 5, houses: true, sign: [-19.5, 3] },
-    // Avenue to the west, beside the park.
-    { name: 'Maple Avenue', points: [[-125, -32], [52, -32], [110, -36]], width: 5, houses: true, sign: [-12, -28] },
-    // Curving main road to the east.
-    { name: 'Mill Lane', points: [[115, 68], [52, 70], [-16, 68], [-62, 52], [-125, 34]], width: 7, houses: true, sign: [-12, 64] },
-    // Wide road to the south.
-    { name: 'Heath Road', points: [[52, -130], [52, 130]], width: 7, houses: true, sign: [48, 3] },
-    // A street of terraces to the north.
-    { name: 'Cobden Street', points: [[-66, -32], [-70, 56]], width: 4.5, houses: true },
-    // Diagonal road through the north-west.
-    { name: 'Victoria Road', points: [[-125, -105], [-16, -32]], width: 6, houses: true },
-    // Curving road further south.
-    { name: 'Rowan Crescent', points: [[80, -130], [92, -60], [100, 0], [108, 40]], width: 5, houses: true },
-    // Lane beside the lot.
-    { name: '', points: [[24.5, 1], [24.5, 50], [52, 50]], width: 2.6, houses: false },
-    // Back alley along the lot's rear.
-    { name: '', points: [[-14, lotD + 3], [52, lotD + 3]], width: 2.6, houses: false },
-  ];
-}
 
 /** Coarse occupancy grid (1 m) that stops houses overlapping roads, the park, the school and each other. */
 class Occupancy {
@@ -204,7 +178,9 @@ export function buildScenery(scene: Scene, mats: Materials, lotW: number, lotD: 
 
   // ---------- Park (west) and school (south-east) ----------
   const flat = new ModelBuilder(scene);
-  const park = { x0: -64, x1: 18, z0: -118, z1: -38 };
+  const park = PARK;
+  // The café on the corner of Wellbrook Road and Maple Avenue (drawn by the town view).
+  occ.rect((CAFE.x0 + CAFE.x1) / 2, (CAFE.z0 + CAFE.z1) / 2, (CAFE.x1 - CAFE.x0) / 2 + 1.5, (CAFE.z1 - CAFE.z0) / 2 + 1.5, 0, true);
   flat.box(park.x1 - park.x0, 0.02, park.z1 - park.z0, '#78b552', (park.x0 + park.x1) / 2, 0.005, (park.z0 + park.z1) / 2);
   occ.rect((park.x0 + park.x1) / 2, (park.z0 + park.z1) / 2, (park.x1 - park.x0) / 2, (park.z1 - park.z0) / 2, 0, true);
   const pathPts: P[] = [[16, -40], [0, -55], [-20, -60], [-35, -80], [-30, -100], [-10, -108], [5, -95], [0, -75], [-20, -60]];
@@ -326,11 +302,7 @@ export function buildScenery(scene: Scene, mats: Materials, lotW: number, lotD: 
   // ---------- Trees (thin instances, tinted by season) ----------
   const treeMats: Matrix[] = [];
   const addTree = (x: number, z: number, s: number) => treeMats.push(Matrix.Compose(new Vector3(s, s, s), Quaternion.RotationYawPitchRoll(x * 0.37, 0, 0), new Vector3(x, 0, z)));
-  for (let i = 0; i < 46; i++) {
-    const x = park.x0 + 4 + ((i * 37) % (park.x1 - park.x0 - 8));
-    const z = park.z0 + 4 + ((i * 53) % (park.z1 - park.z0 - 8));
-    addTree(x, z, 0.8 + ((i * 13) % 7) * 0.08);
-  }
+  for (const t of parkTrees()) addTree(t.x, t.z, t.s);
   for (const [x, z, s] of [[-4, -1.2, 0.8], [26, -1.0, 0.9], [-3, 16, 1.1], [90, 74, 1.1], [60, 108, 1.0], [94, 110, 1.2], [-14, 30, 1.0], [28, 30, 0.9]] as const) addTree(x, z, s);
   // One tree model per season; the view shows the right one.
   const trees = {} as Record<SeasonKey, Mesh>;
@@ -353,5 +325,6 @@ export function buildScenery(scene: Scene, mats: Materials, lotW: number, lotD: 
   addSign(scene, mats, 'Ashton-in-Makerfield', -6, -1.0, 0, meshes, 3);
   addSign(scene, mats, 'Hillcrest Primary School', 70, 69, 0, meshes, 3.6, true);
   addSign(scene, mats, 'Town Green Park', 17, -40, -Math.PI / 2, meshes, 3);
+  addSign(scene, mats, 'Town Green Café', CAFE.x1 + 0.15, (CAFE.z0 + CAFE.z1) / 2 - 2.6, Math.PI / 2, meshes, 2.8);
   return { ground, lotGround, trees, lampPositions: lamps, meshes };
 }

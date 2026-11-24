@@ -1,4 +1,5 @@
 // Saving is just JSON. Storage (IndexedDB) lives in src/platform so the core stays testable.
+import { createTown, TOWN_VERSION } from './town';
 import { SAVE_VERSION } from './newgame';
 import { OBJECTS } from './defs';
 import type { GameState } from './types';
@@ -16,6 +17,8 @@ export function serialize(state: GameState): string {
     sim.anim = 'idle';
   }
   for (const obj of copy.lot.objects) obj.users = obj.users.map(() => null);
+  for (const obj of copy.town?.objects ?? []) obj.users = obj.users.map(() => null);
+  for (const sim of copy.sims) sim.steer = null;
   const file: SaveFile = { app: 'ashton-life', version: SAVE_VERSION, savedAt: new Date().toISOString(), state: copy };
   return JSON.stringify(file);
 }
@@ -55,6 +58,15 @@ export function deserialize(text: string): GameState {
   st.pets ??= [];
   for (const p of st.pets) { p.task = null; p.poo ??= 20; }
   st.household.cleanClothes ??= st.household.memberIds.length * 5;
+  if (!st.town || st.town.version !== TOWN_VERSION) {
+    st.town = createTown(st);
+    // Anyone out in an older town comes home.
+    for (const s of st.sims) if (s.location === 'town') { s.location = s.isTownie ? 'home' : 'lot'; s.pos = { x: 7.5, z: 1.5 }; }
+  }
+  for (const o of st.town.objects) {
+    const n = OBJECTS[o.defId]?.spots.length ?? 0;
+    if (!Array.isArray(o.users) || o.users.length !== n) o.users = new Array(n).fill(null);
+  }
   st.household.petTreats ??= 0;
   st.household.neighbourMood ??= 80;
   st.household.nextDoorId ??= st.sims.find((s) => s.isTownie)?.id ?? 0;

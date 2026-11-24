@@ -14,7 +14,9 @@ import { activePlayer, canControl, familyOn, ownerOf } from '../sim/family';
 import { GuestSession, HostSession, type Device, type OnlineSession } from '../net/online';
 import { OnlineUi } from './online';
 import { PhoneUi } from './phone';
+import { WalkMode } from './walk';
 import { randomCode } from '../net/relay';
+import { DESTINATIONS, TOWN_D, TOWN_ORIGIN, TOWN_W, townMask } from '../sim/town';
 import type { GameEvent, GameState, QueuedAction, Sim } from '../sim/types';
 import { WorldView } from '../view/world';
 import { CasView } from '../view/casView';
@@ -61,6 +63,7 @@ export class App {
   readonly tutorial: Tutorial;
   readonly onlineUi: OnlineUi;
   readonly phone: PhoneUi;
+  readonly walk: WalkMode;
   private playLayer: HTMLElement;
   private hudTimer = 0;
   private lastSave = 0;
@@ -87,7 +90,8 @@ export class App {
     this.tutorial = new Tutorial(this);
     this.onlineUi = new OnlineUi(this);
     this.phone = new PhoneUi(this);
-    this.playLayer = h('div', { class: 'passthrough', style: 'position:absolute;inset:0' }, this.hud.el, this.buy.el, this.build.el, this.tutorial.el);
+    this.walk = new WalkMode(this);
+    this.playLayer = h('div', { class: 'passthrough', style: 'position:absolute;inset:0' }, this.hud.el, this.walk.el, this.buy.el, this.build.el, this.tutorial.el);
     document.title = GAME_TITLE;
     this.applySettings();
 
@@ -127,8 +131,9 @@ export class App {
       speed = this.mode === 'live' && !this.pausedByMenu ? st.speed : 0;
       const members = game.household();
       // Skip ahead while everyone is out (and, if chosen in Settings, while everyone sleeps).
-      const allAway = members.length > 0 && members.every((s) => s.location !== 'lot');
-      const allAsleep = members.length > 0 && members.every((s) => s.location !== 'lot' || (s.current?.anim === 'sleep' && s.current.phase === 'perform'));
+      const gone = (s: Sim) => s.location === 'work' || s.location === 'away';
+      const allAway = members.length > 0 && members.every(gone);
+      const allAsleep = members.length > 0 && members.every((s) => gone(s) || (s.current?.anim === 'sleep' && s.current.phase === 'perform'));
       this.fastForward = speed > 0 && (allAway || (this.settings.skipSleep && allAsleep));
       if (this.fastForward) speed *= 8;
       if (speed > 0) game.tick(dt * speed * gameMinutesPerSecond(game.minuteOfDay));
@@ -136,6 +141,7 @@ export class App {
       online?.frame(dt, speed);
     }
     this.world.setSelected(st.selectedSimId);
+    this.walk.frame(dt);
     this.world.frame(dt, speed);
     this.hud.frame();
     this.hudTimer -= dt;
@@ -364,12 +370,14 @@ export class App {
    * here. In family mode, members spend from a weekly allowance and a money manager approves
    * anything bigger (or household decisions like bills and pets).
    */
-  async act(cmd: Cmd, spend?: Spend): Promise<CmdResult> {
+  async act(cmd: Cmd, spend?: Spend, quiet = false): Promise<CmdResult> {
     const game = this.game;
     if (!game) return { ok: false };
     let res: CmdResult;
     const online = this.online;
     if (online?.role === 'guest') {
+      // Walking responds straight away here; the host's copy follows.
+      if (cmd.t === 'steer') runCommand(game, cmd);
       res = await online.run(cmd, spend);
     } else if (online?.role === 'host') {
       res = online.run(cmd, spend, null, 'host');
@@ -381,6 +389,7 @@ export class App {
       }
       this.flushEvents();
     }
+    if (quiet) { if (!res.ok && res.why && cmd.t !== 'steer') this.showResult(res); return res; }
     this.showResult(res);
     this.hud.refresh();
     return res;
@@ -421,9 +430,8 @@ export class App {
     const game = this.game;
     const sim = game?.sim(id);
     if (!game || !sim) return;
-    if (game.state.selectedSimId === id && focus && sim.location === 'lot') this.world.cam.focus(sim.pos.x, sim.pos.z);
     game.state.selectedSimId = id;
-    if (focus && sim.location === 'lot') this.world.cam.focus(sim.pos.x, sim.pos.z);
+    if (focus && game.present(sim)) { const w = this.world.worldPos(sim); this.world.cam.focus(w.x, w.z); }
     const owner = ownerOf(game.state, sim.id);
     if (owner && !canControl(game.state, sim)) this.toast(`${sim.name.split(' ')[0]} belongs to ${owner.name}. You can watch, but only ${owner.name} can give instructions.`, '👤');
     if (sim.location === 'work') this.toast(`${sim.name} is at work.`, '💼');
@@ -444,7 +452,7 @@ export class App {
       this.toast(`${sim.name.split(' ')[0]} is ${owner?.name}'s Sim. ${this.online?.role === 'guest' ? `Only ${owner?.name} can play them.` : `Switch to ${owner?.name} to play them.`}`, '👤');
       return;
     }
-    if (sim.location !== 'lot') { this.toast(`${sim.name} isn't home right now.`, '🚶'); return; }
+    if (!this.game.present(sim)) { this.toast(`${sim.name} isn't around right now.`, '🚶'); return; }
     void this.act({ t: 'queue', simId: sim.id, action: { ...action, userQueued: true } }, spend);
   }
 
@@ -535,9 +543,17 @@ export class App {
       if (!g) return;
       const tx = Math.floor(g.x), tz = Math.floor(g.z);
       const lot = game.state.lot;
-      if (tx < 0 || tz < 0 || tx >= lot.width || tz >= lot.depth) return;
+      let dest: { x: number; z: number; area: 'home' | 'town' } | null = null;
+      if (tx >= 0 && tz >= 0 && tx < lot.width && tz < lot.depth) dest = { x: tx, z: tz, area: 'home' };
+      else if (game.state.town) {
+        // Out in the street or the park.
+        const lx = tx - TOWN_ORIGIN.x, lz = tz - TOWN_ORIGIN.z;
+        if (lx >= 0 && lz >= 0 && lx < TOWN_W && lz < TOWN_D && townMask()[lz * TOWN_W + lx]) dest = { x: lx, z: lz, area: 'town' };
+      }
+      if (!dest) return;
+      const d = dest;
       showRadial(this.root, x, y, sel.name.split(' ')[0], [
-        { icon: '📍', label: 'Go here', onPick: () => this.queue(sel, { kind: 'goto', dest: { x: tx, z: tz }, label: 'Go here', icon: '📍', userQueued: true }) },
+        { icon: '📍', label: 'Go here', onPick: () => this.queue(sel, { kind: 'goto', dest: { x: d.x, z: d.z }, area: d.area, label: 'Go here', icon: '📍', userQueued: true }) },
       ]);
     }
   }
@@ -599,8 +615,10 @@ export class App {
     if (!target) return;
     const options: RadialOption[] = [];
     if (sel && target.id === sel.id) {
+      const out = sel.location === 'town';
       for (const s of Object.values(SELF_ACTIONS)) {
         const hh = game.state.household;
+        if (out && !['daydream', 'stretch', 'invite', 'party'].includes(s.id)) continue;
         if (s.condition === 'dusty' && hh.dust < 15) continue;
         if (s.condition === 'weedy' && hh.weeds < 15) continue;
         if (PHONE_ONLY.has(s.id)) continue; // these live in the 📱 Phone
@@ -610,14 +628,22 @@ export class App {
         });
       }
       options.push({ icon: '📱', label: 'Phone', onPick: () => this.phone.open(sel) });
-      options.push({ icon: '🌳', label: 'Go for a walk', onPick: () => this.queueOuting(sel, 'walk') });
-      options.push({ icon: '🚶', label: 'Go out…', onPick: () => this.panels.outings(sel) });
+      if (game.state.town) {
+        for (const d of Object.values(DESTINATIONS)) {
+          options.push({ icon: d.icon, label: `Go to ${d.id === 'park' ? 'the park' : 'the café'}`, onPick: () => this.queue(sel, { kind: 'goto', area: 'town', dest: d.tile, label: `Go to ${d.name}`, icon: d.icon, userQueued: true }) });
+        }
+        if (out) {
+          const e = game.exitTile();
+          options.push({ icon: '🏠', label: 'Go home', onPick: () => this.queue(sel, { kind: 'goto', area: 'home', dest: { x: e.x, z: e.z + 2 }, label: 'Go home', icon: '🏠', userQueued: true }) });
+        }
+      }
+      if (!out) options.push({ icon: '🚶', label: 'Go out…', onPick: () => this.panels.outings(sel) });
       options.push({ icon: 'ℹ️', label: 'About', onPick: () => this.panels.simInfo(sel) });
       showRadial(this.root, x, y, sel.name.split(' ')[0], options);
       return;
     }
     if (game.isHousehold(target)) options.push({ icon: '👆', label: `Control ${target.name.split(' ')[0]}`, onPick: () => this.selectSim(target.id, false) });
-    if (sel && sel.location === 'lot') {
+    if (sel && game.sameArea(sel, target)) {
       for (const { def, avail } of availableSocials(game, sel, target)) {
         options.push({
           icon: def.icon, label: def.name, disabled: !avail.ok, why: avail.reason,

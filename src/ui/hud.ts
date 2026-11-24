@@ -38,6 +38,7 @@ export class Hud {
   private bubblesEl!: HTMLElement;
   private modeBtns: Record<string, HTMLElement> = {};
   private wallBtn!: HTMLElement;
+  private walkBtn!: HTMLElement;
   private tab: Tab = 'needs';
   private collapsed = false;
   private sigs = new Map<string, string>();
@@ -81,6 +82,7 @@ export class Hud {
     this.wallBtn = h('button', { class: 'btn', title: 'Walls up / cutaway / down', onclick: () => app.cycleWalls() });
     const camtools = h('div', { class: 'camtools' },
       this.wallBtn,
+      this.walkBtn = h('button', { class: 'btn walk-btn', 'aria-label': 'Walk mode (joystick)', title: 'Walk mode: steer your Sim', onclick: () => app.walk.toggle() }, '🕹️'),
       h('button', { class: 'btn', 'aria-label': 'Rotate left', onclick: () => app.world.cam.rotateBy(Math.PI / 4) }, '⟲'),
       h('button', { class: 'btn', 'aria-label': 'Rotate right', onclick: () => app.world.cam.rotateBy(-Math.PI / 4) }, '⟳'),
       h('button', { class: 'btn', 'aria-label': 'Tilt', onclick: () => app.world.cam.tiltBy(app.world.cam.beta > 0.8 ? -0.5 : 0.5) }, '⤢'),
@@ -98,6 +100,12 @@ export class Hud {
     this.queueEl.style.display = live ? '' : 'none';
     this.portraitsEl.style.display = live ? '' : 'none';
     this.bubblesEl.style.display = live ? '' : 'none';
+  }
+
+  setWalk(on: boolean) {
+    this.walkBtn.classList.toggle('on', on);
+    this.el.classList.toggle('walking', on);
+    if (on && window.innerWidth <= 760) { this.collapsed = true; this.sigs.clear(); this.refresh(); }
   }
 
   setWallLabel(mode: string) {
@@ -189,7 +197,7 @@ export class Hud {
     clear(this.portraitsEl);
     for (const sim of sims) {
       const mood = moodLabel(moodScore(sim));
-      const away = sim.location !== 'lot';
+      const away = sim.location === 'work' || sim.location === 'away';
       const p = h('button', {
         class: `portrait ${sim.id === game.state.selectedSimId ? 'sel' : ''} ${away ? 'away' : ''}`,
         style: `background:${sim.appearance.topColor};${ownerOf(game.state, sim.id) ? `border-color:${ownerOf(game.state, sim.id)!.color}` : ''}`,
@@ -198,7 +206,7 @@ export class Hud {
       },
         initials(sim.name),
         h('span', { class: 'mood' }, mood.emoji),
-        sim.location === 'work' ? h('span', { class: 'act' }, '💼') : sim.location === 'away' ? h('span', { class: 'act' }, '🚶') : sim.current ? h('span', { class: 'act' }, sim.current.icon) : null,
+        sim.location === 'work' ? h('span', { class: 'act' }, '💼') : sim.location === 'away' ? h('span', { class: 'act' }, '🚶') : sim.current ? h('span', { class: 'act' }, sim.current.icon) : sim.location === 'town' ? h('span', { class: 'act' }, '🌳') : null,
       );
       this.portraitsEl.append(p);
     }
@@ -219,7 +227,7 @@ export class Hud {
       clear(this.panelEl);
       this.panelEl.classList.toggle('collapsed', this.collapsed);
       const job = sim.career ? `${CAREERS[sim.career.id].levels[sim.career.level].title}` : 'No job yet';
-      const where = sim.location === 'work' ? ' · at work' : sim.location === 'away' ? ' · out and about' : '';
+      const where = sim.location === 'work' ? ' · at work' : sim.location === 'away' ? ' · out and about' : sim.location === 'town' ? ' · out in town' : '';
       const head = h('div', { class: 'sp-head', onclick: () => { this.collapsed = !this.collapsed; this.sigs.clear(); this.refresh(); } },
         h('div', null, h('div', { class: 'sp-name' }, sim.name), h('div', { class: 'sp-sub' }, job + where)),
         h('div', { class: 'sp-mood', style: `color:${mood.color}` }, h('span', { class: 'em' }, mood.emoji), mood.label),
@@ -357,7 +365,7 @@ export class Hud {
 
   private renderQueue() {
     const sim = this.selected();
-    if (!sim || sim.location !== 'lot') { clear(this.queueEl); this.sigs.delete('queue'); return; }
+    if (!sim || (sim.location !== 'lot' && sim.location !== 'town')) { clear(this.queueEl); this.sigs.delete('queue'); return; }
     const cur = sim.current;
     const prog = cur && cur.phase === 'perform' && cur.duration > 0 ? Math.round((cur.elapsed / cur.duration) * 10) : 0;
     const sig = [cur ? `${cur.uid}:${prog}` : '', ...sim.queue.map((q) => q.uid)].join(',');
@@ -379,7 +387,8 @@ export class Hud {
     if (!game || this.app.mode !== 'live') return;
     const world = this.app.world;
     const seen = new Set<number>();
-    for (const sim of game.simsOnLot()) {
+    for (const sim of game.state.sims) {
+      if (!game.present(sim)) continue;
       const pos = world.simScreenPos(sim.id);
       if (!pos || !pos.visible) continue;
       seen.add(sim.id);
@@ -394,7 +403,7 @@ export class Hud {
       if (b.b.textContent !== icon) b.b.textContent = icon;
       b.b.style.display = icon ? '' : 'none';
       b.b.style.transform = `translate(${pos.x}px, ${pos.y}px) translate(-50%, -100%)`;
-      const label = sim.isTownie ? sim.name.split(' ')[0] + ' 🏠' : sel ? '' : sim.name.split(' ')[0];
+      const label = sim.isTownie ? sim.name.split(' ')[0] + (sim.location === 'lot' ? ' 🏠' : '') : sel ? '' : sim.name.split(' ')[0];
       if (b.n.textContent !== label) b.n.textContent = label;
       b.n.style.display = label ? '' : 'none';
       b.n.style.transform = `translate(${pos.x}px, ${pos.y + 4}px) translate(-50%, 0)`;

@@ -31,13 +31,15 @@ export interface InteractionDef {
   condition?: 'dirty' | 'grown' | 'growing' | 'empty' | 'bills' | 'lightOn' | 'lightOff' | 'night'
     | 'once' | 'uncarved' | 'carved' | 'nightOnce' | 'canDrive'
     | 'notWinter' | 'broken' | 'working' | 'netflix' | 'sky' | 'binsIn' | 'binsBack' | 'overflowing'
-    | 'laundry' | 'wetWashing' | 'canHang' | 'dryWashing' | 'dirtyClothes' | 'hasTreats'
+    | 'laundry' | 'wetWashing' | 'canHang' | 'dryWashing' | 'dirtyClothes' | 'hasTreats' | 'cafeOpen' | 'iceCream'
     | 'hasPet' | 'petHungry' | 'cageDirty' | 'bowlLow';
   /** Groceries used from the household's food supply. */
   food?: number;
   dirties?: number; cleans?: boolean; cleansRoom?: boolean;
   seatNear?: boolean; shared?: boolean; seated?: boolean; poseless?: boolean;
   then?: FollowUpDef;
+  /** Costs the household this much (café, ice cream van). */
+  price?: number;
   special?: string;
   ui?: string;
 }

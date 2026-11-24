@@ -71,6 +71,12 @@
    "name": "Mess",
    "icon": "💩",
    "hidden": true
+  },
+  {
+   "id": "town",
+   "name": "Town",
+   "icon": "🏙️",
+   "hidden": true
   }
  ],
  "objects": [
@@ -4173,6 +4179,491 @@
      ]
     }
    ]
+  },
+  {
+   "id": "cafe_counter",
+   "name": "Café Counter",
+   "category": "town",
+   "price": 0,
+   "footprint": [
+    3,
+    1
+   ],
+   "decor": 3,
+   "description": "Coffee, cake and a friendly chat. Open 7am–7pm.",
+   "spots": [
+    {
+     "at": [
+      0,
+      1
+     ]
+    },
+    {
+     "at": [
+      1,
+      1
+     ]
+    },
+    {
+     "at": [
+      2,
+      1
+     ]
+    }
+   ],
+   "interactions": [
+    {
+     "id": "coffee",
+     "name": "Order a coffee (£3)",
+     "icon": "☕",
+     "duration": 4,
+     "anim": "talk",
+     "condition": "cafeOpen",
+     "price": 3,
+     "visitor": true,
+     "effects": {
+      "social": 5
+     },
+     "then": {
+      "label": "Drink coffee",
+      "anim": "eat",
+      "duration": 25,
+      "effects": {
+       "energy": 25,
+       "fun": 10,
+       "social": 5
+      },
+      "moodlet": "cafe_treat"
+     }
+    },
+    {
+     "id": "cake",
+     "name": "Tea and cake (£5)",
+     "icon": "🍰",
+     "duration": 4,
+     "anim": "talk",
+     "condition": "cafeOpen",
+     "price": 5,
+     "visitor": true,
+     "effects": {
+      "social": 5
+     },
+     "then": {
+      "label": "Tea and cake",
+      "anim": "eat",
+      "duration": 30,
+      "effects": {
+       "hunger": 40,
+       "fun": 15,
+       "comfort": 5
+      },
+      "moodlet": "cafe_treat"
+     }
+    },
+    {
+     "id": "cocoa",
+     "name": "Hot chocolate (£3)",
+     "icon": "🍫",
+     "duration": 4,
+     "anim": "talk",
+     "condition": "cafeOpen",
+     "price": 3,
+     "visitor": true,
+     "effects": {
+      "social": 5
+     },
+     "then": {
+      "label": "Hot chocolate",
+      "anim": "eat",
+      "duration": 25,
+      "effects": {
+       "fun": 15,
+       "comfort": 15,
+       "hunger": 10
+      },
+      "moodlet": "cafe_treat"
+     }
+    },
+    {
+     "id": "breakfast",
+     "name": "Full English breakfast (£8)",
+     "icon": "🍳",
+     "duration": 5,
+     "anim": "talk",
+     "condition": "cafeOpen",
+     "price": 8,
+     "visitor": true,
+     "effects": {
+      "social": 5
+     },
+     "then": {
+      "label": "Big breakfast",
+      "anim": "eat",
+      "duration": 40,
+      "effects": {
+       "hunger": 90,
+       "energy": 10,
+       "fun": 5
+      },
+      "moodlet": "great_meal"
+     }
+    }
+   ]
+  },
+  {
+   "id": "cafe_shelf",
+   "name": "Café Shelves",
+   "category": "town",
+   "price": 0,
+   "footprint": [
+    3,
+    1
+   ],
+   "decor": 2,
+   "description": "Mugs, jars of biscuits and a big coffee machine.",
+   "spots": [],
+   "interactions": []
+  },
+  {
+   "id": "swings",
+   "name": "Swings",
+   "category": "town",
+   "price": 0,
+   "footprint": [
+    3,
+    1
+   ],
+   "decor": 2,
+   "seatHeight": 0.55,
+   "description": "Higher! Higher!",
+   "spots": [
+    {
+     "at": [
+      0,
+      1
+     ],
+     "pose": [
+      0.5,
+      0.5
+     ]
+    },
+    {
+     "at": [
+      2,
+      1
+     ],
+     "pose": [
+      2.5,
+      0.5
+     ]
+    }
+   ],
+   "interactions": [
+    {
+     "id": "swing",
+     "name": "Have a go on the swings",
+     "icon": "🛝",
+     "duration": 30,
+     "anim": "sit",
+     "seated": true,
+     "visitor": true,
+     "effects": {
+      "fun": 35
+     },
+     "tags": [
+      "outdoors",
+      "play"
+     ],
+     "moodlet": "playground_fun"
+    }
+   ]
+  },
+  {
+   "id": "slide",
+   "name": "Slide",
+   "category": "town",
+   "price": 0,
+   "footprint": [
+    1,
+    3
+   ],
+   "decor": 2,
+   "description": "Wheee!",
+   "spots": [
+    {
+     "at": [
+      0,
+      3
+     ]
+    }
+   ],
+   "interactions": [
+    {
+     "id": "slide",
+     "name": "Go down the slide",
+     "icon": "🛝",
+     "duration": 20,
+     "anim": "cheer",
+     "visitor": true,
+     "effects": {
+      "fun": 30,
+      "energy": -4
+     },
+     "tags": [
+      "outdoors",
+      "play"
+     ],
+     "moodlet": "playground_fun"
+    }
+   ]
+  },
+  {
+   "id": "picnic_table",
+   "name": "Picnic Table",
+   "category": "town",
+   "price": 0,
+   "footprint": [
+    2,
+    1
+   ],
+   "decor": 2,
+   "seatHeight": 0.45,
+   "description": "Sit down for a picnic or a natter in the sunshine.",
+   "spots": [
+    {
+     "at": [
+      0,
+      1
+     ],
+     "pose": [
+      0.5,
+      1.25
+     ],
+     "face": "in"
+    },
+    {
+     "at": [
+      1,
+      1
+     ],
+     "pose": [
+      1.5,
+      1.25
+     ],
+     "face": "in"
+    },
+    {
+     "at": [
+      0,
+      -1
+     ],
+     "pose": [
+      0.5,
+      -0.25
+     ],
+     "face": "out"
+    },
+    {
+     "at": [
+      1,
+      -1
+     ],
+     "pose": [
+      1.5,
+      -0.25
+     ],
+     "face": "out"
+    }
+   ],
+   "interactions": [
+    {
+     "id": "picnic",
+     "name": "Have a picnic",
+     "icon": "🧺",
+     "duration": 40,
+     "anim": "eat",
+     "seated": true,
+     "visitor": true,
+     "effects": {
+      "hunger": 35,
+      "fun": 15,
+      "social": 10,
+      "comfort": 10
+     },
+     "tags": [
+      "outdoors",
+      "food"
+     ],
+     "moodlet": "picnic"
+    },
+    {
+     "id": "sit",
+     "name": "Sit down",
+     "icon": "🪑",
+     "duration": 30,
+     "anim": "sit",
+     "seated": true,
+     "visitor": true,
+     "effects": {
+      "comfort": 30
+     }
+    }
+   ]
+  },
+  {
+   "id": "duck_pond",
+   "name": "Duck Pond",
+   "category": "town",
+   "price": 0,
+   "footprint": [
+    5,
+    4
+   ],
+   "decor": 4,
+   "description": "Home to a family of ducks (and one grumpy goose).",
+   "spots": [
+    {
+     "at": [
+      1,
+      4
+     ]
+    },
+    {
+     "at": [
+      3,
+      4
+     ]
+    },
+    {
+     "at": [
+      2,
+      -1
+     ]
+    },
+    {
+     "at": [
+      -1,
+      2
+     ]
+    },
+    {
+     "at": [
+      5,
+      2
+     ]
+    }
+   ],
+   "interactions": [
+    {
+     "id": "ducks",
+     "name": "Feed the ducks",
+     "icon": "🦆",
+     "duration": 20,
+     "anim": "garden",
+     "visitor": true,
+     "effects": {
+      "fun": 20,
+      "comfort": 10
+     },
+     "tags": [
+      "outdoors",
+      "nature"
+     ],
+     "moodlet": "fed_ducks"
+    },
+    {
+     "id": "look",
+     "name": "Watch the ducks",
+     "icon": "👀",
+     "duration": 20,
+     "anim": "idle",
+     "visitor": true,
+     "effects": {
+      "comfort": 15,
+      "fun": 8
+     },
+     "tags": [
+      "outdoors",
+      "nature"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "ice_cream_van",
+   "name": "Ice Cream Van",
+   "category": "town",
+   "price": 0,
+   "footprint": [
+    4,
+    2
+   ],
+   "decor": 3,
+   "description": "Plays a tune when it's open. 99s with a flake!",
+   "spots": [
+    {
+     "at": [
+      1,
+      2
+     ]
+    },
+    {
+     "at": [
+      2,
+      2
+     ]
+    }
+   ],
+   "interactions": [
+    {
+     "id": "icecream",
+     "name": "Buy an ice cream (£3)",
+     "icon": "🍦",
+     "duration": 4,
+     "anim": "talk",
+     "condition": "iceCream",
+     "price": 3,
+     "visitor": true,
+     "then": {
+      "label": "Eat an ice cream",
+      "anim": "eat",
+      "duration": 15,
+      "effects": {
+       "hunger": 12,
+       "fun": 20
+      },
+      "moodlet": "ice_cream"
+     }
+    }
+   ]
+  },
+  {
+   "id": "park_bin",
+   "name": "Park Bin",
+   "category": "town",
+   "price": 0,
+   "footprint": [
+    1,
+    1
+   ],
+   "decor": 0,
+   "description": "Bag it and bin it!",
+   "spots": [],
+   "interactions": []
+  },
+  {
+   "id": "flower_bed",
+   "name": "Flower Bed",
+   "category": "town",
+   "price": 0,
+   "footprint": [
+    3,
+    1
+   ],
+   "decor": 3,
+   "description": "Planted by the Friends of Town Green.",
+   "spots": [],
+   "interactions": []
   }
  ]
 }

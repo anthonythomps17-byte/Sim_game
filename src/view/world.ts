@@ -19,6 +19,7 @@ import '@babylonjs/core/Culling/ray';
 import type { Game } from '../sim/game';
 import type { Appearance } from '../sim/types';
 import { dirtStage } from '../sim/clothes';
+import { TOWN_ORIGIN } from '../sim/town';
 import { OBJECTS } from '../sim/defs';
 import { moodLabel, moodScore } from '../sim/mood';
 import type { Sim } from '../sim/types';
@@ -62,6 +63,8 @@ export class WorldView {
   private avatars = new Map<number, SimAvatar>();
   private petAvatars = new Map<number, PetAvatar>();
   private game: Game | null = null;
+  /** The park, café and streets. */
+  readonly townView: LotView;
   private time = 0;
   quality: Quality = 'medium';
   private lastNight: boolean | null = null;
@@ -107,6 +110,7 @@ export class WorldView {
     }
 
     this.lotView = new LotView(this.scene, this.mats, () => this.shadows, (l) => this.addLamp(l), (l) => this.removeLamp(l));
+    this.townView = new LotView(this.scene, this.mats, () => this.shadows, (l) => this.addLamp(l), (l) => this.removeLamp(l), TOWN_ORIGIN);
     const scenery = buildScenery(this.scene, this.mats, 22, 18);
     this.sky = new SkyEffects(this.scene);
     this.scenery = scenery;
@@ -147,7 +151,7 @@ export class WorldView {
       this.shadows.darkness = 0.35;
       for (const m of this.scene.meshes) {
         const k = m.metadata?.kind;
-        if ((k === 'object' && !m.parent) || k === 'sim' || k === 'wall') this.shadows.addShadowCaster(m);
+        if ((k === 'object' && (!m.parent || m.parent.name === 'mapRoot')) || k === 'sim' || k === 'wall') this.shadows.addShadowCaster(m);
       }
     }
     this.engine.resize();
@@ -160,8 +164,9 @@ export class WorldView {
     for (const a of this.petAvatars.values()) a.dispose();
     this.petAvatars.clear();
     this.lotView.init(game.state.lot);
+    if (game.state.town) this.townView.init(game.areaLot('town'), false);
     const lot = game.state.lot;
-    this.cam.bounds = { minX: -40, maxX: lot.width + 40, minZ: -45, maxZ: lot.depth + 40 };
+    this.cam.bounds = { minX: -66, maxX: lot.width + 40, minZ: -122, maxZ: lot.depth + 40 };
     this.cam.maxRadius = 70;
     this.cam.focus(lot.width / 2, lot.depth / 2 - 1);
   }
@@ -193,11 +198,16 @@ export class WorldView {
     const st = game.state;
     const night = game.isNight();
     const c = this.camera.position;
-    this.lotView.sync(st.lot, { x: c.x, z: c.z, tx: this.camera.target.x, tz: this.camera.target.z }, night, (x, z) => game.roomOf({ x, z }));
+    this.lotView.sync(st.lot, { x: c.x, z: c.z, tx: this.camera.target.x, tz: this.camera.target.z }, night, (x, z) => game.roomOf({ x, z }, 'home'));
+    if (st.town) {
+      const ox = TOWN_ORIGIN.x, oz = TOWN_ORIGIN.z;
+      this.townView.sync(game.areaLot('town'), { x: c.x - ox, z: c.z - oz, tx: this.camera.target.x - ox, tz: this.camera.target.z - oz }, night, (x, z) => game.roomOf({ x, z }, 'town'));
+    }
     this.dynTimer -= dt;
     if (this.dynTimer <= 0 || night !== this.lastNight) {
       this.dynTimer = 0.5;
       this.lotView.refreshDynamic(st.lot, night);
+      if (st.town) this.townView.refreshDynamic(game.areaLot('town'), night);
       const occ = game.grid().occ;
       this.lotView.setWeeds(st.lot, st.household.weeds, (x, z) => !st.lot.floors[z * st.lot.width + x] && occ[z * st.lot.width + x] === -1 && game.roomOf({ x: x + 0.5, z: z + 0.5 }) === 0);
     }
@@ -266,7 +276,7 @@ export class WorldView {
     const seen = new Set<number>();
     for (const sim of game.state.sims) {
       let av = this.avatars.get(sim.id);
-      if (sim.location !== 'lot') { av?.setVisible(false); continue; }
+      if (sim.location !== 'lot' && sim.location !== 'town') { av?.setVisible(false); continue; }
       seen.add(sim.id);
       if (!av) {
         av = new SimAvatar(this.scene, sim.id, sim.appearance, (m) => this.shadows?.addShadowCaster(m));
@@ -327,13 +337,27 @@ export class WorldView {
     return this.project(p.x, p.y + (av.pet.species === 'dog' ? 0.85 : av.pet.species === 'cat' ? 0.65 : 0.45), p.z);
   }
 
+  /** Where a Sim is in the world (town Sims are stored in town tiles). */
+  worldPos(sim: Sim): { x: number; z: number } {
+    return sim.location === 'town' ? { x: sim.pos.x + TOWN_ORIGIN.x, z: sim.pos.z + TOWN_ORIGIN.z } : { x: sim.pos.x, z: sim.pos.z };
+  }
+
   private poseSim(av: SimAvatar, sim: Sim, game: Game, dt: number, speed: number) {
-    const target = new Vector3(sim.pos.x, 0, sim.pos.z);
+    const wp = this.worldPos(sim);
+    const target = new Vector3(wp.x, 0, wp.z);
+    // Swinging to and fro on the park swings.
+    const cur = sim.current;
+    if (cur?.phase === 'perform' && cur.interactionId === 'swing') {
+      const sw = Math.sin(this.time * 2.4) * 0.45;
+      target.x -= Math.sin(sim.facing) * sw;
+      target.z -= Math.cos(sim.facing) * sw;
+      target.y = Math.abs(sw) * 0.35;
+    }
     const r = av.root;
     // Smooth movement between simulation steps.
     const d = Vector3.Distance(r.position, target);
     if (d > 2) r.position.copyFrom(target);
-    else Vector3.LerpToRef(r.position, target, Math.min(1, dt * 14), r.position);
+    else Vector3.LerpToRef(r.position, target, Math.min(1, dt * (cur?.interactionId === 'swing' ? 30 : 14)), r.position);
     let diff = sim.facing - r.rotation.y;
     while (diff > Math.PI) diff -= Math.PI * 2;
     while (diff < -Math.PI) diff += Math.PI * 2;

@@ -32,7 +32,7 @@ export function runSchedules(game: Game, dt: number): void {
   for (const sim of game.household()) {
     // Coming home from work or an outing.
     if ((sim.location === 'work' || sim.location === 'away') && now >= sim.awayUntil) returnHome(game, sim);
-    if (!sim.career || sim.location !== 'lot') continue;
+    if (!sim.career || (sim.location !== 'lot' && sim.location !== 'town')) continue;
     const lvl = careerLevel(sim)!;
     if (!worksToday(game, sim) || sim.career.workedToday) continue;
     const start = lvl.start * 60;
@@ -48,7 +48,7 @@ export function runSchedules(game: Game, dt: number): void {
 
   // Visitors leave when their visit is over.
   for (const sim of game.state.sims) {
-    if (!sim.isTownie || sim.location !== 'lot') continue;
+    if (!sim.isTownie || (sim.location !== 'lot' && sim.location !== 'town')) continue;
     if (now >= sim.visitUntil && sim.current?.kind !== 'leave' && !sim.queue.some((q) => q.kind === 'leave')) {
       interrupt(game, sim);
       sim.queue = [];
@@ -61,7 +61,11 @@ export function runSchedules(game: Game, dt: number): void {
     if (now >= v.at) {
       game.state.pendingVisits = game.state.pendingVisits.filter((p) => p !== v);
       const townie = game.sim(v.simId);
-      if (townie && townie.location !== 'lot') arriveVisitor(game, townie, 180);
+      if (townie && townie.location !== 'lot') {
+        // Someone out in the park drops what they're doing and comes round.
+        if (townie.location === 'town') { interrupt(game, townie); townie.queue = []; townie.current = null; }
+        arriveVisitor(game, townie, 180);
+      }
     }
   }
 

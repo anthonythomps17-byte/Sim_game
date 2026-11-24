@@ -15,6 +15,8 @@ import { binsOverflowing, binWindow, homeSpecial, noHotWater, selfSpecial } from
 import { applyPetAction, petCondition, petObjectSpecial, pooAt, speciesOf } from './pets';
 import { addClothesDirt, changeClothes, cleanClothes, dirtOf } from './clothes';
 import { callDone, textDone } from './phone';
+import { cafeOpen, nearestExit, townGate } from './town';
+import type { Area } from './game';
 import type { NeedId, PlacedObject, Point, QueuedAction, RunningAction, Sim, SkillId } from './types';
 
 export const WALK_SPEED = 1.7; // tiles per game minute
@@ -80,7 +82,11 @@ export interface Availability { ok: boolean; hidden?: boolean; reason?: string }
 
 export function checkInteraction(game: Game, sim: Sim, obj: PlacedObject, inter: InteractionDef): Availability {
   const visitor = !game.isHousehold(sim);
-  if (visitor && !inter.visitor) return { ok: false, hidden: true };
+  const inTown = game.objectArea(obj.id) === 'town';
+  // Out in town everything is public; at home, guests only use what guests may.
+  if (visitor && !inter.visitor && !inTown) return { ok: false, hidden: true };
+  if (inTown && (inter.condition === 'dirty' || inter.condition === 'broken' || inter.special === 'unblock' || inter.special === 'plumber' || inter.special === 'engineer')) return { ok: false, hidden: true };
+  if (inter.price && !visitor && game.state.household.funds < inter.price) return { ok: false, reason: `Costs £${inter.price}` };
   switch (inter.condition) {
     case 'dirty': if (obj.dirt < 30) return { ok: false, hidden: true }; break;
     case 'grown': if (obj.growth < 100) return { ok: false, hidden: true }; break;
@@ -116,6 +122,13 @@ export function checkInteraction(game: Game, sim: Sim, obj: PlacedObject, inter:
       if (game.isNight()) return { ok: false, reason: 'Wait until morning' };
       break;
     case 'dryWashing': if (!obj.load || obj.growth < 100) return { ok: false, hidden: true }; break;
+    case 'cafeOpen': if (!cafeOpen(game)) return { ok: false, reason: 'The café is open 7am–7pm' }; break;
+    case 'iceCream': {
+      const season = calendarOf(game.day).season.id;
+      if (season === 'winter') return { ok: false, reason: 'No ice creams in winter! Come back in spring' };
+      if (game.hour < 10 || game.hour >= 18) return { ok: false, reason: 'The van is here 10am–6pm' };
+      break;
+    }
     case 'dirtyClothes':
       if (dirtOf(sim) < 25) return { ok: false, hidden: true };
       if (cleanClothes(game) <= 0) return { ok: false, reason: 'No clean clothes left. Do the washing!' };
@@ -174,7 +187,7 @@ export interface SeatChoice { obj: PlacedObject; spot: number; world: SpotWorld;
 export function findSeat(game: Game, sim: Sim, near: Point, maxDist: number, faceTowards?: Point, preferDining = false): SeatChoice | null {
   let best: SeatChoice | null = null;
   let bestScore = Infinity;
-  for (const obj of game.state.lot.objects) {
+  for (const obj of game.areaLot().objects) {
     const def = OBJECTS[obj.defId];
     if (!def.seat) continue;
     def.spots.forEach((spot, i) => {
@@ -227,9 +240,36 @@ function baseRunning(q: QueuedAction): RunningAction {
   return { ...q, phase: 'route', path: [], pathIndex: 0, elapsed: 0, duration: 10, rates: {}, anim: 'idle', untilFull: [], waitTime: 0 };
 }
 
+/** Which map an action happens on. */
+function targetArea(game: Game, sim: Sim, q: QueuedAction): Area {
+  const here = game.areaOf(sim);
+  switch (q.kind) {
+    case 'object': return game.objectArea(q.objectId!) ?? here;
+    case 'goto': return q.area ?? here;
+    case 'social': { const t = game.sim(q.targetSimId!); return t && game.present(t) ? game.areaOf(t) : here; }
+    case 'pet': return 'home';
+    // Work and outings leave from the house; townies leave town by the nearest road.
+    case 'work': case 'outing': return game.isHousehold(sim) ? 'home' : here;
+    default: return here;
+  }
+}
+
 function startAction(game: Game, sim: Sim, q: QueuedAction): RunningAction | null {
   const r = baseRunning(q);
   const grid = game.grid();
+  const here = game.areaOf(sim);
+  const want = targetArea(game, sim, q);
+  if (want !== here && q.kind !== 'respond' && game.state.town) {
+    // First walk to the front gate, then carry on from the other side.
+    const gate = here === 'home' ? game.exitTile() : townGate(game);
+    const path = findPath(grid, sim.pos, gate);
+    if (!path) { fail(game, sim, '❓', here === 'home' ? "can't get out of the house" : "can't find the way home", q); return null; }
+    r.path = path;
+    r.duration = 0;
+    r.anim = 'walk';
+    r.crossTo = want;
+    return r;
+  }
   switch (q.kind) {
     case 'object': {
       const obj = game.object(q.objectId!);
@@ -324,7 +364,7 @@ function startAction(game: Game, sim: Sim, q: QueuedAction): RunningAction | nul
     case 'social': {
       const target = game.sim(q.targetSimId!);
       const social = SOCIALS[q.socialId!];
-      if (!target || target.location !== 'lot' || !social) return null;
+      if (!target || !game.sameArea(sim, target) || !social) return null;
       const check = socialCheck(game, sim, target, social);
       if (!check.ok) { fail(game, sim, '🚫', check.reason ?? 'not now', q); return null; }
       const path = pathNextTo(game, sim, target.pos);
@@ -369,7 +409,8 @@ function startAction(game: Game, sim: Sim, q: QueuedAction): RunningAction | nul
         if (!chk.ok && !chk.why?.startsWith('Open') && !chk.why?.startsWith('Only')) { fail(game, sim, '🚫', chk.why ?? `can't go to ${o.name}`, q); return null; }
       }
       }
-      const path = findPath(grid, sim.pos, game.exitTile()) ?? [];
+      const exit = here === 'town' ? nearestExit(sim.pos) : game.exitTile();
+      const path = findPath(grid, sim.pos, exit) ?? [];
       r.path = path;
       r.duration = 0;
       r.anim = 'walk';
@@ -458,7 +499,7 @@ function walk(game: Game, sim: Sim, cur: RunningAction, dt: number): void {
       sim.pos = { x: tx, z: tz };
       budget -= dist;
       cur.pathIndex++;
-      if (game.isHousehold(sim)) treadCheck(game, sim, t.x, t.z);
+      if (game.isHousehold(sim) && game.ctx === 'home') treadCheck(game, sim, t.x, t.z);
     } else {
       sim.pos = { x: sim.pos.x + (dx / dist) * budget, z: sim.pos.z + (dz / dist) * budget };
       budget = 0;
@@ -468,7 +509,31 @@ function walk(game: Game, sim: Sim, cur: RunningAction, dt: number): void {
   arrive(game, sim, cur);
 }
 
+/** Step through the front gate into the other map, then start the action again from there. */
+function crossOver(game: Game, sim: Sim, cur: RunningAction): void {
+  const to = cur.crossTo!;
+  releaseReservation(game, sim);
+  sim.current = null;
+  sim.anim = 'idle';
+  if (to === 'town') {
+    const g = townGate(game);
+    sim.counters.leftHomeAt = game.state.time;
+    sim.counters.tripDay = game.day;
+    if (game.isHousehold(sim)) addMoodlet(sim, 'fresh_air', game.state.time);
+    sim.location = 'town';
+    sim.pos = { x: g.x + 0.5, z: g.z + 0.5 };
+  } else {
+    const e = game.exitTile();
+    sim.location = 'lot';
+    sim.pos = { x: e.x + 0.5, z: e.z + 0.5 };
+  }
+  const { phase, path, pathIndex, elapsed, duration, rates, anim, untilFull, tags, reserved, pose, returnTo, skill, skillRate, waitTime, partnerOk, crossTo, ...q } = cur;
+  void phase; void path; void pathIndex; void elapsed; void duration; void rates; void anim; void untilFull; void tags; void reserved; void pose; void returnTo; void skill; void skillRate; void waitTime; void partnerOk; void crossTo;
+  sim.queue.unshift(q);
+}
+
 function arrive(game: Game, sim: Sim, cur: RunningAction): void {
+  if (cur.crossTo) { crossOver(game, sim, cur); return; }
   switch (cur.kind) {
     case 'goto':
       finish(game, sim, true);
@@ -501,7 +566,7 @@ function arrive(game: Game, sim: Sim, cur: RunningAction): void {
     }
     case 'social': {
       const target = game.sim(cur.targetSimId!);
-      if (!target || target.location !== 'lot') { finish(game, sim, false); return; }
+      if (!target || !game.sameArea(sim, target)) { finish(game, sim, false); return; }
       const d = Math.hypot(target.pos.x - sim.pos.x, target.pos.z - sim.pos.z);
       if (d > 2.4) {
         cur.waitTime++;
@@ -633,6 +698,7 @@ function completeInteraction(game: Game, sim: Sim, obj: PlacedObject, inter: Int
   if (inter.counter) sim.counters[inter.counter] = (sim.counters[inter.counter] ?? 0) + 1;
   if (inter.condition === 'once' || inter.condition === 'nightOnce') sim.counters[onceKey(obj, inter)] = 1;
   if (inter.food) useFood(game, inter.food);
+  if (inter.price && game.isHousehold(sim)) { game.addFunds(-inter.price); game.sound('cash'); }
   if (inter.dirties && obj.defId !== 'magic_loo') obj.dirt = Math.min(100, obj.dirt + inter.dirties);
   if (inter.cleans) { obj.dirt = 0; game.recomputeRooms(); }
   if (inter.cleansRoom) {
@@ -690,7 +756,7 @@ function completeInteraction(game: Game, sim: Sim, obj: PlacedObject, inter: Int
 
 /** A random reachable tile indoors (or in the garden) for chores like hoovering and weeding. */
 function pathToArea(game: Game, sim: Sim, where: 'in' | 'out'): Point[] | null {
-  const lot = game.state.lot;
+  const lot = game.areaLot();
   const grid = game.grid();
   for (let i = 0; i < 40; i++) {
     const x = Math.floor(random(game.state) * lot.width), z = 1 + Math.floor(random(game.state) * (lot.depth - 1));

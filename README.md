@@ -52,6 +52,18 @@ All eight roadmap milestones from the spec have a playable version:
 
 Ashton flavour: red-brick terraces and slate roofs, a church spire and pit-head winding gear on the skyline, an Engineer career at the lock and hinge works, a Locksmith's Workbench, and off-lot outings to the High Street, the market (Tuesdays and Saturdays, with rare finds), the Gerard Centre, the football ground, the racecourse on Saturdays, St Thomas' green and a heritage museum. Your home, street and school stay fictional.
 
+## Out and about
+
+Sims can walk out of the front door into the neighbourhood. The street outside, Town Green Park and the Town Green Café are real places to walk around, not just a timer.
+
+- **Getting there:** tap your Sim → 🌳 Go to the park or ☕ Go to the café, tap anything in the park or café, or tap the pavement → Go here. They walk down Larkfield Close and Wellbrook Road to get there. Tap your Sim → 🏠 Go home to come back.
+- **Walk mode (🕹️):** steer your Sim yourself with the joystick (or WASD / arrow keys on a computer) while the camera follows. Walk straight out of the garden into the street. Tapping still works for using things and chatting.
+- **The park:** swings, a slide, picnic tables, benches, an outdoor chess table, the duck pond (feed the ducks), a football goal for a kickabout, and the ice cream van (spring to autumn, 10am–6pm).
+- **The café** (open 7am–7pm): order a coffee, tea and cake, a hot chocolate or a full English breakfast at the counter, then sit at a table. There's a customer toilet, armchairs and a bookshelf.
+- **Neighbours are out too:** they come and go through the day (more at weekends), using the park and café. Chat to them to make friends; then they're in your phone's contacts.
+- With free will, your Sims go out for a while now and then when they're bored or lonely, and head home when tired or when it gets late.
+- **Relaxed needs** (Settings): needs go down about half as fast, for more time to explore.
+
 ## Everyday life
 
 - **Time:** at normal speed the day (7am–9pm) takes 15 real minutes and the night 8.5. Speeds 2x and 3x are faster. While everyone is out (work, holidays) the game skips ahead; skipping while everyone sleeps is an option in Settings.
@@ -133,6 +145,8 @@ src/
     build.ts  Build/buy commands (all money checks happen here)
     lot.ts, path.ts  Grid, walls, rooms, A* pathfinding
     commands.ts  Everything a player can do, as data (run here, or sent to the host device)
+    town.ts   The park, café and streets: a second walkable map joined at the front gate
+    steer.ts  Walking a Sim directly (joystick)
   view/       Babylon.js: reads the game state and draws it
     world.ts  Engine, lights, sky, picking
     lotView.ts  Walls (cutaway), floors, furniture, previews
@@ -157,7 +171,7 @@ The spec suggests Kenney/Quaternius glTF packs and Mixamo animations. This versi
 ## Not in this version
 
 - Playing together needs the internet (the rest of the game still works offline). Only one household is shared at a time, and the host device has to stay awake.
-- Visiting community lots in 3D (the places exist as off-lot outings for now).
+- More places to walk into (the high street, Aldi and the school are still off-screen outings for now).
 - Ageing and generations, multiple lots, online play (out of scope for v1 in the spec).
 - Hand-made art: everything is procedural for now.
 

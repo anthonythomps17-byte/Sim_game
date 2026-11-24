@@ -64,6 +64,8 @@ export interface QueuedAction {
   petId?: number;
   petAction?: string;
   dest?: Point;
+  /** Which map `dest` is on (default: where the Sim is). */
+  area?: 'home' | 'town';
   /** Inline definition for 'seat' follow-ups (eat a cooked meal, etc). */
   inline?: InlineAction;
 }
@@ -98,6 +100,8 @@ export interface RunningAction extends QueuedAction {
   skillRate?: number;
   waitTime: number;
   partnerOk?: boolean;
+  /** Walking to the front gate first, to carry on in the other map. */
+  crossTo?: 'home' | 'town';
 }
 
 export interface CareerState {
@@ -156,7 +160,12 @@ export interface Sim {
   anim: AnimId;
   /** Furniture the Sim is posed on (sitting, sleeping). */
   poseObjectId: number | null;
-  location: 'lot' | 'work' | 'away' | 'home';
+  /** 'lot' = at the home lot, 'town' = out in the park, café or streets (pos in town tiles). */
+  location: 'lot' | 'town' | 'work' | 'away' | 'home';
+  /** Walking under the player's direct control (joystick), until this time. */
+  steer?: { dx: number; dz: number; until: number } | null;
+  /** Free will leaves this Sim alone until this time (the player just steered them). */
+  manualUntil?: number;
   awayUntil: number;
   awayReason?: string;
   queue: QueuedAction[];
@@ -268,7 +277,9 @@ export interface GameState {
   lot: Lot;
   bills: Bills | null;
   notifications: GameNotification[];
-  settings: { freeWill: FreeWill; romance: boolean };
+  settings: { freeWill: FreeWill; romance: boolean; relaxed?: boolean };
+  /** The park and café (layout from code; furniture here so seats can be reserved). */
+  town?: { version: number; objects: PlacedObject[] };
   nextId: number;
   selectedSimId: number;
   lastVisitDay: number;

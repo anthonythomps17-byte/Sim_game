@@ -28,6 +28,8 @@ export class CameraController {
   maxBeta = 1.32;
   bounds = { minX: -8, maxX: 30, minZ: -8, maxZ: 26 };
   enabled = true;
+  /** Walk mode: the movement keys walk the Sim instead of moving the camera. */
+  walkKeys = false;
 
   private pointers = new Map<number, Ptr>();
   private mode: 'none' | 'pending' | 'pan' | 'tool' | 'orbit' | 'gesture' = 'none';
@@ -195,6 +197,23 @@ export class CameraController {
   tiltBy(db: number) { this.beta += db; this.clamp(); }
   zoomBy(f: number) { this.radius *= f; this.clamp(); }
 
+  /** Movement keys held right now: [right, forward] each -1..1. */
+  walkInput(): [number, number] {
+    const k = this.keys;
+    let x = 0, y = 0;
+    if (k.has('w') || k.has('arrowup')) y += 1;
+    if (k.has('s') || k.has('arrowdown')) y -= 1;
+    if (k.has('a') || k.has('arrowleft')) x -= 1;
+    if (k.has('d') || k.has('arrowright')) x += 1;
+    return [x, y];
+  }
+
+  /** Ground direction for screen input (right, forward), relative to where the camera looks. */
+  groundDir(right: number, forward: number): { x: number; z: number } {
+    const fx = -Math.cos(this.alpha), fz = -Math.sin(this.alpha);
+    return { x: fx * forward + fz * right, z: fz * forward - fx * right };
+  }
+
   focus(x: number, z: number) {
     this.target.x = x;
     this.target.z = z;
@@ -212,14 +231,17 @@ export class CameraController {
     // Keyboard.
     const k = this.keys;
     if (k.size) {
+      const walk = this.walkKeys;
       const speed = this.radius * 0.9 * dt;
       const fx = -Math.cos(this.alpha), fz = -Math.sin(this.alpha);
       const rx = -fz, rz = fx;
       let mx = 0, mz = 0;
-      if (k.has('w') || k.has('arrowup')) { mx += fx; mz += fz; }
-      if (k.has('s') || k.has('arrowdown')) { mx -= fx; mz -= fz; }
-      if (k.has('a') || k.has('arrowleft')) { mx += rx; mz += rz; }
-      if (k.has('d') || k.has('arrowright')) { mx -= rx; mz -= rz; }
+      if (!walk) {
+        if (k.has('w') || k.has('arrowup')) { mx += fx; mz += fz; }
+        if (k.has('s') || k.has('arrowdown')) { mx -= fx; mz -= fz; }
+        if (k.has('a') || k.has('arrowleft')) { mx += rx; mz += rz; }
+        if (k.has('d') || k.has('arrowright')) { mx -= rx; mz -= rz; }
+      }
       this.target.x += mx * speed;
       this.target.z += mz * speed;
       if (k.has('q')) this.alpha += dt * 1.5;

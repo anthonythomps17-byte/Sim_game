@@ -1,5 +1,6 @@
 // Everyday life systems: the calendar and holidays, food shopping, driving, parties and noise,
 // and how fast the clock runs by day and by night.
+import { townHour } from './town';
 import { addClothesDirt, clothesHour } from './clothes';
 import { phoneHour } from './phone';
 import { CAREERS, OBJECTS, OUTINGS, type OutingDef } from './defs';
@@ -176,6 +177,7 @@ export function onHour(game: Game, hour: number): void {
   petsHour(game, hour);
   clothesHour(game, hour);
   phoneHour(game, hour);
+  townHour(game, hour);
   const cal = calendarOf(game.day);
   if (hour === 0) {
     removeExpiredTemps(game);

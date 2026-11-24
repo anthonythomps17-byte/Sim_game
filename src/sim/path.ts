@@ -2,7 +2,43 @@
 import { inLot, wallBetween } from './lot';
 import type { Lot, Point } from './types';
 
-export interface PathGrid { lot: Lot; occ: Int32Array }
+export interface PathGrid { lot: Lot; occ: Int32Array; edges?: Uint8Array }
+
+/**
+ * Walls as a table instead of string keys (much faster). Stride width + 1.
+ * Tile (x, z): 1 = wall on its x edge (between x-1 and x), 2 = that wall is a door,
+ * 4 = wall on its z edge (between z-1 and z), 8 = that wall is a door.
+ */
+export function buildEdges(lot: Lot): Uint8Array {
+  const s = lot.width + 1;
+  const e = new Uint8Array(s * (lot.depth + 1));
+  for (const key in lot.walls) {
+    const [d, xs, zs] = key.split(',');
+    const x = Number(xs), z = Number(zs);
+    if (x < 0 || z < 0 || x > lot.width || z > lot.depth) continue;
+    const door = lot.walls[key].kind === 'door';
+    if (d === 'v') e[z * s + x] |= door ? 3 : 1;
+    else e[z * s + x] |= door ? 12 : 4;
+  }
+  return e;
+}
+
+/** 0 = no wall, 1 = wall or window, 2 = door, between orthogonal neighbours. */
+function edgeBetween(g: PathGrid, x: number, z: number, nx: number, nz: number): number {
+  const e = g.edges;
+  if (!e) {
+    const w = wallBetween(g.lot, x, z, nx, nz);
+    return !w ? 0 : w.kind === 'door' ? 2 : 1;
+  }
+  const s = g.lot.width + 1;
+  let v: number;
+  if (nx === x + 1) v = e[z * s + nx] & 3;
+  else if (nx === x - 1) v = e[z * s + x] & 3;
+  else if (nz === z + 1) v = (e[nz * s + x] >> 2) & 3;
+  else if (nz === z - 1) v = (e[z * s + x] >> 2) & 3;
+  else return 0;
+  return v === 0 ? 0 : v === 3 ? 2 : 1;
+}
 
 function tileOpen(g: PathGrid, x: number, z: number, allow?: Point): boolean {
   if (!inLot(g.lot, x, z)) return false;
@@ -12,15 +48,14 @@ function tileOpen(g: PathGrid, x: number, z: number, allow?: Point): boolean {
 
 function orthoPassable(g: PathGrid, x: number, z: number, nx: number, nz: number, allow?: Point): boolean {
   if (!tileOpen(g, nx, nz, allow)) return false;
-  const wall = wallBetween(g.lot, x, z, nx, nz);
-  return !wall || wall.kind === 'door';
+  return edgeBetween(g, x, z, nx, nz) !== 1;
 }
 
 export function canStep(g: PathGrid, x: number, z: number, nx: number, nz: number, allow?: Point): boolean {
   const dx = nx - x, dz = nz - z;
   if (dx === 0 || dz === 0) return orthoPassable(g, x, z, nx, nz, allow);
   // Diagonal: both L-shaped routes must be clear and must not go through doors.
-  const wallFree = (ax: number, az: number, bx: number, bz: number) => !wallBetween(g.lot, ax, az, bx, bz);
+  const wallFree = (ax: number, az: number, bx: number, bz: number) => edgeBetween(g, ax, az, bx, bz) === 0;
   return (
     tileOpen(g, nx, nz, allow) && tileOpen(g, x + dx, z) && tileOpen(g, x, z + dz) &&
     wallFree(x, z, x + dx, z) && wallFree(x + dx, z, nx, nz) &&

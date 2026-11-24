@@ -14,6 +14,7 @@ import { addMoodlet } from './mood';
 import { REWARD_TRAITS } from './defs';
 import { answerCall, answerOffer, markRead, order, sendText, startCall, SHOP_ITEMS, type TextKind } from './phone';
 import { vetVisit } from './pets';
+import { setSteer } from './steer';
 
 export type Cmd =
   | { t: 'queue'; simId: number; action: Omit<QueuedAction, 'uid'> }
@@ -50,7 +51,9 @@ export type Cmd =
   | { t: 'offer'; simId: number; msgId: number; yes: boolean }
   | { t: 'readPhone'; simId: number }
   | { t: 'order'; item: string }
-  | { t: 'vet'; petId: number };
+  | { t: 'vet'; petId: number }
+  | { t: 'steer'; simId: number; dx: number; dz: number }
+  | { t: 'relaxed'; on: boolean };
 
 /** Money a command costs, checked against the player's allowance in family mode. */
 export interface Spend { amount: number; what: string; household?: boolean }
@@ -272,6 +275,16 @@ function exec(game: Game, cmd: Cmd): CmdResult {
       const r = order(game, cmd.item);
       return r.ok ? { ok: true, toast: { text: `Ordered: ${SHOP_ITEMS[cmd.item]?.name}. It'll arrive in ${SHOP_ITEMS[cmd.item]?.hours} hours.`, icon: '📦' } } : fail(r.why);
     }
+    case 'steer': {
+      const sim = simOf(cmd.simId);
+      if (!sim || !game.present(sim)) return fail();
+      if (!canControl(st, sim)) return fail(`${first(sim.name)} is ${ownerOf(st, sim.id)?.name}'s Sim.`);
+      setSteer(game, sim, Number(cmd.dx) || 0, Number(cmd.dz) || 0);
+      return OK;
+    }
+    case 'relaxed':
+      st.settings.relaxed = !!cmd.on;
+      return OK;
     case 'vet': {
       const r = vetVisit(game, cmd.petId);
       return r.ok ? OK : fail(r.why);

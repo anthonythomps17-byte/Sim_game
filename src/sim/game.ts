@@ -6,7 +6,7 @@ import {
   type RoomInfo,
 } from './lot';
 import { addMoodlet, clamp, expireMoodlets, needDecayMult } from './mood';
-import type { PathGrid } from './path';
+import { buildEdges, type PathGrid } from './path';
 import { stepSim, releaseAll } from './actions';
 import { runSchedules } from './schedule';
 import { runLife } from './life';
@@ -14,7 +14,11 @@ import { dryWashing, roomPenalty } from './home';
 import { petsTick } from './pets';
 import { clothesTick } from './clothes';
 import { phoneTick } from './phone';
-import type { GameEvent, GameNotification, GameState, NeedId, PlacedObject, Point, Sim } from './types';
+import type { GameEvent, GameNotification, GameState, Lot, NeedId, PlacedObject, Point, Sim } from './types';
+import { townLot, townMask } from './town';
+import { stepSteer } from './steer';
+
+export type Area = 'home' | 'town';
 import { NEED_IDS } from './types';
 
 export const MINUTES_PER_DAY = 1440;
@@ -31,6 +35,14 @@ export class Game {
   unreachable = new Map<string, number>();
   /** The lot changed since the last replaceState (a guest device predicting ahead). */
   private lotTouched = false;
+  /** Which map the code running now is about (set while updating each Sim). */
+  ctx: Area = 'home';
+  private townCache: { lot: Lot | null } = { lot: null };
+  private townOcc: Int32Array | null = null;
+  private townOccFor: PlacedObject[] | null = null;
+  private townRooms: RoomInfo | null = null;
+  private edges: Uint8Array | null = null;
+  private townEdges: Uint8Array | null = null;
 
   constructor(state: GameState) {
     this.state = state;
@@ -41,7 +53,30 @@ export class Game {
   sim(id: number): Sim | undefined { return this.state.sims.find((s) => s.id === id); }
   household(): Sim[] { return this.state.household.memberIds.map((id) => this.sim(id)!).filter(Boolean); }
   simsOnLot(): Sim[] { return this.state.sims.filter((s) => s.location === 'lot'); }
-  object(id: number): PlacedObject | undefined { return this.state.lot.objects.find((o) => o.id === id); }
+  /** Sims on a map: the home lot or out in town. */
+  simsIn(area: Area): Sim[] { return this.state.sims.filter((s) => s.location === (area === 'town' ? 'town' : 'lot')); }
+  areaOf(sim: Sim): Area { return sim.location === 'town' ? 'town' : 'home'; }
+  /** Is this Sim somewhere you can see them (home or town)? */
+  present(sim: Sim): boolean { return sim.location === 'lot' || sim.location === 'town'; }
+  sameArea(a: Sim, b: Sim): boolean { return this.present(a) && a.location === b.location; }
+  object(id: number): PlacedObject | undefined {
+    return this.state.lot.objects.find((o) => o.id === id) ?? this.state.town?.objects.find((o) => o.id === id);
+  }
+  objectArea(id: number): Area | undefined {
+    if (this.state.lot.objects.some((o) => o.id === id)) return 'home';
+    if (this.state.town?.objects.some((o) => o.id === id)) return 'town';
+    return undefined;
+  }
+  /** The map's lot: home, or the town (park, café and streets). */
+  areaLot(area: Area = this.ctx): Lot {
+    return area === 'town' && this.state.town ? townLot(this.state, this.townCache) : this.state.lot;
+  }
+  /** Run something as if it were happening on a map (pathfinding, objects, rooms). */
+  inArea<T>(area: Area, fn: () => T): T {
+    const before = this.ctx;
+    this.ctx = area;
+    try { return fn(); } finally { this.ctx = before; }
+  }
   isHousehold(sim: Sim): boolean { return this.state.household.memberIds.includes(sim.id); }
   nextId(): number { return this.state.nextId++; }
 
@@ -53,17 +88,34 @@ export class Game {
 
   exitTile(): Point { return { x: Math.floor(this.state.lot.width / 2) - 4, z: 0 }; }
 
-  grid(): PathGrid {
-    if (!this.occ) this.occ = buildOccupancy(this.state.lot);
-    return { lot: this.state.lot, occ: this.occ };
+  grid(area: Area = this.ctx): PathGrid {
+    if (area === 'town' && this.state.town) {
+      const lot = this.areaLot('town');
+      if (!this.townOcc || this.townOccFor !== lot.objects) {
+        // Furniture, plus everything that isn't pavement, road, park or café.
+        const occ = buildOccupancy(lot);
+        const mask = townMask();
+        for (let i = 0; i < occ.length; i++) if (!mask[i]) occ[i] = -2;
+        this.townOcc = occ;
+        this.townOccFor = lot.objects;
+      }
+      this.townEdges ??= buildEdges(lot);
+      return { lot, occ: this.townOcc, edges: this.townEdges };
+    }
+    if (!this.occ) { this.occ = buildOccupancy(this.state.lot); this.edges = buildEdges(this.state.lot); }
+    return { lot: this.state.lot, occ: this.occ, edges: this.edges ?? undefined };
   }
 
-  roomInfo(): RoomInfo {
+  roomInfo(area: Area = 'home'): RoomInfo {
+    if (area === 'town' && this.state.town) {
+      if (!this.townRooms) this.townRooms = computeRooms(this.areaLot('town'));
+      return this.townRooms;
+    }
     if (!this.rooms) this.rooms = computeRooms(this.state.lot);
     return this.rooms;
   }
 
-  roomOf(p: Point): number { return roomAt(this.roomInfo(), this.state.lot, p); }
+  roomOf(p: Point, area: Area = this.ctx): number { return roomAt(this.roomInfo(area), this.areaLot(area), p); }
 
   /** Call after any wall, floor or object change. */
   lotChanged(): void {
@@ -82,6 +134,7 @@ export class Game {
    */
   replaceState(next: GameState): boolean {
     const lotChanged = next.lot.version !== this.state.lot.version || this.lotTouched;
+    if (next.town?.version !== this.state.town?.version) { this.townRooms = null; this.townEdges = null; }
     this.state = next;
     this.lotTouched = false;
     if (lotChanged) {
@@ -171,7 +224,7 @@ export class Game {
     return false;
   }
 
-  roomScoreAt(p: Point): number { return this.roomScores[this.roomOf(p)] ?? 50; }
+  roomScoreAt(p: Point): number { return this.roomScores[this.roomOf(p, 'home')] ?? 50; }
 
   // ---------- Tick ----------
   /** Advance the simulation by `minutes` of game time. */
@@ -194,9 +247,11 @@ export class Game {
       if (sim.thought && sim.thought.until < now) sim.thought = null;
       if (sim.location === 'home') continue;
       this.decayNeeds(sim, dt);
-      if (sim.location === 'lot') {
-        stepSim(this, sim, dt);
-        this.checkFailures(sim);
+      if (sim.location === 'lot' || sim.location === 'town') {
+        this.inArea(this.areaOf(sim), () => {
+          if (!stepSteer(this, sim, dt)) stepSim(this, sim, dt);
+          this.checkFailures(sim);
+        });
       }
     }
 
@@ -230,6 +285,7 @@ export class Game {
       if (performing && (cur!.rates[need] ?? 0) > 0) continue; // being filled
       let rate = NEEDS[need].decayPerHour / 60;
       rate *= needDecayMult(sim, need, sitting);
+      if (this.state.settings.relaxed && this.isHousehold(sim)) rate *= 0.55;
       if (sleeping) rate *= need === 'bladder' ? 0.6 : NEED_TUNING.sleepingDecayMult;
       if (sitting && need === 'energy') rate *= NEED_TUNING.sittingEnergyMult;
       if (atWork) rate *= NEED_TUNING.workDecayMult;
@@ -247,7 +303,7 @@ export class Game {
       sim.needs.comfort = clamp(sim.needs.comfort + (NEED_TUNING.sittingComfortPerHour / 60) * dt * 0.7, 0, 100);
     }
     // Room need drifts towards how nice the current room is.
-    const target = sim.location === 'lot' ? this.roomScoreAt(sim.pos) : 60;
+    const target = sim.location === 'lot' ? this.roomScoreAt(sim.pos) : sim.location === 'town' ? 68 : 60;
     const diff = target - sim.needs.room;
     sim.needs.room = clamp(sim.needs.room + Math.sign(diff) * Math.min(Math.abs(diff), (25 / 60) * dt), 0, 100);
   }

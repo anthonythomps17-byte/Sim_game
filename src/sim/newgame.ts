@@ -1,4 +1,5 @@
 // Creating Sims, townies and a fresh game.
+import { createTown } from './town';
 import { ASPIRATIONS, NAMES, OBJECTS, TRAITS } from './defs';
 import { computeRooms, hKey, inLot, parseWallKey, vKey } from './lot';
 import { roomOutlineKeys, wallKeysOnLine } from './build';
@@ -235,6 +236,7 @@ export function createGame(opts: NewGameOptions): GameState {
     st.household.memberIds.push(sim.id);
   });
   st.household.cleanClothes = st.household.memberIds.length * 5;
+  st.town = createTown(st);
   st.household.petTreats = 0;
   // Household members already know each other.
   const ids = st.household.memberIds;
